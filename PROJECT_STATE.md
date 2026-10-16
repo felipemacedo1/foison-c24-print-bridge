@@ -2,7 +2,7 @@
 
 Atualizado em: 2026-10-16 17:05
 Branch: main
-Último commit: 77a3447
+Último commit: ff6a720
 
 ## Objetivo atual
 
@@ -31,6 +31,8 @@ Status: EM DESENVOLVIMENTO
 - [x] SDK .NET local e NSIS local instalados sem privilégios administrativos.
 - [x] Workflow executado: componentes Windows compilaram; geração do instalador
   foi bloqueada corretamente pela ausência do INF/PPD PostScript.
+- [x] Run Actions `38959064970` concluiu; artefatos do receptor e diagnóstico
+  foram baixados e inspecionados.
 
 ## Em andamento
 
@@ -46,7 +48,6 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 
 - Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
 - O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
-- Não há toolchain .NET/Mono local nem developer pack .NET Framework.
 - Não há ambiente Windows para instalar/validar a fila.
 - Ainda falta INF/PPD PostScript legalmente redistribuível e rotina comprovada
   de criação da fila.
@@ -55,7 +56,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 
 ## Testes
 
-- Compilação: NÃO APLICÁVEL (slice Python)
+- Compilação Python: PASSOU; receptor/diagnóstico net48: PASSOU localmente e no
+  run Actions `38959064970`
 - Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO

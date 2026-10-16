@@ -3,6 +3,7 @@
 ## Em andamento
 
 - [ ] TASK-005 — Validar captura de uma fila de impressão no Windows 7
+- [ ] TASK-009 — Obter/validar driver PostScript e criação da fila Windows
 
 ## Próximas
 
@@ -20,3 +21,4 @@
 - [x] TASK-004 — Criar geometria e serialização HPGL experimental
 - [x] TASK-008a — Isolar configuração de transporte e fila segura em simulação
 - [x] TASK-009a — Preparar fonte do instalador e pacote documental sem fingir EXE
+- [x] TASK-009b — Compilar receptor/diagnóstico e publicar artefatos via Actions

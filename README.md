@@ -80,6 +80,9 @@ O build do instalador exige ainda um INF/PPD do driver PostScript que possa ser
 redistribuído legalmente e uma rotina comprovada de criação da fila. Esses
 arquivos não são inventados nem substituídos por um driver aleatório.
 
+O histórico do build Windows e os artefatos publicados estão documentados em
+`docs/windows-build.md`.
+
 Consulte `PROJECT_STATE.md`, `TASKS.md` e `docs/architecture.md` para a fonte
 de verdade operacional.
 

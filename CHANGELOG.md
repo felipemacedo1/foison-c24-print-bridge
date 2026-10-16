@@ -12,6 +12,8 @@
   trabalho de um único transmissor.
 - Receptor `net48` Windows e aplicativo WinForms para exportar diagnóstico.
 - Workflow de build Windows e material RedMon 1.9 x64/GPLv3 verificado.
+- Componentes Windows compilados no run `38959064970`; o instalador foi
+  omitido com status explícito por falta de INF/PPD PostScript redistribuível.
 - Testes unitários determinísticos em Python.
 
 ### Known limitations
