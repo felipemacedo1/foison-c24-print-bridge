@@ -17,6 +17,14 @@ static class Program
     const string Line="<moveto x='0' y='0'/><lineto x='20' y='0'/>";
     static void Main(string[] args)
     {
+        // Framework redirected stdin uses Console.InputEncoding. No encoding
+        // preamble may be injected into the binary RedMon-pipe simulation.
+        Console.InputEncoding=new System.Text.UTF8Encoding(false);
+        var ps=System.Text.Encoding.ASCII.GetBytes("%!PS-Adobe-3.0\nshowpage");
+        Check(PostScriptEnvelope.Normalize(new byte[]{4}.Concat(ps).Concat(new byte[]{4}).ToArray()).SequenceEqual(ps),"PScript EOT wrapper normalized without modifying original");
+        var pjl=System.Text.Encoding.ASCII.GetBytes("\x1b%-12345X@PJL JOB NAME=TEST\r\n@PJL ENTER LANGUAGE=POSTSCRIPT\r\n").Concat(ps).Concat(System.Text.Encoding.ASCII.GetBytes("\x04\x1b%-12345X@PJL EOJ\r\n\x1b%-12345X")).ToArray();
+        Check(PostScriptEnvelope.Normalize(pjl).SequenceEqual(ps),"bounded PJL PostScript envelope normalized");
+        Reject(()=>PostScriptEnvelope.Normalize(System.Text.Encoding.ASCII.GetBytes("\x1b%-12345X@PJL ENTER LANGUAGE=PCL\n%!PS-Adobe-3.0")),"PCL cannot be disguised as PS");
         var p=Profile(); var hash=new string('b',64);
         var drawing=TraceParser.Parse(Trace(Stroke("<moveto x='10' y='10'/><lineto x='30' y='10'/><lineto x='30' y='30'/><lineto x='10' y='30'/><closepath/>")));
         Check(Math.Abs(drawing.Width-20*25.4/72)<1e-9,"points to millimetres");
@@ -60,6 +68,14 @@ static class Program
             Reject(()=>new Sender(folder+"midcancel").Send(cut,Approve(cut),()=>cancelWire,midCancel.Token),"cancel during send");
             Check(cancelWire.Data.Count==1 && cancelWire.Aborted && File.Exists(Path.Combine(folder+"midcancel","INTERRUPTED")),"no commands after cancellation, persistent uncertain latch");
         }
+        bool contention=false;var contendedWire=new FakeWire();
+        var firstWire=new FakeWire { AfterWrite=()=> {
+            if(contention)return;contention=true;
+            Check(File.Exists(Path.Combine(folder+"concurrent","INTERRUPTED")),"crash-safety latch exists before first serial byte");
+            Reject(()=>new Sender(folder+"concurrent").Send(motion,Approve(motion),()=>contendedWire,CancellationToken.None),"second sender excluded by shared journal lock");
+        } };
+        new Sender(folder+"concurrent").Send(cut,Approve(cut),()=>firstWire,CancellationToken.None);
+        Check(!contendedWire.Opened,"concurrent sender cannot open serial");
         var asym=TraceParser.Parse(Trace(Stroke("<moveto x='10' y='20'/><lineto x='30' y='20'/><lineto x='30' y='30'/>")));
         Check(Math.Abs(asym.Paths[0].Points[0].X-10*25.4/72)<1e-9 && Math.Abs(asym.Paths[0].Points[0].Y-20*25.4/72)<1e-9,"asymmetric affine coordinates and Y-up verified numerically");
         p.SwapAxes=true;p.ReverseY=true;
@@ -77,6 +93,8 @@ static class Program
         if(args.Length>=3)
         {
             var converter=new Converter(args[0],args[1]);
+            var clipped=converter.Convert(Path.Combine(args[2],"page-clip.ps"),folder+"-pageclip",CancellationToken.None);
+            Check(Math.Abs(clipped.Width-20)<0.01 && Math.Abs(clipped.Height-20)<0.01,"REAL nonintersecting rectangular driver/page clip preserves square");
             var curves=converter.Convert(Path.Combine(args[2],"curves-open-closed.ps"),folder+"-curves",CancellationToken.None);
             Check(curves.Paths.Count==2 && !curves.Paths[0].Closed && curves.Paths[1].Closed,"REAL bound PostScript procedures, curves, open and filled closed paths");
             Check(Math.Abs(curves.Paths[0].Points.Max(x=>x.X)-curves.Paths[0].Points.Min(x=>x.X)-20)<0.01,"REAL transformed curve scale");
@@ -102,6 +120,7 @@ static class Program
             }
             Check(Directory.GetFiles(captures,"*.raw").Length==2 && Directory.GetFiles(captures,"*.json").Length==2,"atomic capture markers and unique concurrent identities");
             string raw=Directory.GetFiles(captures,"*.raw")[0];
+            Check(MachineProfile.FileHash(raw)==MachineProfile.FileHash(Path.Combine(args[2],"square-20mm.ps")),"binary spool simulation preserves exact SHA256 without encoding preamble");
             var d=new Converter(args[0],args[1]).Convert(raw,folder+"-spool-convert",CancellationToken.None);
             var plan=Hpgl.Build(d,MachineProfile.FileHash(raw),Profile(),false);var serial=new FakeWire();
             new Sender(folder+"-spool-send").Send(plan,Approve(plan),()=>serial,CancellationToken.None);

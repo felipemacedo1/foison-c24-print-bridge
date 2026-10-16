@@ -109,16 +109,21 @@ namespace FoisonC24.Core
                     wire.Open();
                     using(var f=new FileStream(record,FileMode.CreateNew,FileAccess.Write,FileShare.None))
                     using(var writer=new StreamWriter(f)) { writer.Write(plan.Hash+"\nstarted; physical completion unknown"); writer.Flush(); f.Flush(true); }
+                    // Write the global uncertainty latch BEFORE any byte, not only in
+                    // catch: process/power loss cannot run an exception handler.
+                    string latch=Path.Combine(journal,"INTERRUPTED");
+                    using(var f=new FileStream(latch,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+                    using(var writer=new StreamWriter(f)) { writer.Write(plan.Hash+"\nSending or interrupted. Check hardware/buffer before any new job.");writer.Flush();f.Flush(true); }
                     try
                     {
                         foreach(var command in plan.Commands) { cancel.ThrowIfCancellationRequested(); wire.Write(command,cancel); }
                         wire.Drain(cancel);
                         File.AppendAllText(record,"\nhost transmission complete; verify physical result manually");
+                        File.Delete(latch);
                     }
                     catch
                     {
-                        // Persist the uncertain state before attempting to purge/close the host buffer.
-                        File.WriteAllText(Path.Combine(journal,"INTERRUPTED"),plan.Hash+"\nDo not resend. Check plotter buffer and physical state.");
+                        // Latch already persisted, even if diagnostics can no longer be written.
                         wire.Abort(); throw;
                     }
                 }

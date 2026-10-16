@@ -14,17 +14,13 @@ namespace FoisonC24.Core
         public Drawing Convert(string input, string work, CancellationToken cancel)
         {
             if (!File.Exists(input) || new FileInfo(input).Length > 64L*1024*1024) throw new InvalidDataException("Entrada ausente ou acima de 64 MiB.");
-            using (var f = File.OpenRead(input))
-            {
-                var h = new byte[5];
-                if (f.Read(h,0,5)!=5 || Encoding.ASCII.GetString(h)!="%!PS-")
-                    throw new InvalidDataException("A fila não produziu PostScript. Verifique o driver PScript e desative saída binária/PJL.");
-            }
             Directory.CreateDirectory(work);
+            string normalized=Path.GetFullPath(Path.Combine(work,"input.ps"));
+            File.WriteAllBytes(normalized,PostScriptEnvelope.Normalize(File.ReadAllBytes(input)));
             string pdf=Path.GetFullPath(Path.Combine(work,"drawing.pdf"));
             string xml=Path.GetFullPath(Path.Combine(work,"trace.xml"));
             // Entire interpreter is a separate bounded process. No shell, PS hooks or raster tracing.
-            Run(ghostscript,"-q -dSAFER -dBATCH -dNOPAUSE -dNoOutputFonts -sDEVICE=pdfwrite -dCompatibilityLevel=1.7 " + Quote("-sOutputFile="+pdf) + " -f " + Quote(Path.GetFullPath(input)),work,cancel,pdf);
+            Run(ghostscript,"-q -dSAFER -dBATCH -dNOPAUSE -dNoOutputFonts -sDEVICE=pdfwrite -dCompatibilityLevel=1.7 " + Quote("-sOutputFile="+pdf) + " -f " + Quote(normalized),work,cancel,pdf);
             Run(mutool,"draw -q -r 72 -F trace -o " + Quote(xml) + " " + Quote(pdf),work,cancel,xml);
             return TraceParser.Parse(File.ReadAllText(xml));
         }

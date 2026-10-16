@@ -15,6 +15,9 @@ for name in REQUIRED:
     if not (PACK/name).is_file() or (PACK/name).stat().st_size==0: raise RuntimeError('Missing component: '+name)
 installer=(PACK/REQUIRED[0]).read_bytes()
 if not installer.startswith(b'MZ'): raise RuntimeError('Installer is not a PE executable')
+listing=subprocess.check_output(['7z','l','-slt',str(PACK/REQUIRED[0])],text=True).replace('\\','/')
+for payload in ['FoisonC24Receiver.exe','FoisonC24Diagnostic.exe','FoisonC24.Core.dll','tools/gs/bin/gswin64c.exe','tools/gs/bin/gsdll64.dll','tools/mupdf/mutool.exe','sources/foison-bridge-source.zip','sources/ghostscript-10.08.0.tar.xz','sources/mupdf-1.28.5-source.tar.gz','testes/quadrado-20mm.svg','ndp48.exe','vc_redist.x64.exe']:
+    if payload not in listing: raise RuntimeError('Installer missing embedded payload: '+payload)
 DIST.mkdir(exist_ok=True)
 (DIST/REQUIRED[0]).write_bytes(installer)
 checksum=hashlib.sha256(installer).hexdigest()+'  '+REQUIRED[0]+'\n'

@@ -29,3 +29,9 @@ Sem Win7, CorelDRAW X6, FlexiSIGN 12 ou Foison física. Binários de terceiros t
 - Builds net48 atuais passaram (NU1900 de auditoria local indisponível no núcleo; demais sem warnings).
 - NSIS completo em compilação. Adicionado teste de APIs RedMon em Windows 2022 descartável no CI e UI smoke (a executar).
 - Fonte RedMon revelou nome de monitor errado no código anterior. Corrigido para Redirected Port, configuração binária e read-back; ainda sem execução nativa até CI.
+
+## Marco: CI e compatibilidade de impressão
+- Commits 67ba7fe e 5218126 enviados. Run 38969791489: Ubuntu passou; net48 passou geometria/engines Windows, falhou no stdin simulado do Receiver (formato desconhecido).
+- Investigação: StreamWriter do stdin redirecionado no Framework pode acrescentar BOM, diferente do pipe binário RedMon. Harness agora força UTF8 sem BOM e exige SHA256 raw idêntico à fixture; repetir CI antes de entregar.
+- 48 checks locais passaram na expansão anterior: envelopes EOT/PJL estritos e clip retangular que não altera vetores. Clips intersectantes continuam rejeitados.
+- NSIS completo compilou sem warnings, mas ainda não é entrega final: regerar com fonte/commit atual após CI.

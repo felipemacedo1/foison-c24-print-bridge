@@ -26,10 +26,13 @@ namespace FoisonC24.Core
             var box = ((string)pages[0].Attribute("mediabox") ?? "").Split(new[]{' '}, StringSplitOptions.RemoveEmptyEntries).Select(N).ToArray();
             if (box.Length != 4 || box[2] <= box[0] || box[3] <= box[1]) throw new InvalidDataException("Página inválida.");
             var drawing = new Drawing();
+            var clips = new Stack<double[]>();
             foreach (var op in pages[0].Elements())
             {
                 string name = op.Name.LocalName;
                 if (name == "set_default_colorspaces") continue;
+                if (name == "clip_path") { if(clips.Count>=128)throw new InvalidDataException("Clips aninhados demais.");clips.Push(Rectangle(op,box)); continue; }
+                if (name == "pop_clip") { if(clips.Count==0)throw new InvalidDataException("Clip desequilibrado.");clips.Pop();continue; }
                 if (name != "stroke_path" && name != "fill_path")
                     throw new InvalidDataException("Conteúdo não suportado para corte: " + name + ". Converta texto em curvas; remova imagens, efeitos e recortes.");
                 var alpha = (string)op.Attribute("alpha");
@@ -40,7 +43,12 @@ namespace FoisonC24.Core
                 if (m.Length != 6 || Math.Abs(m[0]*m[3]-m[1]*m[2]) < 1e-12) throw new InvalidDataException("Transformação singular.");
                 Func<XElement,string,string,Point> point = (e,x,y) => {
                     double px=A(e,x), py=A(e,y);
-                    return new Point((m[0]*px+m[2]*py+m[4]-box[0])*Mm, (box[3]-m[1]*px-m[3]*py-m[5])*Mm);
+                    var result=new Point((m[0]*px+m[2]*py+m[4]-box[0])*Mm, (box[3]-m[1]*px-m[3]*py-m[5])*Mm);
+                    // Convex rectangle contains every endpoint/control point: it cannot
+                    // change this path. Intersecting/curved clipping is never ignored.
+                    if(clips.Any(r=>result.X<r[0] || result.Y<r[1] || result.X>r[2] || result.Y>r[3]))
+                        throw new InvalidDataException("Recorte intersecta o caminho; converta-o em curvas definitivas no CorelDRAW.");
+                    return result;
                 };
                 CutPath path = null;
                 Action finish = () => {
@@ -63,6 +71,7 @@ namespace FoisonC24.Core
                 }
                 finish();
             }
+            if(clips.Count!=0)throw new InvalidDataException("Clip não encerrado.");
             drawing.Validate();
             // Never cut outside the printed page, even if a malicious trace bypasses clipping.
             if (drawing.MinX < -0.01 || drawing.MinY < -0.01 || drawing.Points.Any(p => p.X > (box[2]-box[0])*Mm+0.01 || p.Y > (box[3]-box[1])*Mm+0.01))
@@ -70,5 +79,24 @@ namespace FoisonC24.Core
             return drawing;
         }
         private static void Require(CutPath p) { if (p == null || p.Closed) throw new InvalidDataException("Sequência de caminho inválida."); }
+        private static double[] Rectangle(XElement op,double[] box)
+        {
+            var nodes=op.Elements().ToArray();
+            if(nodes.Length!=5 || nodes[0].Name!="moveto" || nodes[4].Name!="closepath" || nodes.Skip(1).Take(3).Any(n=>n.Name!="lineto"))
+                throw new InvalidDataException("Somente clip retangular sem interseção é suportado.");
+            var m=((string)op.Attribute("transform") ?? "1 0 0 1 0 0").Split(new[]{' '},StringSplitOptions.RemoveEmptyEntries).Select(N).ToArray();
+            if(m.Length!=6)throw new InvalidDataException("Matriz de clip inválida.");
+            var points=nodes.Take(4).Select(n=>new Point((m[0]*A(n,"x")+m[2]*A(n,"y")+m[4]-box[0])*Mm,(box[3]-m[1]*A(n,"x")-m[3]*A(n,"y")-m[5])*Mm)).ToArray();
+            double left=points.Min(p=>p.X),bottom=points.Min(p=>p.Y),right=points.Max(p=>p.X),top=points.Max(p=>p.Y);
+            if(left==right || bottom==top)throw new InvalidDataException("Clip degenerado.");
+            if(points.Select(p=>new { p.X,p.Y }).Distinct().Count()!=4)throw new InvalidDataException("Clip contém vértices duplicados.");
+            for(int i=0;i<4;i++)
+            {
+                var p=points[i];var q=points[(i+1)%4];
+                if((p.X!=left && p.X!=right) || (p.Y!=bottom && p.Y!=top) || ((p.X==q.X)==(p.Y==q.Y)))
+                    throw new InvalidDataException("Clip não é um retângulo alinhado aos eixos.");
+            }
+            return new[]{left,bottom,right,top};
+        }
     }
 }

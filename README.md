@@ -22,7 +22,7 @@ comprovar essas condições, nenhum movimento é permitido. Consulte
 - Área inicial medida ≤50×50 mm; prévia e autorização por trabalho; ensaio sem
   lâmina obrigatório antes do corte. Nenhum comando de força/velocidade presumido.
 - Curvas preservadas por aproximação ≤0,01 mm; abertos/fechados e afins testados.
-  Imagens/recortes/efeitos/operações desconhecidas são rejeitados, nunca omitidos.
+  Imagens/recortes intersectantes/efeitos/operações desconhecidas são rejeitados, nunca omitidos.
 - Journal e latch persistentes após interrupção incerta. O botão PC não é parada
   física de emergência; veja o procedimento PAUSE/OFFLINE no checklist.
 

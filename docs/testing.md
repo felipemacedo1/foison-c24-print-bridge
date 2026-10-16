@@ -38,6 +38,6 @@ O valor 40 unidades/mm aparece SOMENTE como parâmetro dos testes simulados.
 Sem captura CorelDRAW X6 real, sem máquina e sem Windows 7 nesta bancada. O runner
 Windows moderno não prova compatibilidade de drivers, runtime ou APIs no Win7.
 A UI smoke é visualização programática, não teste humano de toda a sessão. O fake
-serial não valida elétrico/firmware/FTDI/Xon-Xoff físicos. Clipping é rejeitado,
+serial não valida elétrico/firmware/FTDI/Xon-Xoff físicos. Clipping que modifica caminhos é rejeitado,
 não interpretado parcialmente. Qualidade de curvas com lâmina de arrasto exige
 calibração/compensação futura; primeiro ensaio é quadrado simples.

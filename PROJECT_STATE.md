@@ -17,7 +17,7 @@ Não entregar captura-only como cortador pronto.
 - PostScript real interpretado por Ghostscript, PDF intermediário vetorial e
   trace MuPDF; sem rasterização e sem regex fingindo interpretar prologs.
 - CTM, pontos→mm, orientação, curvas cúbicas ≤0,01 mm, caminhos abertos/fechados.
-  Raster, clipping/efeitos, operação desconhecida e múltiplas páginas falham fechado.
+  Raster, clipping intersectante/efeitos, operação desconhecida e múltiplas páginas falham fechado.
 - Prévia WinForms portuguesa, medição em mm e seleção de captura pronta.
 - Gerador real restrito a IN/PA/PU/PD; resolução sem default e perfil de revisão
   aprovado pelo desenvolvedor por sessão. Pesquisa não comprovou revisão exata.
@@ -58,7 +58,7 @@ Não entregar captura-only como cortador pronto.
 Sem Windows 7 real, CorelDRAW X6, FlexiSIGN 12 ou Foison. NÃO executados:
 instalação no SO alvo, spooler/RedMon/XcvData reais, impressão Corel/PScript real,
 serial física, protocolo/resolução/revisão, origem/área física ou corte.
-Fixtures próprias não são capturas reais do Corel. Clipping/efeitos e compensação
+Fixtures próprias não são capturas reais do Corel. Clipping intersectante/efeitos e compensação
 de arrasto/lâmina não suportados neste primeiro ensaio; não é qualidade de produção.
 Sem evidência suficiente na sessão, parar sem qualquer movimento.
 
@@ -67,3 +67,12 @@ Sem evidência suficiente na sessão, parar sem qualquer movimento.
 Finalizar validação ampliada, compilar NSIS/pacote, revisar diff/artefatos, fazer
 commits e push autorizados, executar Actions Ubuntu + net48/engines Windows e
 inspecionar artefatos. Atualizar aqui resultados reais/URLs/checksums.
+
+## Último checkpoint
+Run 38969791489: Ubuntu aprovado, net48/engines vetoriais aprovados até o teste
+de stdin. Falha no pipe simulado: provável preâmbulo de encoding do Framework;
+harness corrigido para binário sem BOM com igualdade SHA256 obrigatória.
+Nova matriz local e repetição CI em andamento. Envelopes EOT/PJL e clips
+retangulares sem interseção adicionados; clips que alteram caminhos bloqueiam.
+Latch de segurança agora é persistido antes do primeiro byte, inclusive contra
+crash/falha ao registrar o erro.

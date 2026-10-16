@@ -32,7 +32,7 @@ CorelDRAW → PScript5 x64 (MS Publisher Imagesetter inbox) → RedMon 1.9
 PostScript é uma linguagem, não um conjunto de regex. Ghostscript interpreta
 procedimentos/prologs/fontes/CTM reais. `pdfwrite` preserva vetores; texto é
 convertido a contornos. MuPDF extrai operações vetoriais via trace, sem bitmap
-nem vectorização de raster. Qualquer imagem, texto residual, clip, grupo,
+nem vectorização de raster. Qualquer imagem, texto residual, clip intersectante/não retangular, grupo,
 transparência, sombreado, operação desconhecida ou múltiplas páginas bloqueia
 a conversão. Não se omitem silenciosamente partes do desenho.
 
@@ -73,8 +73,13 @@ Sem aprovação de revisão/unidades/comandos/área, nem se abre a porta. Uma
 confirmação vincula desenho+comandos+perfil, com origem normalizada e margem
 explícita; nada é escalado para caber. Mudança de porta invalida aprovação.
 Journal global persistente, lock exclusivo, uma tentativa por hash/modo antes
-do primeiro byte. Sem retry/reconexão. Falha/cancelamento grava latch de estado
+do primeiro byte. Sem retry/reconexão. Latch global é persistido antes do primeiro byte (inclusive contra crash). Falha/cancelamento preserva estado
 incerto; encerrar/reinstalar app não libera. Limpar latch exige procedimento
 manual do desenvolvedor após conferir o buffer/máquina, nunca reenvio incerto.
 BytesToWrite zero só comprova buffer do PC, não execução física. O botão PC não
 é emergência; PAUSE/OFFLINE e procedimento da revisão são obrigatórios.
+
+Envelopes EOT/PJL PostScript são normalizados estritamente (8 KiB de metadados),
+sem executar PJL e preservando o raw. Clip retangular que contém integralmente
+todos os vértices e controles é aceito por não alterar a geometria; qualquer
+interseção, clip curvo ou desconhecido bloqueia, sem fingir aplicar recorte.

@@ -72,6 +72,7 @@ namespace FoisonC24.WindowsReceiver
 
         private static string DetectFormat(byte[] data)
         {
+            if (data.Length >= 6 && data[0] == 4 && Encoding.ASCII.GetString(data, 1, 5) == "%!PS-") return "postscript/eot";
             if (data.Length >= 5 && Encoding.ASCII.GetString(data, 0, 5) == "%!PS-") return "postscript";
             if (data.Length >= 9 && Encoding.ASCII.GetString(data, 0, 9) == "\x1b%-12345X") return "pcl/ujf";
             return "unknown";
