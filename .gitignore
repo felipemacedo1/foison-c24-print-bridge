@@ -1,0 +1,42 @@
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+__pycache__/
+*.py[cod]
+*.user
+*.suo
+*.userprefs
+TestResults/
+
+# Build and distribution output
+dist/
+artifacts/
+*.nupkg
+*.snupkg
+*.pdb
+*.msi
+*.exe
+*.dll
+
+# Runtime data
+logs/
+data/
+captures/
+*.job
+*.raw
+*.tmp
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
