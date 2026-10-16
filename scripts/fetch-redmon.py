@@ -6,7 +6,8 @@ import zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 CACHE=ROOT/'.build-cache'
-EXPECTED={'redmon64.dll':'22d0d6a323625f5d2cdbb60101a4663c536cc89eb47d1cbb23c8b1aa0fa50ccb',
+EXPECTED={'unredmon64.exe':'14d63c1088f853e24a6807e69f8d857ec9987c24bd14d3a1c9cae2f7bbea63d6',
+          'redmon64.dll':'22d0d6a323625f5d2cdbb60101a4663c536cc89eb47d1cbb23c8b1aa0fa50ccb',
           'setup64.exe':'3a0c692c32d33083844639b66ef54a2ca5d012cf51ec32a5663cdba79c95905e'}
 CACHE.mkdir(exist_ok=True)
 archive=CACHE/'redmon19.zip'

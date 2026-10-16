@@ -30,7 +30,8 @@ class WindowsProvisioningContractTests(unittest.TestCase):
         self.assertIn("Recursos anteriores foram preservados", NSIS)
         self.assertIn("Write-Warning $failure", SCRIPT)
         self.assertNotIn("Write-Error $_.Exception.Message", SCRIPT)
-        self.assertNotIn("unredmon", NSIS.lower())
+        self.assertNotRegex(NSIS.lower(), r"exec(?:wait)?[^\n]*unredmon")
+        self.assertIn('File "unredmon64.exe"', NSIS)
 
     def test_physical_cut_remains_disabled(self):
         self.assertIn("physical_cut_enabled=false", SCRIPT)

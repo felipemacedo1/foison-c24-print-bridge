@@ -35,3 +35,7 @@ Sem Win7, CorelDRAW X6, FlexiSIGN 12 ou Foison física. Binários de terceiros t
 - Investigação: StreamWriter do stdin redirecionado no Framework pode acrescentar BOM, diferente do pipe binário RedMon. Harness agora força UTF8 sem BOM e exige SHA256 raw idêntico à fixture; repetir CI antes de entregar.
 - 48 checks locais passaram na expansão anterior: envelopes EOT/PJL estritos e clip retangular que não altera vetores. Clips intersectantes continuam rejeitados.
 - NSIS completo compilou sem warnings, mas ainda não é entrega final: regerar com fonte/commit atual após CI.
+
+## Marco: revisão do instalador RedMon
+- Fonte oficial setup.c exige redmon.chm E unredmon64.exe no mesmo diretório. Adicionado o helper original com hash verificado; o Bridge nunca o executa e só remove sua cópia local na desinstalação. RedMon compartilhado continua preservado.
+- Commit 7679116 enviado: 52 checks C# locais e 14 testes Python/contratos passaram. Novo CI em execução; ainda não declarar artefatos prontos.

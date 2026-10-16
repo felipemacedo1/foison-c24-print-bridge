@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 PACK=ROOT/'packaging/windows'
 DIST=ROOT/'dist'
-REQUIRED=['FoisonC24-Setup-x64.exe','FoisonC24Receiver.exe','FoisonC24Diagnostic.exe','FoisonC24.Core.dll','FoisonC24Provisioner.exe','redmon64.dll','redmon.chm',
+REQUIRED=['FoisonC24-Setup-x64.exe','FoisonC24Receiver.exe','FoisonC24Diagnostic.exe','FoisonC24.Core.dll','FoisonC24Provisioner.exe','redmon64.dll','redmon.chm','unredmon64.exe',
           'tools/gs/bin/gswin64c.exe','tools/gs/bin/gsdll64.dll','tools/mupdf/mutool.exe','tools/manifest.json',
           'sources/foison-bridge-source.zip','sources/ghostscript-10.08.0.tar.xz','sources/mupdf-1.28.5-source.tar.gz',
           'prerequisites/ndp48.exe','prerequisites/vc_redist.x64.exe','THIRD-PARTY.txt','LEIA-ME.txt','PRIMEIRA-SESSAO.md']
