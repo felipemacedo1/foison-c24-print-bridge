@@ -37,6 +37,7 @@ jobs:
           Copy-Item third_party/redmon/redmon64.dll packaging/windows/
           Copy-Item third_party/redmon/setup64.exe packaging/windows/
       - name: Build guarded installer
+        if: hashFiles('packaging/windows/postscript-driver.inf') != ''
         shell: pwsh
         run: |
           makensis /DRECEIVER_EXE=FoisonC24Receiver.exe `
@@ -44,7 +45,19 @@ jobs:
             /DPORT_MONITOR_DLL=redmon64.dll `
             packaging/windows/FoisonC24-Setup.nsi
       - name: Upload installer candidate
+        if: hashFiles('packaging/windows/postscript-driver.inf') != ''
         uses: actions/upload-artifact@v4
         with:
           name: foison-c24-installer-candidate
           path: FoisonC24-Setup-x64.exe
+      - name: Record missing printer integration inputs
+        if: hashFiles('packaging/windows/postscript-driver.inf') == ''
+        shell: pwsh
+        run: |
+          "Installer not generated: a legally redistributable PostScript INF/PPD and tested queue provisioning are still required." |
+            Out-File -Encoding utf8 artifacts/installer-status.txt
+      - name: Upload build status
+        uses: actions/upload-artifact@v4
+        with:
+          name: foison-c24-build-status
+          path: artifacts/installer-status.txt

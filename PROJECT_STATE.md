@@ -2,7 +2,7 @@
 
 Atualizado em: 2026-10-16 17:05
 Branch: main
-Último commit: cf176f2
+Último commit: 77a3447
 
 ## Objetivo atual
 
@@ -29,6 +29,8 @@ Status: EM DESENVOLVIMENTO
 - [x] Receptor Windows `net48` e aplicativo WinForms de diagnóstico compiláveis.
 - [x] Workflow Windows para compilar componentes e produzir candidato NSIS.
 - [x] SDK .NET local e NSIS local instalados sem privilégios administrativos.
+- [x] Workflow executado: componentes Windows compilaram; geração do instalador
+  foi bloqueada corretamente pela ausência do INF/PPD PostScript.
 
 ## Em andamento
 

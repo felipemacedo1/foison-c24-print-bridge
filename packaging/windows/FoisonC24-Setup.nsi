@@ -2,6 +2,8 @@
 ; This file intentionally refuses to build until the Windows receiver and
 ; legally redistributable printer components are present beside it.
 Unicode true
+!include LogicLib.nsh
+!include x64.nsh
 Name "Foison C24 Print Bridge (Teste)"
 OutFile "FoisonC24-Setup-x64.exe"
 InstallDir "$PROGRAMFILES64\Foison C24 Print Bridge"
@@ -12,6 +14,9 @@ RequestExecutionLevel admin
 !endif
 !ifndef PORT_MONITOR_DLL
   !define PORT_MONITOR_DLL "redmon64.dll"
+!endif
+!ifndef DIAGNOSTIC_EXE
+  !define DIAGNOSTIC_EXE "FoisonC24Diagnostic.exe"
 !endif
 !ifndef POSTSCRIPT_INF
   !define POSTSCRIPT_INF "postscript-driver.inf"
@@ -37,6 +42,7 @@ Section "Foison C24 Print Bridge"
   SetOutPath "$INSTDIR"
   File "${RECEIVER_EXE}"
   File "${PORT_MONITOR_DLL}"
+  File "${DIAGNOSTIC_EXE}"
   File "${POSTSCRIPT_INF}"
   File "LEIA-ME.txt"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -51,6 +57,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Install-Queue-Win7.cmd"
   Delete "$INSTDIR\${POSTSCRIPT_INF}"
   Delete "$INSTDIR\${PORT_MONITOR_DLL}"
+  Delete "$INSTDIR\${DIAGNOSTIC_EXE}"
   Delete "$INSTDIR\${RECEIVER_EXE}"
   Delete "$INSTDIR\LEIA-ME.txt"
   Delete "$INSTDIR\Uninstall.exe"
