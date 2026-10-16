@@ -1,8 +1,8 @@
 # Estado atual do projeto
 
-Atualizado em: 2026-10-16 17:05
+Atualizado em: 2026-10-16 17:18
 Branch: main
-Último commit: ff6a720
+Último commit: d60082c
 
 ## Objetivo atual
 
@@ -39,11 +39,13 @@ Status: EM DESENVOLVIMENTO
   `FoisonC24-Teste-Setup-x64.exe` localmente.
 - [x] ZIP local `dist/FoisonC24-Teste-Win7-x64.zip` contém candidato,
   instruções e checksums.
+- [x] Actions run `38960808306` compilou e publicou o candidato NSIS e o ZIP
+  do operador.
 
 ## Em andamento
 
 - [ ] Integrar captura PostScript real da fila de impressão no Windows 7.
-- [ ] Gerar `FoisonC24-Setup-x64.exe` após obter/validar receptor, monitor e driver.
+- [ ] Validar `FoisonC24-Teste-Setup-x64.exe` no Windows 7 com spooler/CorelDRAW.
 
 ## Próxima ação
 
@@ -59,6 +61,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
   PostScript/PScript presente no computador.
 - O runner GitHub Actions pode compilar o candidato, mas isso não equivale a
   teste de instalação no Windows 7.
+- Nenhuma instalação, teste do spooler ou impressão pelo CorelDRAW foi
+  executada no runner Windows moderno.
 
 ## Testes
 

@@ -26,6 +26,9 @@ O workflow `.github/workflows/windows-build.yml`, run
 Esses artefatos comprovam compilação no Windows moderno, não compatibilidade
 ou instalação no Windows 7.
 
+O run mais recente é
+<https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/38960808306>.
+
 ## Para gerar o instalador
 
 O instalador não redistribui um driver PostScript aleatório. Ele detecta um
