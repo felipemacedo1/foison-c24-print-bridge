@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 $PrinterName = "Foison C24 (Teste)"
 $PortPrefix = "FOISONC24"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -15,7 +15,11 @@ $selectedPort = $null
 
 function Fail($message) { throw $message }
 function Run($file, $arguments) {
-  $p = Start-Process -FilePath $file -ArgumentList $arguments -Wait -PassThru -WindowStyle Hidden
+  $p = Start-Process -FilePath $file -ArgumentList $arguments -PassThru -WindowStyle Hidden
+  if (-not $p.WaitForExit(120000)) {
+    $p.Kill()
+    Fail "Tempo excedido no provisionamento. Verifique fila e logs; nenhuma repetição automática."
+  }
   if ($p.ExitCode -ne 0) { Fail "Falha ao executar $file (codigo $($p.ExitCode))." }
 }
 function Printer($name) {
@@ -38,16 +42,19 @@ function RemoveOwnedResources {
   $state = OwnState
   if (-not $state -or $state.product -ne "Foison C24 Print Bridge" -or
       $state.printer -ne $PrinterName) { return }
+  if ($state.port -notmatch "^FOISONC24[0-9]+:$") { Fail "Porta não pertence ao namespace do Bridge; preservada." }
   $queue = Printer $PrinterName
-  if ($queue -and $queue.PortName -eq $state.port) {
-    $p = Start-Process rundll32.exe -ArgumentList "printui.dll,PrintUIEntry /dl /n `"$PrinterName`" /q" -Wait -PassThru -WindowStyle Hidden
-    if ($p.ExitCode -ne 0 -and (Printer $PrinterName)) {
-      Write-Warning "Nao foi possivel remover a fila criada pelo Bridge."
-    }
+  if ($queue -and ($queue.PortName -ne $state.port -or $queue.DriverName -ne $state.driver)) { Fail "Fila alterada externamente; manifesto e recursos preservados." }
+  if ($queue) {
+    Run "$env:windir\System32\rundll32.exe" "printui.dll,PrintUIEntry /dl /n `"$PrinterName`" /q"
+    if (Printer $PrinterName) { Fail "Fila ainda presente; porta e manifesto preservados." }
   }
-  if (Test-Path $Provisioner) {
-    & $Provisioner remove-port $state.port | Out-Null
-  }
+  $users = @(Get-WmiObject Win32_Printer | Where-Object { $_.PortName -eq $state.port })
+  if ($users.Count -ne 0) { Fail "Porta em uso por outra fila; preservada." }
+  $ports = @(& $Provisioner list-ports)
+  if ($LASTEXITCODE -ne 0) { Fail "Não foi possível verificar a porta; manifesto preservado." }
+  if ($ports -contains $state.port) { Run $Provisioner "remove-port $($state.port)" }
+
   Remove-Item -Force -ErrorAction SilentlyContinue $StatePath
 }
 function SelectProjectPort {
@@ -59,20 +66,29 @@ function SelectProjectPort {
   }
   Fail "Não há uma porta exclusiva FOISONC24 disponível."
 }
-function SelectPostScriptDriver {
+function VerifyPostScriptDriver($driver) {
   $matches = @(Get-WmiObject Win32_PrinterDriver | Where-Object {
-    $name = if ($_.DriverName) { $_.DriverName } else { $_.Name }
-    $inf = if ($_.InfName) { $_.InfName } else { "" }
-    ($name -match "^(Microsoft PS|Microsoft PostScript|PScript)") -and
-      (($inf -eq "ntprint.inf") -or ($inf -match "^oem[0-9]+\.inf$"))
+    $name = ($_.Name -split ",")[0]
+    $name -eq $driver -and $_.SupportedPlatform -eq "Windows x64" -and
+      [IO.Path]::GetFileName($_.DriverPath) -ieq "PSCRIPT5.DLL"
   })
-  if ($matches.Count -ne 1) {
-    Fail "Foi encontrado um número ambíguo de drivers PostScript compatíveis ($($matches.Count)). Nenhuma fila foi alterada."
-  }
-  $driver = if ($matches[0].DriverName) { $matches[0].DriverName } else { $matches[0].Name }
-  if ([String]::IsNullOrWhiteSpace($driver)) { Fail "Driver PostScript sem nome verificável." }
+  if ($matches.Count -ne 1) { Fail "Driver '$driver' não possui correspondência x64 PScript5 única verificável ($($matches.Count))." }
   return $driver
 }
+function SelectPostScriptDriver {
+  # This exact inbox model is requested through Microsoft's own INF, not a
+  # guessed installed model or an arbitrary vendor/FTDI driver.
+  $driver = "MS Publisher Imagesetter"
+  $installed = @(Get-WmiObject Win32_PrinterDriver | Where-Object { ($_.Name -split ",")[0] -eq $driver -and $_.SupportedPlatform -eq "Windows x64" })
+  if ($installed.Count -eq 0) {
+    Run "$env:windir\System32\rundll32.exe" "printui.dll,PrintUIEntry /ia /m `"$driver`" /h x64 /v `"Type 3 - User Mode`" /f `"$DriverInf`""
+  }
+  return (VerifyPostScriptDriver $driver)
+}
+
+# One installer/uninstaller at a time; unrelated queues and serial ports are untouched.
+New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
+$installLock = [IO.File]::Open((Join-Path $StateDir "installation.lock"), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
 
 if ($args -contains "uninstall") {
   RemoveOwnedResources
@@ -89,34 +105,44 @@ try {
   }
   if (-not (Test-Path $DriverInf)) { Fail "NTPRINT.INF não foi encontrado no Windows." }
 
+  $runtimeLog = Join-Path $StateDir "installation.log"
+  New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
+  $sessionDir = Join-Path $StateDir "session"
+  New-Item -ItemType Directory -Force -Path $sessionDir | Out-Null
+  # Journal only: no permission changes to FTDI, serial device, spooler or other queues.
+  Run "$env:windir\System32\icacls.exe" "`"$sessionDir`" /grant *S-1-5-32-545:(OI)(CI)M"
+  Run (Join-Path $Root "FoisonC24Diagnostic.exe") "--selftest"
+
   $existing = Printer $PrinterName
   $owned = OwnState
   if ($existing) {
     if ($owned -and $owned.product -eq "Foison C24 Print Bridge" -and
-        $existing.PortName -eq $owned.port) {
+        $existing.PortName -eq $owned.port -and $existing.DriverName -eq $owned.driver) {
+      VerifyPostScriptDriver $owned.driver | Out-Null
+      Run $Provisioner "configure-port $($owned.port) `"$Receiver`""
       Write-Host "Fila do Bridge já está instalada; nenhuma configuração existente foi removida."
       exit 0
     }
     Fail "Já existe uma impressora '$PrinterName' que não pertence comprovadamente a esta instalação. Ela foi preservada."
   }
 
+  if ($owned -and -not $existing) {
+    # Recover only resources registered by a prior incomplete invocation.
+    RemoveOwnedResources
+  }
   $driver = SelectPostScriptDriver
   $selectedPort = SelectProjectPort
   Run $RedMonSetup "/s"
   Run $Provisioner "add-port $selectedPort"
   $createdPort = $true
-  $receiverArguments = '--output-dir "' + (Join-Path $env:ProgramData "FoisonC24\captures") + '"'
-  $redmonArguments = '"' + $RedMonDll + ',RedMonConfigurePortW" Port="' + $selectedPort +
-    '" Command="' + $Receiver + '" Arguments="' + $receiverArguments +
-    '" Output=0 LogFileUse=0 RunUser=0'
-  $p = Start-Process rundll32.exe -ArgumentList $redmonArguments -Wait -PassThru -WindowStyle Hidden
-  if ($p.ExitCode -ne 0) { Fail "RedMon não aceitou a configuração do receptor." }
+  SaveState $selectedPort $driver
+  Run $Provisioner "configure-port $selectedPort `"$Receiver`""
 
   $printArgs = "printui.dll,PrintUIEntry /if /b `"$PrinterName`" /r `"$selectedPort`" /m `"$driver`" /f `"$DriverInf`""
   $p = Start-Process rundll32.exe -ArgumentList $printArgs -Wait -PassThru -WindowStyle Hidden
-  if ($p.ExitCode -ne 0) { Fail "PrintUIEntry não criou a fila (codigo $($p.ExitCode))." }
-  $createdPrinter = $true
   $queue = Printer $PrinterName
+  if ($p.ExitCode -ne 0 -and -not $queue) { Fail "PrintUIEntry não criou a fila (codigo $($p.ExitCode))." }
+  if ($queue -and $queue.PortName -eq $selectedPort) { $createdPrinter = $true }
   if (-not $queue -or $queue.PortName -ne $selectedPort) {
     Fail "A fila não foi verificada com a porta exclusiva esperada."
   }
@@ -124,17 +150,17 @@ try {
     Fail "A fila foi associada a um driver diferente do validado."
   }
   SaveState $selectedPort $driver
+  "Fila e porta verificadas; teste físico desabilitado." | Set-Content -Encoding UTF8 $runtimeLog
   Write-Host "Fila criada: $PrinterName / $selectedPort / $driver"
   exit 0
 }
 catch {
-  Write-Error $_.Exception.Message
-  if ($createdPrinter -and $selectedPort) {
-    Start-Process rundll32.exe -ArgumentList "printui.dll,PrintUIEntry /dl /n `"$PrinterName`" /q" -Wait -WindowStyle Hidden
-  }
+  $failure = $_.Exception.Message
+  try { New-Item -ItemType Directory -Force -Path $StateDir | Out-Null; $failure | Set-Content -Encoding UTF8 (Join-Path $StateDir "installation-error.log") } catch { }
+  Write-Warning $failure
   if ($createdPort -and $selectedPort) {
-    try { & $Provisioner remove-port $selectedPort | Out-Null }
-    catch { Write-Warning "Nao foi possivel remover a porta criada: $selectedPort" }
+    try { RemoveOwnedResources }
+    catch { Write-Warning "Rollback incompleto; manifesto preservado para diagnóstico: $($_.Exception.Message)" }
   }
   exit 1
 }

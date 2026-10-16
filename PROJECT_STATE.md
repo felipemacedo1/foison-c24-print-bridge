@@ -1,108 +1,69 @@
-# Estado atual do projeto
+# Estado do projeto — primeira sessão acompanhada
 
-Atualizado em: 2026-10-16 18:30
-Branch: main
-Último commit: d60082c
+Atualizado: 2026-10-16. Base recuperada do GitHub: `610e5ec`.
+Checkout atual: subpasta `foison-c24-print-bridge` do workspace printer-brigde;
+o diretório pai não tinha código/Git válido. Não foi sobrescrito.
 
-## Objetivo atual
+## Objetivo e aceite
 
-Entregar um primeiro slice portátil e testável: captura segura de stdin,
-detecção de formato, persistência de diagnóstico e modelo geométrico para
-permitir a futura integração da fila Windows.
+Preparar uma única distribuição com impressão, interpretação vetorial real,
+prévia em mm, geometria/HPGL e serial, com autorizações explícitas. Maximizar
+chance do quadrado 20×20 mm na primeira sessão sem prometer hardware compatível.
+Não entregar captura-only como cortador pronto.
 
-## Estado geral
+## Implementado nesta etapa
 
-Status: EM DESENVOLVIMENTO
+- Domínio C# compartilhado net48/net8 (não um protótipo Python separado).
+- PostScript real interpretado por Ghostscript, PDF intermediário vetorial e
+  trace MuPDF; sem rasterização e sem regex fingindo interpretar prologs.
+- CTM, pontos→mm, orientação, curvas cúbicas ≤0,01 mm, caminhos abertos/fechados.
+  Raster, clipping/efeitos, operação desconhecida e múltiplas páginas falham fechado.
+- Prévia WinForms portuguesa, medição em mm e seleção de captura pronta.
+- Gerador real restrito a IN/PA/PU/PD; resolução sem default e perfil de revisão
+  aprovado pelo desenvolvedor por sessão. Pesquisa não comprovou revisão exata.
+- Serial COM configurável (COM2 default), 38400/8N1/Xon-Xoff, timeout/cancelamento,
+  porta exclusiva; sem liberar à força, sem retry/reconnect.
+- Confirmações por plano/operador, lâmina removida para movimento; corte exige
+  ensaio observado do mesmo desenho/perfil. Mudança de COM invalida perfil.
+- Limites físicos medidos ≤50×50 mm, margem 2 mm; sem scale-to-fit/homing implícito.
+- Journal persistente por hash/modo, lock exclusivo e latch após interrupção.
+  Cancelamento no PC não garante parar buffer físico; painel/manual obrigatórios.
+- Provisionamento solicita modelo inbox exato MS Publisher Imagesetter e verifica
+  PScript5 x64. Corrigido nome real do monitor: `Redirected Port`, conferido no
+  fonte RedMon. GetConfig/SetConfig via XcvDataW com read-back, sem aspas ambíguas.
+- Corrigido rollback que era interrompido por Write-Error sob Stop; desinstalador
+  não remove porta usada por outra fila nem apaga manifesto se remoção falhar.
+- Captura com GUID e marcador ready atômico; conversão somente no processo do
+  usuário, nunca no spooler. Não iniciar UI elevada pelo instalador.
+- Scripts de pacote falham se qualquer componente real/fontes/licença faltar.
+  Engines/pré-requisitos oficiais fixados por SHA256; fontes correspondentes
+  incluídas. Instalador offline pode exigir reboot de pré-requisitos Microsoft.
+- Procedimento Flexi FILE separado (não Save to file/PRT), sem sniffer/filtro/FTDI;
+  ainda não executado no FlexiSIGN 12 real.
 
-## Implementado
+## Evidência já obtida
 
-- [x] Ambiente Ubuntu e diretório real documentados.
-- [x] Repositório local inicializado na área de trabalho.
-- [x] Receptor de fluxo bruto com limites, detecção e relatório.
-- [x] Modelo de caminhos, transformações, Bézier e limites.
-- [x] Serializador HPGL explicitamente experimental.
-- [x] Testes determinísticos sem impressora.
-- [x] Fronteira de transporte serial com simulação e fila de um transmissor.
-- [x] Roteiro honesto de entrega para operador sem conhecimento técnico.
-- [x] Fonte do instalador NSIS com verificações de componentes obrigatórios.
-- [x] Pacote documental de pré-validação e instruções em português.
-- [x] Receptor Windows `net48` e aplicativo WinForms de diagnóstico compiláveis.
-- [x] Workflow Windows para compilar componentes e produzir candidato NSIS.
-- [x] SDK .NET local e NSIS local instalados sem privilégios administrativos.
-- [x] Workflow executado: componentes Windows compilaram; geração do instalador
-  foi bloqueada corretamente pela ausência do INF/PPD PostScript.
-- [x] Run Actions `38959064970` concluiu; artefatos do receptor e diagnóstico
-  foram baixados e inspecionados.
-- [x] Provisionador real: instala RedMon, cria/remove `RPT1:` via XcvData,
-  detecta driver PostScript e registra a fila por PrintUIEntry com rollback.
-- [x] NSIS extrai os componentes antes de executar o provisionamento e gera
-  `FoisonC24-Teste-Setup-x64.exe` localmente.
-- [x] ZIP local `dist/FoisonC24-Teste-Win7-x64.zip` contém candidato,
-  instruções e checksums.
-- [x] Actions run `38960808306` compilou e publicou o candidato NSIS e o ZIP
-  do operador.
-- [x] Provisionamento revisado: fila homônima é preservada, portas são
-  enumeradas por `EnumPorts` e recebem nomes exclusivos `FOISONC24n:`.
-- [x] Manifesto em `ProgramData` limita idempotência/desinstalação aos recursos
-  criados pelo Bridge; RedMon compartilhado não é removido.
-- [x] Seleção de driver PScript exige correspondência única e INF verificável.
-- [x] Contratos automatizados de conflito, idempotência, rollback e COM2
-  desabilitada adicionados.
+- 14 testes Python/contratos passaram.
+- 37 checks C# passaram no Ubuntu, incluindo GS/MuPDF reais, quadrado 20 mm,
+  curvas/procedimentos/afins e rejeições, loop cancelado, stdin de receptor real
+  e serial simulada. Novos casos adicionais estão em execução/revisão.
+- UI/receptor/provisionador net48 compilaram; builds posteriores às últimas
+  mudanças e validação CI ainda pendentes.
+- Downloads oficiais conferidos por SHA256; Ghostscript também confrontado com
+  SHA512SUMS oficial. Binários de terceiros não foram executados no Win7.
+- Auditoria NuGet local indisponível (NU1900 por rede); não declarar auditoria limpa.
 
-## Em andamento
+## Bloqueios e limites
 
-- [ ] Integrar captura PostScript real da fila de impressão no Windows 7.
-- [ ] Validar `FoisonC24-Teste-Setup-x64.exe` no Windows 7 com spooler/CorelDRAW.
-- [ ] Executar no Windows as APIs `XcvData`, `EnumPorts` e
-  `RedMonConfigurePortW` com RedMon instalado.
+Sem Windows 7 real, CorelDRAW X6, FlexiSIGN 12 ou Foison. NÃO executados:
+instalação no SO alvo, spooler/RedMon/XcvData reais, impressão Corel/PScript real,
+serial física, protocolo/resolução/revisão, origem/área física ou corte.
+Fixtures próprias não são capturas reais do Corel. Clipping/efeitos e compensação
+de arrasto/lâmina não suportados neste primeiro ensaio; não é qualidade de produção.
+Sem evidência suficiente na sessão, parar sem qualquer movimento.
 
-## Próxima ação
+## Próximos passos
 
-Escolher e testar em Windows 7 o mecanismo de fila/monitor (RedMon + driver
-PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
-
-## Bloqueios
-
-- Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
-- O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
-- Não há ambiente Windows para instalar/validar a fila.
-- A rotina ainda precisa ser executada em Windows 7; depende de exatamente um
-  driver PostScript/PScript instalado e compatível com `ntprint.inf`.
-- O runner GitHub Actions pode compilar o candidato, mas isso não equivale a
-  teste de instalação no Windows 7.
-- Nenhuma instalação, teste do spooler ou impressão pelo CorelDRAW foi
-  executada no runner Windows moderno.
-
-## Testes
-
-- Compilação Python: PASSOU; receptor/diagnóstico net48: PASSOU localmente e no
-  run Actions `38959064970`
-- Testes unitários/contratos: PASSOU (`./scripts/test.sh`, 14 testes)
-- Build do provisionador net48: PASSOU (0 warnings, 0 errors)
-- NSIS local: PASSOU com 0 warnings após correção do caminho ProgramData
-- Testes Windows 7: NÃO EXECUTADO
-- Testes físicos: NÃO EXECUTADO
-- Distribuição: candidato NSIS compilado localmente; instalador NÃO VALIDADO
-  no Windows 7
-
-## Decisões recentes
-
-- Captura rejeita formatos desconhecidos; ver `docs/decisions/0001-printing-architecture.md`.
-- Protocolo HPGL fica marcado como experimental; ver
-  `docs/decisions/0002-vector-intermediate-format.md`.
-
-## Arquivos relevantes
-
-- `src/foison_bridge/receiver.py`
-- `src/foison_bridge/geometry.py`
-- `src/foison_bridge/hpgl.py`
-- `tests/test_bridge.py`
-
-## Como continuar
-
-1. Execute `python3 -m unittest discover -s tests -v`.
-2. Empacote o receptor para Windows e configure uma fila de teste sem COM2.
-3. Capture um trabalho real do CorelDRAW e valide o relatório antes de criar o
-   parser PostScript.
-4. Executar o workflow Windows para obter os executáveis e validar
-   instalação/criação da fila em Windows 7 real após resolver o INF/PPD.
+Finalizar validação ampliada, compilar NSIS/pacote, revisar diff/artefatos, fazer
+commits e push autorizados, executar Actions Ubuntu + net48/engines Windows e
+inspecionar artefatos. Atualizar aqui resultados reais/URLs/checksums.

@@ -1,0 +1,20 @@
+Distribuição de sessão acompanhada — fontes e licenças
+
+Código próprio: licença MIT (LICENSE dentro de sources/foison-bridge-source.zip).
+Ghostscript 10.08.0 e MuPDF 1.28.5: distribuições oficiais não modificadas da
+Artifex, sob GNU AGPL v3; licenças em tools/gs/doc/COPYING e
+tools/mupdf/COPYING.txt. Fontes correspondentes completas em sources/.
+A distribuição conjunta é oferecida com as fontes completas e condições AGPLv3
+para as partes abrangidas, preservando as licenças permissivas originais.
+Dependências e avisos dos interpretadores estão nos próprios arquivos fonte.
+RedMon 1.9: GNU GPLv3; licença, README e código-fonte dentro de
+sources/foison-bridge-source.zip (third_party/redmon/).
+.NET Framework 4.8 e Microsoft Visual C++ 2015–2019 x64 Redistributable:
+instaladores Microsoft não modificados, sujeitos às licenças da Microsoft,
+não são cobertos pela licença do Bridge. Não contêm nem instalam drivers FTDI.
+As URLs oficiais, versões e SHA256 estão em tools/manifest.json.
+
+O hash fixa a reprodução, não prova compatibilidade com Windows 7 ou hardware.
+Somente documentos locais confiáveis. Win7 está fora de suporte do fabricante;
+-dSAFER e limites do processo não equivalem a sandbox de segurança do sistema.
+Não existe conexão de rede ou telemetria no aplicativo do operador.

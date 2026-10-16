@@ -1,44 +1,22 @@
-# Build Windows e artefatos
+# Distribuição Windows
 
-## Ferramentas configuradas
+O workflow `Build and deterministic acceptance` exige Ubuntu E2E aprovado antes
+à execução net48 com GS/MuPDF Windows. Também testa a prévia e tenta APIs reais
+RedMon no spooler Windows 2022 descartável, sem COM nem impressora física.
 
-- SDK .NET 8.0.416 em `~/.dotnet`, usado para compilar projetos direcionados
-  ao .NET Framework 4.8 com `Microsoft.NETFramework.ReferenceAssemblies`.
-- NSIS 3.09 extraído em `~/.local/foison-tools/nsis`, sem privilégios de root.
-- RedMon 1.9 x64 obtido do fornecedor e acompanhado de GPLv3/código-fonte em
-  `third_party/redmon`.
-- MinGW não foi instalado porque nenhum componente nativo próprio é compilado
-  neste slice; RedMon é um binário de terceiro e não deve ser recompilado
-  silenciosamente.
+Saída obrigatória:
+- `dist/FoisonC24-Setup-x64.exe`;
+- `dist/FoisonC24-Cliente-Win7-x64.zip` (um ZIP para o cliente);
+- `dist/checksums.sha256`, `dist/UI-preview.png` (evidência da UI no CI).
 
-## Evidência
+`prepare-tools.py` obtém engines/pré-requisitos oficiais fixados por SHA256 e
+fontes completas. `fetch-redmon.py` confere distribuição/binários/fontes RedMon.
+NSIS exige todos os componentes; `package-client.py` impede ZIP incompleto.
+Não reutilizar distribuição de captura dos runs antigos como cortador pronto.
+O arquivo de fonte própria corresponde a `git archive HEAD`: fazer commit antes
+de gerar distribuição local. Não versionar downloads, binários ou documentos de
+cliente. A fonte de build e os hashes ficam no repositório e no pacote.
 
-O workflow `.github/workflows/windows-build.yml`, run
-`38959064970`, concluiu no runner Windows moderno e publicou:
-
-- `foison-c24-windows-components`: `FoisonC24Receiver.exe` e
-  `FoisonC24Diagnostic.exe` x64 para `net48`.
-- `foison-c24-installer-candidate`: candidato NSIS experimental. A instalação
-  ainda precisa ser executada em Windows 7.
-- `foison-c24-operator-test-zip`: ZIP para o operador, com instalador,
-  instruções e checksum.
-
-Esses artefatos comprovam compilação no Windows moderno, não compatibilidade
-ou instalação no Windows 7.
-
-O run mais recente é
-<https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/38960808306>.
-
-## Para gerar o instalador
-
-O instalador não redistribui um driver PostScript aleatório. Ele detecta um
-driver PostScript/PScript já instalado no Windows. A rotina Windows 7:
-
-1. instala o RedMon x64;
-2. crie uma porta redirecionada para `FoisonC24Receiver.exe`;
-3. registre a fila `Foison C24 (Teste)` usando o driver;
-4. configure a fila para não acessar COM2;
-5. remova somente esses componentes durante a desinstalação.
-
-Se nenhum driver compatível existir, a instalação falha antes de deixar uma
-fila. Não coloque um INF aleatório para forçar a instalação.
+Scripts locais Linux: `MAKENSIS=/caminho/makensis` e, se NSIS extraído sem instalação,
+`NSISDIR=/caminho/usr/share/nsis`. Nenhum binário publicado equivale a validação
+Win7/PScript/Corel/hardware. Ver PROJECT_STATE para resultados do run atual.

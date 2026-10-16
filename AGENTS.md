@@ -36,3 +36,19 @@ documentados no README e registre limitações do ambiente.
 Use commits pequenos e coerentes. Não reescreva histórico, não use operações
 destrutivas e não inclua segredos, tokens, credenciais, documentos de usuário ou
 logs extensos.
+
+## Comandos atuais
+
+- Testes Python/contratos: `./scripts/test.sh`.
+- Build/lint/tipos: `dotnet build src/FoisonC24.Diagnostic -c Release`,
+  `dotnet build src/FoisonC24.Provisioner -c Release`,
+  `dotnet build src/FoisonC24.WindowsReceiver -f net48 -c Release`.
+- E2E portátil: comandos completos em README (engines reais + stdin e serial
+  simulados); harness C# em `tests/FoisonC24.CoreTests`.
+- Desenvolvimento Windows: `dotnet run --project src/FoisonC24.Diagnostic`
+  (tools/ deve estar ao lado do EXE; nenhuma aprovação física persistida).
+- Dependências: `python3 scripts/prepare-tools.py`, `python3 scripts/fetch-redmon.py`.
+- NSIS e pacote: `./packaging/windows/build-installer.sh` e
+  `./scripts/build-distribution.sh`; nenhum ZIP incompleto deve ser entregue.
+- Nunca declarar tests simulados como validação Win7/Corel/hardware. Não apagar
+  journal ou latch para repetir trabalho cujo estado físico é incerto.

@@ -30,3 +30,14 @@
 
 - A fila/driver Windows ainda não foi instalada ou testada.
 - O parser PostScript e o protocolo/escala C24 ainda não estão validados.
+
+## Candidato de primeira sessão acompanhada — 2026-10-16
+
+- Pipeline Windows real PostScript → GS/PDF vetorial → MuPDF → geometria mm →
+  prévia/HPGL → serial, condicionado à evidência de revisão e autorizações.
+- Limites, cancelamento/timeouts, exclusividade, journal e bloqueio após incerteza.
+- Corrigidos nome RedMon (`Redirected Port`), configuração binária XcvData/read-back,
+  descoberta/instalação inbox PScript5 x64 e rollback/desinstalação restritos.
+- Distribuição offline completa, fontes/licenças, pré-requisitos e roteiro Flexi
+  FILE sem sniffer/alteração FTDI. CI ampliado com testes reais dos engines e mocks.
+- Win7/CorelDRAW/revisão/protocolo físico/corte continuam NÃO validados.

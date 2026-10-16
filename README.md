@@ -1,100 +1,75 @@
 # Foison C24 Print Bridge
 
-Ponte local em desenvolvimento para o fluxo **CorelDRAW X6 → Arquivo →
-Imprimir → Foison C24** em Windows 7 SP1 x64. O projeto captura o fluxo de
-impressão, preserva o original para diagnóstico, converte geometria vetorial
-para um modelo comum e oferece simulação antes de qualquer transmissão à
-plotter Foison C24 via FTDI/COM2.
+Candidato para a primeira sessão acompanhada:
+**CorelDRAW X6 → impressora Foison C24 (Teste) → PostScript vetorial → prévia mm
+→ HPGL condicionado à validação → COM2 → ensaio/corte autorizado.**
 
-> **Estado honesto:** o receptor, modelo geométrico, simulador textual e
-> conversor HPGL experimental já possuem testes no Ubuntu. A criação da fila
-> de impressão no Windows, a interpretação completa de PostScript, o protocolo
-> exato da revisão C24 e o corte físico ainda não foram validados. O modo
-> físico permanece desabilitado por padrão.
+**Não é captura-only. Também não é hardware validado.** O protocolo/resolução
+exatos da revisão do cliente e Win7/CorelDRAW não foram executados aqui. Sem
+comprovar essas condições, nenhum movimento é permitido. Consulte
+[estado](PROJECT_STATE.md) e [checklist do desenvolvedor](packaging/windows/PRIMEIRA-SESSAO.md).
 
-## Decisões iniciais
+## Produto
 
-- Alvo operacional: Windows 7 SP1 x64, .NET Framework 4.8, CorelDRAW X6 x64.
-- Padrão serial inicial configurável: COM2, 38400 8N1, Xon/Xoff.
-- A entrada primária planejada é PostScript redirecionado por uma fila de
-  impressão. Bytes desconhecidos são rejeitados, nunca tratados como HPGL.
-- O receptor portátil atual usa Python 3 para testes e captura; o componente
-  Windows/driver será separado quando o teste no Windows estiver disponível.
-- HPGL e escala da C24 são **não validados** até existir documentação ou uma
-  captura autorizada do FlexiSIGN/Production Manager.
+- Windows 7 SP1 x64 / .NET Framework 4.8; UI WinForms em português.
+- Instalador offline `FoisonC24-Setup-x64.exe` com engines vetoriais reais,
+  pré-requisitos, RedMon x64, fonte e licenças. Pode precisar reiniciar Windows
+  pelos pré-requisitos; não é possível prometer sessão sem reboot.
+- Driver PostScript inbox MS Publisher Imagesetter instalado pelo INF do próprio
+  Windows e verificado como PScript5 x64; não requer adivinhar driver existente.
+- Sem modificação de FTDI, configuração FlexiSIGN, COM2 do sistema ou outras filas.
+- Serial configurável (COM2 padrão), 38400 8N1 Xon/Xoff; sem retry/forçar porta.
+- Área inicial medida ≤50×50 mm; prévia e autorização por trabalho; ensaio sem
+  lâmina obrigatório antes do corte. Nenhum comando de força/velocidade presumido.
+- Curvas preservadas por aproximação ≤0,01 mm; abertos/fechados e afins testados.
+  Imagens/recortes/efeitos/operações desconhecidas são rejeitados, nunca omitidos.
+- Journal e latch persistentes após interrupção incerta. O botão PC não é parada
+  física de emergência; veja o procedimento PAUSE/OFFLINE no checklist.
 
-## Ambiente Ubuntu
+## Cliente: três passos
 
-Descoberta inicial (2026-10-16):
+1. Executar o instalador com o desenvolvedor presente.
+2. Abrir `quadrado-20mm.svg` no CorelDRAW X6 e imprimir uma cópia em Foison C24
+   (Teste), escala 100%, sem ajustar à página.
+3. Abrir Foison C24, conferir prévia 20×20 mm e seguir as confirmações guiadas.
 
-| Item | Resultado |
-|---|---|
-| Sistema | Ubuntu 24.04.5 LTS x86_64 |
-| Shell | `/usr/bin/zsh` |
-| Git | 2.55.0 |
-| GitHub CLI | 2.45.0, autenticado |
-| Python | 3.12.3 |
-| .NET/Mono/MSBuild | não instalados |
-| Wine | instalado |
-| Compiladores C/C++ | gcc, g++, clang |
-| Projeto | `/home/felipe-macedo/Desktop/foison-c24-print-bridge` |
+Se a revisão/protocolo/origem/escala/área não puder ser comprovada, não cortar.
 
-O Ubuntu atual não tem referência assemblies do .NET Framework. Não se deve
-confundir os testes portáteis com compatibilidade comprovada no Windows 7.
+## Desenvolvimento / validação
 
-Desde 2026-10-16, o SDK .NET 8 foi instalado em `~/.dotnet` e NSIS 3.09 em
-`~/.local/foison-tools/nsis` (sem privilégios
-de administrador) e os projetos `net48` do receptor e do diagnóstico compilam
-no Ubuntu usando o pacote de reference assemblies. Isso prova compilação, não
-execução/compatibilidade no Windows 7.
+SDK .NET 8, Python 3.12; para testes reais Linux: `ghostscript` e `mupdf-tools`.
+No host atual o SDK está em `~/.dotnet/dotnet`; use `dotnet` no PATH.
 
-## Desenvolvimento e testes
-
-```bash
-python3 -m unittest discover -s tests -v
-printf '%s\\n' '%!PS-Adobe-3.0' '%%EOF' | \
-  python3 -m foison_bridge.receiver --output-dir /tmp/foison-captures
-python3 -m foison_bridge.simulator
+```sh
+./scripts/test.sh                         # Python e contratos de provisionamento
+# Compilações equivalem ao lint/tipo-check C#; não há formatter adicional.
+dotnet build src/FoisonC24.WindowsReceiver -f net8.0 -c Release
+dotnet run --project tests/FoisonC24.CoreTests -f net8.0 -c Release -- \
+  /usr/bin/gs /usr/bin/mutool "$PWD/tests/fixtures" \
+  "$PWD/src/FoisonC24.WindowsReceiver/bin/Release/net8.0/FoisonC24Receiver.dll"
+dotnet build src/FoisonC24.Diagnostic -c Release
+dotnet build src/FoisonC24.Provisioner -c Release
+dotnet build src/FoisonC24.WindowsReceiver -f net48 -c Release
+git diff --check
 ```
 
-O receptor grava `job-*.raw` e um relatório JSON. O processo termina com erro
-para formato desconhecido, entrada vazia ou dados acima do limite configurado.
+Desenvolvimento Windows: `dotnet run --project src/FoisonC24.Diagnostic`, com
+`tools/` ao lado do exe. A UI não interpreta automaticamente ao imprimir nem
+abre COM para sondar. Uma nova sessão exige nova aprovação do desenvolvedor.
 
-## Próxima validação Windows
+## Build completo
 
-1. Construir/empacotar o receptor para Windows 7 x64 em ambiente com toolchain
-   compatível.
-2. Validar uma fila de teste com driver PostScript/RedMon ou uma alternativa
-   de monitor de porta suportada; nenhum desses componentes foi presumido como
-   instalado.
-3. Imprimir um quadrado no CorelDRAW e anexar o relatório do receptor.
-4. Somente depois validar parsing vetorial e protocolo/escala com simulador.
-5. Testar COM2 apenas com FlexiSIGN fechado e `physical_cut_enabled=false`
-   até aprovação explícita do operador.
+```sh
+python3 scripts/prepare-tools.py           # Python + 7z; downloads oficiais fixados
+python3 scripts/fetch-redmon.py
+# Copiar os três EXEs net48 e FoisonC24.Core.dll para packaging/windows/
+./packaging/windows/build-installer.sh     # NSIS 3; MAKENSIS pode indicar executável
+./scripts/build-distribution.sh            # falha se qualquer componente faltar
+```
 
-O workflow `.github/workflows/windows-build.yml` produz os executáveis em um
-runner Windows moderno e tenta gerar um instalador candidato. O artefato não
-será considerado funcional até a fila ser criada e testada no Windows 7.
-
-O build do instalador exige ainda um INF/PPD do driver PostScript que possa ser
-redistribuído legalmente e uma rotina comprovada de criação da fila. Esses
-arquivos não são inventados nem substituídos por um driver aleatório.
-
-O histórico do build Windows e os artefatos publicados estão documentados em
-`docs/windows-build.md`.
-
-Consulte `PROJECT_STATE.md`, `TASKS.md` e `docs/architecture.md` para a fonte
-de verdade operacional.
-
-## Entrega para usuário sem conhecimento técnico
-
-O instalador experimental agora é gerado como
-`packaging/windows/FoisonC24-Teste-Setup-x64.exe` e pelo workflow Windows.
-Ele só deve ser entregue para teste controlado: exige Windows 7 SP1 x64,
-detecta um driver PostScript/PScript já instalado, cria uma porta exclusiva `FOISONC24n:` via RedMon e
-mantém COM2/corte físico intocados. O roteiro de entrega está em
-`docs/entrega-para-usuario.md`.
-
-O candidato local é um binário Windows compilado pelo NSIS, mas ainda não foi
-instalado/testado em Windows 7. Não declare a fila como aprovada antes desse
-teste.
+O Git deve conter as fontes atuais commitadas antes de preparar o arquivo fonte
+com `git archive HEAD`. O CI automatiza todos esses passos, executa net48 com
+os engines Windows, simula stdin da fila/serial e publica o ZIP único.
+Isso **não executa** spooler/RedMon/PScript/CorelDRAW reais em Win7.
+[Arquitetura](docs/architecture.md), [protocolo](docs/protocol.md),
+[testes](docs/testing.md) e [licenças](packaging/windows/THIRD-PARTY.txt).

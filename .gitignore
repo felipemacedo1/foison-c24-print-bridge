@@ -40,3 +40,11 @@ Thumbs.db
 *.pem
 *.pfx
 *.key
+
+# Downloaded tools, prerequisites and corresponding sources
+packaging/windows/tools/
+packaging/windows/sources/
+packaging/windows/prerequisites/
+.build-cache/
+
+packaging/windows/redmon.chm

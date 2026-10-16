@@ -1,27 +1,24 @@
-# Tarefas
+# Tarefas — prioridade primeiro quadrado físico
 
-## Em andamento
+## Implementado, aceitação automatizada em andamento
 
-- [ ] TASK-005 — Validar captura de uma fila de impressão no Windows 7
-- [ ] TASK-009 — Obter/validar driver PostScript e criação da fila Windows
+- [x] Núcleo geométrico C# compartilhado net48/net8 e interpretação PS real.
+- [x] Prévia em milímetros, curvas, afins e abertos/fechados sem rasterizar.
+- [x] Gerador HPGL limitado e autorização por revisão/perfil/trabalho.
+- [x] Serial real exclusiva com timeout/cancelamento e journal sem retry.
+- [x] Confirmação operador, ensaio sem lâmina, limites e latch de interrupção.
+- [x] Provisionamento inbox exato + RedMon GetConfig/SetConfig e read-back.
+- [x] Desenho 20 mm e fixtures vetoriais/rejeições, stdin e serial simulados.
+- [x] Procedimento de evidência Flexi via setup FILE sem tocar FTDI.
+- [x] Empacotamento offline completo com ferramentas, pré-requisitos e fontes.
+- [ ] Revisão final de segurança, build NSIS e testes finais Ubuntu.
+- [ ] Actions Windows: executar net48/engines e UI smoke, inspecionar ZIP.
 
-## Próximas
+## Exige ambiente real; não presumir concluído
 
-- [ ] TASK-006 — Implementar parser seguro do subconjunto vetorial PostScript
-- [ ] TASK-007 — Criar simulador visual com o mesmo modelo geométrico
-- [ ] TASK-008 — Implementar transporte serial configurável e diagnóstico
-- [ ] TASK-009 — Construir instalador e fila Foison C24 para Windows 7 x64
-- [ ] TASK-009d — Validar APIs RedMon e spooler no Windows 7 real
-- [ ] TASK-010 — Validar protocolo/escala com hardware e documentar calibração
-
-## Concluídas
-
-- [x] TASK-001 — Inicializar repositório e continuidade
-- [x] TASK-002 — Documentar ambiente e requisitos reais
-- [x] TASK-003 — Criar receptor portátil de captura
-- [x] TASK-004 — Criar geometria e serialização HPGL experimental
-- [x] TASK-008a — Isolar configuração de transporte e fila segura em simulação
-- [x] TASK-009a — Preparar fonte do instalador e pacote documental sem fingir EXE
-- [x] TASK-009b — Compilar receptor/diagnóstico e publicar artefatos via Actions
-- [x] TASK-009c — Implementar provisionador RedMon/PrintUIEntry com rollback
-- [x] TASK-009e — Tornar provisionamento idempotente e seguro contra conflitos
+- [ ] Instalar e verificar Win7 SP1 x64, pré-requisitos, fila, XcvData/RedMon.
+- [ ] Imprimir pelo CorelDRAW X6 e anexar fixture autorizada sanitizada.
+- [ ] Confirmar revisão, wire protocol, resolução, eixos, inicialização, lâmina.
+- [ ] Confirmar COM2 real (38400/8N1/Xon-Xoff/DTR/RTS) e porta ocupada.
+- [ ] Medir origem/área, ensaio sem lâmina e interrupção física segura.
+- [ ] Autorizar e medir primeiro quadrado físico de 20 mm.
