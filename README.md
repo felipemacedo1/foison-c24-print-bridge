@@ -68,3 +68,10 @@ para formato desconhecido, entrada vazia ou dados acima do limite configurado.
 
 Consulte `PROJECT_STATE.md`, `TASKS.md` e `docs/architecture.md` para a fonte
 de verdade operacional.
+
+## Entrega para usuário sem conhecimento técnico
+
+O estado atual **não é um instalador** e não deve ser enviado ao operador
+final como se fosse um produto pronto. O roteiro de entrega, a mensagem
+pronta e os critérios mínimos para gerar `FoisonC24-Setup-x64.exe` estão em
+`docs/entrega-para-usuario.md`.

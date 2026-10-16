@@ -23,6 +23,7 @@ Status: EM DESENVOLVIMENTO
 - [x] Serializador HPGL explicitamente experimental.
 - [x] Testes determinísticos sem impressora.
 - [x] Fronteira de transporte serial com simulação e fila de um transmissor.
+- [x] Roteiro honesto de entrega para operador sem conhecimento técnico.
 
 ## Em andamento
 
