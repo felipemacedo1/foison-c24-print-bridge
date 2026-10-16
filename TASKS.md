@@ -11,8 +11,8 @@
 - [x] Desenho 20 mm e fixtures vetoriais/rejeições, stdin e serial simulados.
 - [x] Procedimento de evidência Flexi via setup FILE sem tocar FTDI.
 - [x] Empacotamento offline completo com ferramentas, pré-requisitos e fontes.
-- [ ] Revisão final de segurança, build NSIS e testes finais Ubuntu.
-- [ ] Actions Windows: executar net48/engines e UI smoke, inspecionar ZIP.
+- [x] Revisão final de segurança, build NSIS e testes finais Ubuntu.
+- [x] Actions 38972159423: net48/engines, UI smoke, APIs RedMon Windows 2022 e ZIP inspecionado.
 
 ## Exige ambiente real; não presumir concluído
 

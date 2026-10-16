@@ -1,41 +1,37 @@
-# Objetivo
-Preparar candidato único para primeira sessão acompanhada: PS vetorial → prévia → HPGL → serial, sem autorizar hardware não comprovado.
+# Objetivo / aceite
+Candidato único para primeira sessão acompanhada: PS vetorial → prévia mm →
+HPGL condicionado à prova de revisão → serial exclusiva → ensaio/corte autorizado.
+Não entregar captura-only nem prometer hardware validado.
 
-## Critérios de aceite
-Conversão vetorial real; escala/orientação testadas; limites e autorização por trabalho; serial exclusiva/cancelável sem retry; instalador e ZIP reais; testes Ubuntu e Windows CI; nenhuma alegação de validação Win7/hardware.
+## Decisões e áreas alteradas
+- Checkout real nesta subpasta, recuperado do GitHub a partir de 610e5ec; pai preservado.
+- C# net48/net8 compartilhado: conversão GS/MuPDF reais, geometria, perfil/plano,
+  IWire/Sender/journal; UI portuguesa e serial net48; Receiver binário atômico.
+- Envelopes EOT/PJL estritos; clips só aceitos quando retangulares e inofensivos.
+- IN/PA/PU/PD e resolução sem presunção; aprovação por sessão/plano/operador.
+- Latch persistido antes do primeiro byte; sem retry e sem reset wire desconhecido.
+- Provisionador RedMon corrigido pelo fonte 1.9: Redirected Port, RECONFIG e
+  XcvDataW GetConfig/SetConfig/read-back. Driver inbox exato PScript5 x64.
+- NSIS/ZIP completo com dependências oficiais fixadas, pré-requisitos e fontes.
+  Setup RedMon exige chm/helper original; Bridge nunca executa seu desinstalador.
+- Arquivos/comandos e roteiro técnico em README, docs e PRIMEIRA-SESSAO.md.
 
-## Decisões
-- Base clonada do GitHub em 610e5ec; diretório pai não era checkout válido.
-- Domínio compartilhado C# net48/net8, UI net48. Python existente permanece referência experimental, não motor Windows.
-- PostScript interpretado por Ghostscript isolado (-dSAFER), PDF vetorial intermediário e trace XML do MuPDF; sem rasterização. Conteúdo não suportado falha fechado.
-- Protocolo/revisão/unidades não comprovados: aprovação de desenvolvedor por sessão e de operador por trabalho, nunca habilitação automática por arquivo/captura.
+## Validações / entrega
+- Código do candidato 48bdc05; workflow 38972159423 SUCCESS.
+- 14 testes Python/contratos, 52 checks C# Ubuntu e net48/engines Windows reais.
+- Spooler Windows 2022 real: Add/Get/Set/read-back/Enum/DeletePort passaram;
+  nenhum teste de fila Corel/Win7 ou porta física.
+- Build net48 sem warnings/erros no CI; NSIS /WX e PowerShell passaram.
+- UI smoke revisada: quadrado 20 mm e envio bloqueado por padrão.
+- Artefatos baixados e inspecionados: ZIP/CRC/SHA256, payload e fontes completas.
+  Diferenças textuais do source archive são somente CRLF do checkout Windows.
+- dist contém bytes exatos do CI: FoisonC24-Setup-x64.exe e ZIP Cliente-Win7-x64.
+  Hash instalador: 48dd511435cad211d2a8f17eb2daebc9e0974ab0aeea5fd452bc7c5e4abd2d8a.
+- Primeiro CI falhou pelo BOM no stdin simulado Framework; harness corrigido e
+  igualdade SHA256 exigida, sem relaxar o receptor. Auditoria NuGet local indisponível.
 
-## Próximos passos
-Implementar motor, testes determinísticos, integração UI/serial e empacotamento com dependências/licenças/fontes; revisar provisionamento; executar validações e publicar commits.
-
-## Bloqueios
-Sem Win7, CorelDRAW X6, FlexiSIGN 12 ou Foison física. Binários de terceiros também exigem teste de execução no Win7 real.
-
-## Marco: núcleo e UI
-- Adicionados domínio C# net48/net8, flattening Bézier 0,01 mm, leitor MuPDF com falha fechada, gerador HPGL IN/PA/PU/PD restrito e journal sem retry.
-- Conversão GS real do quadrado 20 mm → plano → serial simulada: 27 checks passaram. 14 testes Python/contratos passaram.
-- UI portuguesa com prévia, perfil de revisão por sessão, confirmações por plano e transporte serial net48 compila; captura publica marcador atomicamente.
-- Build net48 dos três executáveis passou. Auditoria NuGet indisponível neste ambiente (NU1900); não implica auditoria de vulnerabilidades aprovada.
-- Corrigida corrida de término do processo no monitor de memória, encontrada pelo teste real.
-- Provisionamento agora solicita o modelo inbox exato MS Publisher Imagesetter e verifica PScript5 x64; ainda não executado em Win7.
-
-## Marco: aceitação local ampliada
-- 44 checks C# passaram após rebuild: inclui autorização por hash, porta ocupada sem bytes, cancelamento durante envio e pipeline Receiver stdin real → GS/MuPDF reais → HPGL → fake serial.
-- Builds net48 atuais passaram (NU1900 de auditoria local indisponível no núcleo; demais sem warnings).
-- NSIS completo em compilação. Adicionado teste de APIs RedMon em Windows 2022 descartável no CI e UI smoke (a executar).
-- Fonte RedMon revelou nome de monitor errado no código anterior. Corrigido para Redirected Port, configuração binária e read-back; ainda sem execução nativa até CI.
-
-## Marco: CI e compatibilidade de impressão
-- Commits 67ba7fe e 5218126 enviados. Run 38969791489: Ubuntu passou; net48 passou geometria/engines Windows, falhou no stdin simulado do Receiver (formato desconhecido).
-- Investigação: StreamWriter do stdin redirecionado no Framework pode acrescentar BOM, diferente do pipe binário RedMon. Harness agora força UTF8 sem BOM e exige SHA256 raw idêntico à fixture; repetir CI antes de entregar.
-- 48 checks locais passaram na expansão anterior: envelopes EOT/PJL estritos e clip retangular que não altera vetores. Clips intersectantes continuam rejeitados.
-- NSIS completo compilou sem warnings, mas ainda não é entrega final: regerar com fonte/commit atual após CI.
-
-## Marco: revisão do instalador RedMon
-- Fonte oficial setup.c exige redmon.chm E unredmon64.exe no mesmo diretório. Adicionado o helper original com hash verificado; o Bridge nunca o executa e só remove sua cópia local na desinstalação. RedMon compartilhado continua preservado.
-- Commit 7679116 enviado: 52 checks C# locais e 14 testes Python/contratos passaram. Novo CI em execução; ainda não declarar artefatos prontos.
+## Bloqueios / próximos passos
+Sem Win7/CorelDRAW X6/FlexiSIGN 12/Foison físicos. Protocolo, resolução, origem,
+limites e serial reais ainda não comprovados. Seguir PRIMEIRA-SESSAO; sem prova
+não mover. Pré-requisitos podem exigir reboot/atualização. Não apagar journal
+para repetir trabalho incerto. Entrega é candidato completo, não corte validado.
