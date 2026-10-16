@@ -1,77 +1,193 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using FoisonC24.Core;
 
 namespace FoisonC24.Diagnostic
 {
     internal static class Program
     {
+        internal static readonly string Home=AppDomain.CurrentDomain.BaseDirectory;
+        internal static Converter Converter() => new Converter(Path.Combine(Home,"tools","gs","bin","gswin64c.exe"),Path.Combine(Home,"tools","mupdf","mutool.exe"));
         [STAThread]
-        private static void Main()
+        private static int Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            if(args.Contains("--selftest"))
+            {
+                try
+                {
+                    var d=Converter().Convert(Path.Combine(Home,"testes","square-20mm.ps"),Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-"+Guid.NewGuid()),CancellationToken.None);
+                    if(Math.Abs(d.Width-20)>0.01 || Math.Abs(d.Height-20)>0.01) return 3;
+                    return 0;
+                }
+                catch(Exception e) { File.WriteAllText(Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-error.txt"),e.Message);return 2; }
+            }
+            Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false);
+            if(args.Length==3 && args[0]=="--ui-smoke")
+            {
+                using(var form=new MainForm())
+                {
+                    form.SmokeDrawing=Converter().Convert(args[2],Path.Combine(Path.GetTempPath(),"FoisonC24-ui-"+Guid.NewGuid()),CancellationToken.None);
+                    form.Show(); Application.DoEvents();
+                    if(!form.PhysicalButtonsBlocked) throw new InvalidOperationException("UI physical gate not blocked by default");
+                    using(var bitmap=new Bitmap(form.Width,form.Height)) { form.DrawToBitmap(bitmap,new Rectangle(0,0,form.Width,form.Height)); bitmap.Save(args[1]); }
+                    form.Close();return 0;
+                }
+            }
+            Application.Run(new MainForm());return 0;
         }
     }
-
     internal sealed class MainForm : Form
     {
-        private readonly string captureDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-            "FoisonC24", "captures");
-        private readonly Label status = new Label();
-
+        private readonly string data=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"FoisonC24");
+        private readonly ListBox jobs=new ListBox { Dock=DockStyle.Fill };
+        private readonly Label status=new Label { Dock=DockStyle.Top,Height=105 };
+        private readonly PictureBox preview=new PictureBox { Dock=DockStyle.Fill,BackColor=Color.White };
+        private readonly FlowLayoutPanel buttons=new FlowLayoutPanel { Dock=DockStyle.Bottom,Height=100,AutoScroll=true };
+        private readonly System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer { Interval=2000 };
+        private Drawing drawing; private string source,jobHash,motionKey;
+        private MachineProfile profile; private CancellationTokenSource cancel;
+        private readonly TextBox port=new TextBox { Text="COM2",Width=70 };
+        private Button stop,motionButton,cutButton;
+        internal Drawing SmokeDrawing { set { drawing=value;preview.Invalidate(); } }
+        internal bool PhysicalButtonsBlocked => !motionButton.Enabled && !cutButton.Enabled;
         public MainForm()
         {
-            Text = "Foison C24 Print Bridge - Diagnóstico";
-            Width = 560;
-            Height = 220;
-            status.AutoSize = false;
-            status.Dock = DockStyle.Top;
-            status.Height = 100;
-            status.Text = "Modo simulação ativo.\r\nNenhum comando será enviado à COM2.";
-            Controls.Add(status);
-            Button refresh = new Button { Text = "Atualizar estado", Left = 20, Top = 115, Width = 150 };
-            refresh.Click += (sender, args) => RefreshStatus();
-            Controls.Add(refresh);
-            Button export = new Button { Text = "Exportar diagnóstico", Left = 190, Top = 115, Width = 180 };
-            export.Click += (sender, args) => Export();
-            Controls.Add(export);
-            RefreshStatus();
+            Text="Foison C24 — sessão acompanhada (não validada no hardware)";Width=1050;Height=730;
+            status.Text="1. No CorelDRAW, abra o quadrado 20 mm e imprima em Foison C24 (Teste), escala 100%.\r\n2. Selecione o trabalho e confira a prévia. O envio começa BLOQUEADO.\r\n3. O desenvolvedor valida a máquina; cada movimento/corte exige nova confirmação.";
+            Controls.Add(preview);Controls.Add(buttons);Controls.Add(status);
+            var left=new Panel { Dock=DockStyle.Left,Width=230 };left.Controls.Add(jobs);Controls.Add(left);
+            Add("Atualizar trabalhos",RefreshJobs);Add("Pré-visualizar",async()=>await ConvertSelected());
+            Add("Validar máquina (dev)",ApproveMachine);Add("Diagnóstico",Diagnose);Add("Exportar relatório",Export);
+            buttons.Controls.Add(port);motionButton=Add("Movimento sem lâmina",async()=>await Send(true));cutButton=Add("Primeiro corte",async()=>await Send(false));
+            stop=Add("INTERROMPER ENVIO",()=> { cancel?.Cancel(); status.Text="Cancelando envio. Use PAUSE/OFFLINE no painel. Fechar COM não garante parar o buffer da plotter. Não repita o trabalho."; });
+            stop.BackColor=Color.MistyRose;
+            port.TextChanged+=(s,e)=> { profile=null;motionKey=null;UpdateGates(); };
+            jobs.SelectedIndexChanged+=(s,e)=> { if(cancel!=null)return;drawing=null;source=null;jobHash=null;motionKey=null;preview.Invalidate();UpdateGates(); };
+            preview.Paint+=PaintPreview;
+            timer.Tick+=(s,e)=> { if(cancel==null) RefreshJobs(); };timer.Start();RefreshJobs();UpdateGates();
+            FormClosing+=(s,e)=> { if(cancel!=null) { cancel.Cancel();e.Cancel=true;MessageBox.Show("Aguarde a interrupção e use o painel da plotter. O buffer pode continuar executando."); } };
         }
-
-        private void RefreshStatus()
+        private Button Add(string text,Action action)
         {
-            int jobs = Directory.Exists(captureDirectory)
-                ? Directory.GetFiles(captureDirectory, "job-*.json").Length : 0;
-            status.Text = "Modo simulação ativo.\r\nTrabalhos capturados: " + jobs +
-                "\r\nPasta: " + captureDirectory;
+            var button=new Button { Text=text,AutoSize=true,Height=32 };
+            button.Click+=(s,e)=> { try { action(); } catch(Exception error) { Error(error); } };buttons.Controls.Add(button);return button;
         }
-
+        private void Busy(bool value)
+        { foreach(Control c in buttons.Controls) c.Enabled=!value; stop.Enabled=value; jobs.Enabled=!value;UpdateGates(); }
+        private void UpdateGates()
+        {
+            stop.Enabled=cancel!=null;
+            motionButton.Enabled=cancel==null && drawing!=null && profile!=null;
+            cutButton.Enabled=motionButton.Enabled && motionKey==jobHash+profile.Fingerprint;
+        }
+        private void Error(Exception e)
+        {
+            UpdateGates();
+            status.Text="BLOQUEADO — "+e.Message;
+            try { Directory.CreateDirectory(Path.Combine(data,"session"));File.AppendAllText(Path.Combine(data,"session","diagnostic.log"),DateTime.UtcNow.ToString("O")+" "+e.GetType().Name+": "+e.Message+Environment.NewLine); } catch(IOException) { }
+            MessageBox.Show(e.Message+"\r\nNenhum reenvio automático será feito. Se houve transmissão, confira PAUSE/OFFLINE no painel.",Text,MessageBoxButtons.OK,MessageBoxIcon.Warning);
+        }
+        private void RefreshJobs()
+        {
+            string folder=Path.Combine(data,"captures");if(!Directory.Exists(folder))return;
+            foreach(var file in Directory.GetFiles(folder,"job-*.json").OrderBy(f=>f))
+            {
+                string name=Path.GetFileNameWithoutExtension(file);
+                if(File.Exists(Path.Combine(folder,name+".raw")) && !jobs.Items.Contains(name)) jobs.Items.Add(name);
+            }
+        }
+        private async Task ConvertSelected()
+        {
+            if(jobs.SelectedItem==null) { MessageBox.Show("Imprima pelo CorelDRAW e selecione o trabalho na lista.");return; }
+            cancel=new CancellationTokenSource();Busy(true);drawing=null;motionKey=null;
+            try
+            {
+                source=Path.Combine(data,"captures",jobs.SelectedItem+".raw");jobHash=MachineProfile.FileHash(source);
+                string scratch=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"FoisonC24","conversion-"+Guid.NewGuid());
+                drawing=await Task.Run(()=>Program.Converter().Convert(source,scratch,cancel.Token));
+                if(MachineProfile.FileHash(source)!=jobHash) throw new IOException("Captura mudou durante a conversão.");
+                status.Text="Prévia: "+drawing.SizeLabel+" — "+drawing.Paths.Count+" caminhos.\r\nX → direita; Y ↑. Origem do desenho normalizada, sem escala automática; margem de 2 mm no envio.\r\nContornos são linhas centrais; preenchimentos viram perímetros. Confira caminhos e remova fundo/duplicatas. Envio ainda exige validação.";
+                preview.Invalidate();
+            }
+            catch(Exception e) { drawing=null;Error(e); }
+            finally { cancel.Dispose();cancel=null;Busy(false); }
+        }
+        private void ApproveMachine()
+        {
+            profile=null;motionKey=null;
+            using(var dialog=new MachineDialog())
+                if(dialog.ShowDialog(this)==DialogResult.OK) { profile=dialog.Profile;status.Text="Perfil verificado nesta sessão. Nenhum comando foi enviado. Confira prévia, escala, origem e material antes de cada autorização."; }
+            UpdateGates();
+        }
+        private async Task Send(bool motion)
+        {
+            if(drawing==null || profile==null) { MessageBox.Show("Envio BLOQUEADO. Abra a prévia e peça ao desenvolvedor para validar a máquina.");return; }
+            try
+            {
+                if(MachineProfile.FileHash(source)!=jobHash) throw new IOException("Captura alterada. Converta novamente.");
+                var plan=Hpgl.Build(drawing,jobHash,profile,motion);
+                string key=jobHash+profile.Fingerprint;
+                if(!motion && motionKey!=key) throw new InvalidOperationException("Faça e observe primeiro o movimento sem lâmina deste desenho/perfil.");
+                using(var confirm=new ConfirmationDialog(drawing.SizeLabel,motion,port.Text,profile,plan))
+                {
+                    if(confirm.ShowDialog(this)!=DialogResult.OK)return;
+                }
+                var approval=new Authorization { PlanHash=plan.Hash,DeveloperApproved=true,GeometryMeasured=true,OriginAndLimitsChecked=true,OperatorConfirmed=true,BladeRemovedForMotion=motion,MotionObserved=motionKey==key };
+                string portName=port.Text;
+                cancel=new CancellationTokenSource();Busy(true);
+                try
+                {
+                    await Task.Run(()=>new Sender(Path.Combine(data,"session")).Send(plan,approval,()=>new SerialWire(portName),cancel.Token));
+                    status.Text="Bytes entregues ao driver serial. Isso NÃO confirma execução física. Confira a máquina; não repita automaticamente.";
+                    if(motion && MessageBox.Show("O desenvolvedor observou o movimento completo, lâmina removida, direções/origem corretas, limites respeitados e escala medida?\r\nO spooler/USB não confirma o término físico. Aguarde a máquina parar antes de responder.",Text,MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes) motionKey=key;
+                }
+                finally { cancel.Dispose();cancel=null;Busy(false); }
+            }
+            catch(Exception e) { motionKey=null;Error(e); }
+        }
+        private void PaintPreview(object sender,PaintEventArgs e)
+        {
+            if(drawing==null)return;
+            float scale=(float)Math.Min((preview.Width-70)/Math.Max(1,drawing.Width),(preview.Height-70)/Math.Max(1,drawing.Height));
+            using(var pen=new Pen(Color.DarkBlue,1))
+            foreach(var path in drawing.Paths)
+            {
+                var points=path.Points.Select(p=>new PointF(35+(float)(p.X-drawing.MinX)*scale,preview.Height-35-(float)(p.Y-drawing.MinY)*scale)).ToArray();
+                e.Graphics.DrawLines(pen,points);if(path.Closed)e.Graphics.DrawLine(pen,points.Last(),points.First());
+            }
+            e.Graphics.DrawString(drawing.SizeLabel+" | X →  Y ↑",Font,Brushes.Black,5,5);
+        }
+        private void Diagnose()
+        {
+            string spooler;
+            try { using(var s=new System.ServiceProcess.ServiceController("Spooler")) spooler=s.Status.ToString(); } catch(Exception e) { spooler=e.Message; }
+            string processes=String.Join(", ",Process.GetProcesses().Where(p=>p.ProcessName.IndexOf("flexi",StringComparison.OrdinalIgnoreCase)>=0 || p.ProcessName.IndexOf("production",StringComparison.OrdinalIgnoreCase)>=0).Select(p=>p.ProcessName));
+            string report="Spooler: "+spooler+"\r\nPortas visíveis: "+String.Join(", ",System.IO.Ports.SerialPort.GetPortNames())+"\r\nProcessos possivelmente relevantes: "+processes+" (não identifica proprietário da porta)\r\n"+
+                "Instalação: "+(File.Exists(Path.Combine(data,"install-state.json"))?"manifesto presente":"sem manifesto do Bridge")+"\r\nFila e driver devem ser confirmados no CorelDRAW.\r\nInterrupção pendente: "+File.Exists(Path.Combine(data,"session","INTERRUPTED"))+"\r\n"+
+                "Configuração serial: "+port.Text+" / 38400 / 8N1 / Xon/Xoff. Nenhuma sondagem ou escrita foi feita.\r\n"+
+                "Cancelamento descarta somente o buffer do PC. PAUSE/OFFLINE no painel é obrigatório. Nunca envie reset desconhecido.\r\n"+
+                "Falhas de captura: veja receiver-errors.log; conversão: diagnóstico exportável. FTDI/FlexiSIGN não são alterados.";
+            status.Text=report;MessageBox.Show(report,Text);
+        }
         private void Export()
         {
-            if (!Directory.Exists(captureDirectory))
+            using(var dialog=new SaveFileDialog { Filter="ZIP|*.zip",FileName="FoisonC24-diagnostico.zip",OverwritePrompt=true })
             {
-                MessageBox.Show("Ainda não há diagnóstico para exportar.", Text,
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            using (SaveFileDialog dialog = new SaveFileDialog { Filter = "ZIP|*.zip",
-                FileName = "FoisonC24-diagnostico-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".zip" })
-            {
-                if (dialog.ShowDialog() != DialogResult.OK) return;
-                if (File.Exists(dialog.FileName)) File.Delete(dialog.FileName);
-                using (ZipArchive archive = ZipFile.Open(dialog.FileName, ZipArchiveMode.Create))
-                    foreach (string file in Directory.GetFiles(captureDirectory)
-                        .Where(path => Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase)
-                            || Path.GetFileName(path).Equals("receiver-errors.log", StringComparison.OrdinalIgnoreCase)))
-                        archive.CreateEntryFromFile(file, Path.GetFileName(file));
-                MessageBox.Show("Diagnóstico exportado sem os documentos brutos.", Text,
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if(dialog.ShowDialog()!=DialogResult.OK)return;
+                using(var f=new FileStream(dialog.FileName,FileMode.Create))
+                using(var zip=new ZipArchive(f,ZipArchiveMode.Create))
+                {
+                    foreach(var folder in new[]{data,Path.Combine(data,"captures"),Path.Combine(data,"session")})
+                    if(Directory.Exists(folder)) foreach(var file in Directory.GetFiles(folder).Where(x=>x.EndsWith(".json") || x.EndsWith(".log") || x.EndsWith(".sent") || Path.GetFileName(x)=="INTERRUPTED")) zip.CreateEntryFromFile(file,Path.GetFileName(file));
+                }
+                MessageBox.Show("Relatório exportado sem arquivos brutos/PDF/vetores. Revise os erros antes de compartilhar: podem conter caminhos locais ou trechos de mensagens do interpretador.");
             }
         }
     }

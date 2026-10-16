@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFrameworks>net48;net8.0</TargetFrameworks><LangVersion>latest</LangVersion></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/FoisonC24.Core/FoisonC24.Core.csproj" /></ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'"><PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" /></ItemGroup>
+</Project>

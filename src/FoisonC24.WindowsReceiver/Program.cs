@@ -25,9 +25,10 @@ namespace FoisonC24.WindowsReceiver
                 string hash;
                 using (SHA256 sha = SHA256.Create())
                     hash = BitConverter.ToString(sha.ComputeHash(data)).Replace("-", "").ToLowerInvariant();
-                string jobId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + "-" + hash.Substring(0, 12);
+                string jobId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + "-" + hash.Substring(0, 12) + "-" + Guid.NewGuid().ToString("N");
                 File.WriteAllBytes(Path.Combine(output, "job-" + jobId + ".raw"), data);
-                File.WriteAllText(Path.Combine(output, "job-" + jobId + ".json"),
+                string report = Path.Combine(output, "job-" + jobId + ".json");
+                File.WriteAllText(report + ".tmp",
                     "{\r\n" +
                     "  \"job_id\": \"" + jobId + "\",\r\n" +
                     "  \"format\": \"" + format + "\",\r\n" +
@@ -37,6 +38,7 @@ namespace FoisonC24.WindowsReceiver
                     "  \"physical_cut_enabled\": false,\r\n" +
                     "  \"status\": \"captured\"\r\n}\r\n",
                     Encoding.UTF8);
+                File.Move(report + ".tmp", report); // ready marker published only after raw and report are complete
                 return 0;
             }
             catch (Exception error)

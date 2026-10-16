@@ -27,7 +27,9 @@ class WindowsProvisioningContractTests(unittest.TestCase):
 
     def test_installer_attempts_rollback_and_does_not_remove_shared_redmon(self):
         self.assertIn('Install-Queue-Win7.cmd" uninstall', NSIS)
-        self.assertIn("Nenhuma fila ou porta pertencente", NSIS)
+        self.assertIn("Recursos anteriores foram preservados", NSIS)
+        self.assertIn("Write-Warning $failure", SCRIPT)
+        self.assertNotIn("Write-Error $_.Exception.Message", SCRIPT)
         self.assertNotIn("unredmon", NSIS.lower())
 
     def test_physical_cut_remains_disabled(self):
