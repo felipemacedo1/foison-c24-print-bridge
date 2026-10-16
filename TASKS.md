@@ -11,6 +11,7 @@
 - [ ] TASK-007 — Criar simulador visual com o mesmo modelo geométrico
 - [ ] TASK-008 — Implementar transporte serial configurável e diagnóstico
 - [ ] TASK-009 — Construir instalador e fila Foison C24 para Windows 7 x64
+- [ ] TASK-009d — Validar APIs RedMon e spooler no Windows 7 real
 - [ ] TASK-010 — Validar protocolo/escala com hardware e documentar calibração
 
 ## Concluídas
@@ -23,3 +24,4 @@
 - [x] TASK-009a — Preparar fonte do instalador e pacote documental sem fingir EXE
 - [x] TASK-009b — Compilar receptor/diagnóstico e publicar artefatos via Actions
 - [x] TASK-009c — Implementar provisionador RedMon/PrintUIEntry com rollback
+- [x] TASK-009e — Tornar provisionamento idempotente e seguro contra conflitos

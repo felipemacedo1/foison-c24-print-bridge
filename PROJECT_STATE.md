@@ -1,6 +1,6 @@
 # Estado atual do projeto
 
-Atualizado em: 2026-10-16 17:18
+Atualizado em: 2026-10-16 18:30
 Branch: main
 Último commit: d60082c
 
@@ -41,11 +41,20 @@ Status: EM DESENVOLVIMENTO
   instruções e checksums.
 - [x] Actions run `38960808306` compilou e publicou o candidato NSIS e o ZIP
   do operador.
+- [x] Provisionamento revisado: fila homônima é preservada, portas são
+  enumeradas por `EnumPorts` e recebem nomes exclusivos `FOISONC24n:`.
+- [x] Manifesto em `ProgramData` limita idempotência/desinstalação aos recursos
+  criados pelo Bridge; RedMon compartilhado não é removido.
+- [x] Seleção de driver PScript exige correspondência única e INF verificável.
+- [x] Contratos automatizados de conflito, idempotência, rollback e COM2
+  desabilitada adicionados.
 
 ## Em andamento
 
 - [ ] Integrar captura PostScript real da fila de impressão no Windows 7.
 - [ ] Validar `FoisonC24-Teste-Setup-x64.exe` no Windows 7 com spooler/CorelDRAW.
+- [ ] Executar no Windows as APIs `XcvData`, `EnumPorts` e
+  `RedMonConfigurePortW` com RedMon instalado.
 
 ## Próxima ação
 
@@ -57,8 +66,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
 - O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
 - Não há ambiente Windows para instalar/validar a fila.
-- A rotina ainda precisa ser executada em Windows 7; depende de driver
-  PostScript/PScript presente no computador.
+- A rotina ainda precisa ser executada em Windows 7; depende de exatamente um
+  driver PostScript/PScript instalado e compatível com `ntprint.inf`.
 - O runner GitHub Actions pode compilar o candidato, mas isso não equivale a
   teste de instalação no Windows 7.
 - Nenhuma instalação, teste do spooler ou impressão pelo CorelDRAW foi
@@ -68,7 +77,9 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 
 - Compilação Python: PASSOU; receptor/diagnóstico net48: PASSOU localmente e no
   run Actions `38959064970`
-- Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
+- Testes unitários/contratos: PASSOU (`./scripts/test.sh`, 14 testes)
+- Build do provisionador net48: PASSOU (0 warnings, 0 errors)
+- NSIS local: PASSOU com 0 warnings após correção do caminho ProgramData
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO
 - Distribuição: candidato NSIS compilado localmente; instalador NÃO VALIDADO

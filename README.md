@@ -91,7 +91,7 @@ de verdade operacional.
 O instalador experimental agora é gerado como
 `packaging/windows/FoisonC24-Teste-Setup-x64.exe` e pelo workflow Windows.
 Ele só deve ser entregue para teste controlado: exige Windows 7 SP1 x64,
-detecta um driver PostScript/PScript já instalado, cria `RPT1:` via RedMon e
+detecta um driver PostScript/PScript já instalado, cria uma porta exclusiva `FOISONC24n:` via RedMon e
 mantém COM2/corte físico intocados. O roteiro de entrega está em
 `docs/entrega-para-usuario.md`.
 

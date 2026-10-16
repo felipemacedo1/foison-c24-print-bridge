@@ -3,16 +3,18 @@
 <title>Foison C24 Print Bridge - instrucoes</title>
 <style>body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;line-height:1.5}h1{color:#17365d}.warning{padding:14px;background:#fff2cc;border:1px solid #d6b656}</style>
 <h1>Foison C24 Print Bridge</h1>
-<div class="warning"><b>Importante:</b> esta distribuição ainda não é instalável.
-A fila do Windows 7 e o receptor Windows não foram validados.</div>
-<h2>Quando a versão de teste estiver pronta</h2>
+<div class="warning"><b>Importante:</b> este é um candidato experimental instalável,
+mas ainda não foi validado em Windows 7 real. Ele nunca envia dados à COM2.</div>
+<h2>Como testar</h2>
 <ol>
-<li>Feche o FlexiSIGN.</li>
-<li>Execute o instalador como administrador.</li>
+<li>Baixe e extraia o ZIP. Execute <b>FoisonC24-Teste-Setup-x64.exe</b> como administrador.</li>
+<li>Não remova nem altere filas existentes. Se já existir uma fila com esse nome,
+o instalador abortará e preservará a configuração.</li>
 <li>Abra o CorelDRAW X6 e desenhe um quadrado de 50 x 50 mm.</li>
 <li>Use Arquivo &rarr; Imprimir e selecione <b>Foison C24 (Teste)</b>.</li>
-<li>Imprima em modo simulação. A plotter não deve se mover.</li>
-<li>Abra o Bridge, clique em <b>Exportar diagnóstico</b> e envie o arquivo.</li>
+<li>Imprima. A plotter deve permanecer desligada e não deve se mover.</li>
+<li>Abra <b>Foison C24 Diagnóstico</b>, clique em <b>Exportar diagnóstico</b>
+e envie o arquivo ao desenvolvedor.</li>
 </ol>
 <h2>Não faça</h2>
 <ul><li>Não instale Python, Git ou drivers encontrados na internet.</li>

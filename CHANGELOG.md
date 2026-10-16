@@ -18,6 +18,13 @@
   provisionador RedMon/PrintUIEntry com rollback; não validado ainda no
   Windows 7.
 - Testes unitários determinísticos em Python.
+- Provisionamento revisado para preservar filas existentes, detectar conflitos
+  com `EnumPorts`, usar portas exclusivas `FOISONC24n:` e registrar manifesto de
+  propriedade em `ProgramData`.
+- Seleção de driver PostScript agora exige uma única correspondência e INF
+  verificável; rollback e desinstalação removem somente recursos próprios.
+- Instruções do operador atualizadas para o candidato instalável experimental;
+  14 testes determinísticos passaram e o provisionador net48 foi recompilado.
 
 ### Known limitations
 

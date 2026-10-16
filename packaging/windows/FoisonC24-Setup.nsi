@@ -40,7 +40,10 @@ Section "Foison C24 Print Bridge"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   ExecWait '"$SYSDIR\cmd.exe" /c "$INSTDIR\Install-Queue-Win7.cmd"' $0
   ${If} $0 != 0
-    MessageBox MB_ICONSTOP "A fila não foi criada. Nenhuma impressora parcial foi deixada."
+    ; O script faz rollback apenas dos recursos criados nesta execução. Esta
+    ; chamada é uma segunda barreira para remover um manifesto parcialmente salvo.
+    ExecWait '"$SYSDIR\cmd.exe" /c "$INSTDIR\Install-Queue-Win7.cmd" uninstall' $1
+    MessageBox MB_ICONSTOP "A fila não foi criada. Nenhuma fila ou porta pertencente ao Bridge foi deixada."
     Abort
   ${EndIf}
   CreateShortCut "$DESKTOP\Foison C24 Diagnóstico.lnk" "$INSTDIR\FoisonC24Diagnostic.exe"
