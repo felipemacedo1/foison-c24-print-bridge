@@ -6,6 +6,7 @@ from pathlib import Path
 from foison_bridge.geometry import Affine, Path as CutPath, Segment
 from foison_bridge.hpgl import serialize
 from foison_bridge.receiver import capture, detect_format
+from foison_bridge.transport import JobQueue, SafeTransport, SerialConfig, TransportError
 
 
 class ReceiverTests(unittest.TestCase):
@@ -46,6 +47,28 @@ class GeometryTests(unittest.TestCase):
     def test_hpgl_is_deterministic(self):
         path = CutPath([Segment("line", ((0, 0), (1.2, 2.6)))])
         self.assertEqual(serialize([path], 10), "IN;PU0,0;PD12,26;PU;SP0;")
+
+
+class TransportTests(unittest.TestCase):
+    def test_default_transport_is_simulation_only(self):
+        transport = SafeTransport(SerialConfig())
+        self.assertEqual(transport.send(b"IN;"), 3)
+        self.assertEqual(transport.sent_bytes, 3)
+
+    def test_physical_transport_requires_writer_and_explicit_flag(self):
+        config = SerialConfig(simulation_mode=False, physical_cut_enabled=True)
+        with self.assertRaises(TransportError):
+            SafeTransport(config).send(b"PU0,0;")
+
+    def test_queue_allows_only_one_active_job(self):
+        queue = JobQueue()
+        queue.enqueue("one")
+        queue.enqueue("two")
+        self.assertEqual(queue.start_next(), "one")
+        with self.assertRaises(TransportError):
+            queue.start_next()
+        self.assertEqual(queue.finish(True), ("one", "completed"))
+        self.assertTrue(queue.cancel_pending("two"))
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@
 - Receptor seguro de stdin com arquivos brutos e relatórios JSON.
 - Modelo geométrico com linhas, Bézier, transformações e limites.
 - Simulação textual e gerador HPGL explicitamente não validado.
+- Configuração serial validada, transporte injetável em simulação e fila de
+  trabalho de um único transmissor.
 - Testes unitários determinísticos em Python.
 
 ### Known limitations

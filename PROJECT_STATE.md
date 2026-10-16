@@ -1,6 +1,6 @@
 # Estado atual do projeto
 
-Atualizado em: 2026-10-16 16:34
+Atualizado em: 2026-10-16 16:40
 Branch: main
 Último commit: ainda não criado
 
@@ -22,6 +22,7 @@ Status: EM DESENVOLVIMENTO
 - [x] Modelo de caminhos, transformações, Bézier e limites.
 - [x] Serializador HPGL explicitamente experimental.
 - [x] Testes determinísticos sem impressora.
+- [x] Fronteira de transporte serial com simulação e fila de um transmissor.
 
 ## Em andamento
 
@@ -41,7 +42,7 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 ## Testes
 
 - Compilação: NÃO APLICÁVEL (slice Python)
-- Testes unitários: PASSOU (`./scripts/test.sh`, 6 testes)
+- Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO
 
