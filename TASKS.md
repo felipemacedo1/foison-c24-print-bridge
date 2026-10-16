@@ -22,3 +22,4 @@
 - [x] TASK-008a — Isolar configuração de transporte e fila segura em simulação
 - [x] TASK-009a — Preparar fonte do instalador e pacote documental sem fingir EXE
 - [x] TASK-009b — Compilar receptor/diagnóstico e publicar artefatos via Actions
+- [x] TASK-009c — Implementar provisionador RedMon/PrintUIEntry com rollback

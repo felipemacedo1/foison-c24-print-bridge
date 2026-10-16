@@ -33,6 +33,10 @@ Status: EM DESENVOLVIMENTO
   foi bloqueada corretamente pela ausência do INF/PPD PostScript.
 - [x] Run Actions `38959064970` concluiu; artefatos do receptor e diagnóstico
   foram baixados e inspecionados.
+- [x] Provisionador real: instala RedMon, cria/remove `RPT1:` via XcvData,
+  detecta driver PostScript e registra a fila por PrintUIEntry com rollback.
+- [x] NSIS extrai os componentes antes de executar o provisionamento e gera
+  `FoisonC24-Teste-Setup-x64.exe` localmente.
 
 ## Em andamento
 
@@ -49,8 +53,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
 - O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
 - Não há ambiente Windows para instalar/validar a fila.
-- Ainda falta INF/PPD PostScript legalmente redistribuível e rotina comprovada
-  de criação da fila.
+- A rotina ainda precisa ser executada em Windows 7; depende de driver
+  PostScript/PScript presente no computador.
 - O runner GitHub Actions pode compilar o candidato, mas isso não equivale a
   teste de instalação no Windows 7.
 
@@ -61,8 +65,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO
-- Distribuição: pacote documental gerado; executáveis Windows compilados;
-  instalador funcional NÃO VALIDADO
+- Distribuição: candidato NSIS compilado localmente; instalador NÃO VALIDADO
+  no Windows 7
 
 ## Decisões recentes
 

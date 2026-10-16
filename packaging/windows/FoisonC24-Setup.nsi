@@ -1,11 +1,13 @@
-; Source installer definition.
-; This file intentionally refuses to build until the Windows receiver and
-; legally redistributable printer components are present beside it.
+; Source installer definition. The Windows-side provisioning script detects an
+; installed PostScript driver at runtime; no arbitrary INF is bundled.
 Unicode true
 !include LogicLib.nsh
 !include x64.nsh
 Name "Foison C24 Print Bridge (Teste)"
-OutFile "FoisonC24-Setup-x64.exe"
+!ifndef OUTFILE
+  !define OUTFILE "FoisonC24-Teste-Setup-x64.exe"
+!endif
+OutFile "${OUTFILE}"
 InstallDir "$PROGRAMFILES64\Foison C24 Print Bridge"
 RequestExecutionLevel admin
 
@@ -18,45 +20,40 @@ RequestExecutionLevel admin
 !ifndef DIAGNOSTIC_EXE
   !define DIAGNOSTIC_EXE "FoisonC24Diagnostic.exe"
 !endif
-!ifndef POSTSCRIPT_INF
-  !define POSTSCRIPT_INF "postscript-driver.inf"
-!endif
-
 Function .onInit
   ${IfNot} ${RunningX64}
     MessageBox MB_ICONSTOP "Este instalador requer Windows 7 SP1 de 64 bits."
     Abort
   ${EndIf}
-  IfFileExists "${RECEIVER_EXE}" +2 0
-    MessageBox MB_ICONSTOP "Receptor Windows ausente. O pacote não está completo."
-    Abort
-  IfFileExists "${PORT_MONITOR_DLL}" +2 0
-    MessageBox MB_ICONSTOP "Monitor de porta ausente. Não é seguro criar a fila."
-    Abort
-  IfFileExists "${POSTSCRIPT_INF}" +2 0
-    MessageBox MB_ICONSTOP "Driver PostScript ausente. A fila não será simulada."
-    Abort
 FunctionEnd
 
 Section "Foison C24 Print Bridge"
   SetOutPath "$INSTDIR"
   File "${RECEIVER_EXE}"
   File "${PORT_MONITOR_DLL}"
+  File "setup64.exe"
   File "${DIAGNOSTIC_EXE}"
-  File "${POSTSCRIPT_INF}"
+  File "FoisonC24Provisioner.exe"
   File "LEIA-ME.txt"
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
-  ; Queue registration is deliberately delegated to the tested Windows
-  ; provisioning script, not guessed in this source template.
   File "Install-Queue-Win7.cmd"
-  CreateShortCut "$DESKTOP\Foison C24 Bridge.lnk" "$INSTDIR\FoisonC24Receiver.exe"
+  File "Install-Queue-Win7.ps1"
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  ExecWait '"$SYSDIR\cmd.exe" /c "$INSTDIR\Install-Queue-Win7.cmd"' $0
+  ${If} $0 != 0
+    MessageBox MB_ICONSTOP "A fila não foi criada. Nenhuma impressora parcial foi deixada."
+    Abort
+  ${EndIf}
+  CreateShortCut "$DESKTOP\Foison C24 Diagnóstico.lnk" "$INSTDIR\FoisonC24Diagnostic.exe"
 SectionEnd
 
 Section "Uninstall"
-  Delete "$DESKTOP\Foison C24 Bridge.lnk"
+  ExecWait '"$SYSDIR\cmd.exe" /c "$INSTDIR\Install-Queue-Win7.cmd" uninstall' $0
+  Delete "$DESKTOP\Foison C24 Diagnóstico.lnk"
   Delete "$INSTDIR\Install-Queue-Win7.cmd"
-  Delete "$INSTDIR\${POSTSCRIPT_INF}"
+  Delete "$INSTDIR\Install-Queue-Win7.ps1"
+  Delete "$INSTDIR\setup64.exe"
   Delete "$INSTDIR\${PORT_MONITOR_DLL}"
+  Delete "$INSTDIR\FoisonC24Provisioner.exe"
   Delete "$INSTDIR\${DIAGNOSTIC_EXE}"
   Delete "$INSTDIR\${RECEIVER_EXE}"
   Delete "$INSTDIR\LEIA-ME.txt"

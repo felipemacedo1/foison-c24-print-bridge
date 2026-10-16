@@ -18,22 +18,22 @@ O workflow `.github/workflows/windows-build.yml`, run
 
 - `foison-c24-windows-components`: `FoisonC24Receiver.exe` e
   `FoisonC24Diagnostic.exe` x64 para `net48`.
-- `foison-c24-build-status`: informa que o instalador não foi gerado por falta
-  de INF/PPD PostScript redistribuível e rotina de provisionamento testada.
+- `foison-c24-installer-candidate`: candidato NSIS experimental. A instalação
+  ainda precisa ser executada em Windows 7.
 
 Esses artefatos comprovam compilação no Windows moderno, não compatibilidade
 ou instalação no Windows 7.
 
 ## Para gerar o instalador
 
-É necessário fornecer um driver PostScript/PPD cuja licença permita
-redistribuição e validar uma rotina Windows 7 que:
+O instalador não redistribui um driver PostScript aleatório. Ele detecta um
+driver PostScript/PScript já instalado no Windows. A rotina Windows 7:
 
-1. instale o RedMon x64;
+1. instala o RedMon x64;
 2. crie uma porta redirecionada para `FoisonC24Receiver.exe`;
 3. registre a fila `Foison C24 (Teste)` usando o driver;
 4. configure a fila para não acessar COM2;
 5. remova somente esses componentes durante a desinstalação.
 
-O script NSIS recusa entradas ausentes. Não coloque um INF aleatório para
-forçar a geração do EXE.
+Se nenhum driver compatível existir, a instalação falha antes de deixar uma
+fila. Não coloque um INF aleatório para forçar a instalação.

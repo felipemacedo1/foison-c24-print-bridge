@@ -20,10 +20,10 @@ separada da conversão e começa desabilitada.
 
 O caminho inicialmente investigado é driver PostScript → monitor de porta →
 receptor. RedMon 1.9 foi verificado na fonte do fornecedor: possui binário x64 para
-Windows 7, aceita stdin e é GPLv3 com código-fonte redistribuível. Ele pode ser
-avaliado como componente, mas não é suficiente para criar a fila. Não é uma
-dependência aceita até confirmar instalação, licença, driver PScript e
-comportamento no Windows 7 SP1. Um
+Windows 7, aceita stdin e é GPLv3 com código-fonte redistribuível. O
+provisionador agora instala `setup64.exe`, cria `RPT1:` por `XcvData(AddPort)`,
+configura `RedMonConfigurePortW` para executar o receptor e cria a fila pelo
+`PrintUIEntry`. Ainda é necessário executar esse fluxo no Windows 7. Um
 processador/monitor próprio é alternativa caso a instalação seja mais
 confiável. Uma fila “Foison C24 (Teste)” deve ser validada antes da fila final.
 

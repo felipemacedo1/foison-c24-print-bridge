@@ -20,8 +20,10 @@ jobs:
         run: |
           dotnet restore src/FoisonC24.WindowsReceiver/FoisonC24.WindowsReceiver.csproj
           dotnet restore src/FoisonC24.Diagnostic/FoisonC24.Diagnostic.csproj
+          dotnet restore src/FoisonC24.Provisioner/FoisonC24.Provisioner.csproj
           dotnet publish src/FoisonC24.WindowsReceiver/FoisonC24.WindowsReceiver.csproj -c Release -r win-x64 --self-contained false -o artifacts/receiver
           dotnet publish src/FoisonC24.Diagnostic/FoisonC24.Diagnostic.csproj -c Release -r win-x64 --self-contained false -o artifacts/diagnostic
+          dotnet publish src/FoisonC24.Provisioner/FoisonC24.Provisioner.csproj -c Release -r win-x64 --self-contained false -o artifacts/provisioner
       - name: Upload Windows components
         uses: actions/upload-artifact@v4
         with:
@@ -34,30 +36,20 @@ jobs:
         run: |
           Copy-Item artifacts/receiver/FoisonC24Receiver.exe packaging/windows/
           Copy-Item artifacts/diagnostic/FoisonC24Diagnostic.exe packaging/windows/
+          Copy-Item artifacts/provisioner/FoisonC24Provisioner.exe packaging/windows/
           Copy-Item third_party/redmon/redmon64.dll packaging/windows/
           Copy-Item third_party/redmon/setup64.exe packaging/windows/
-      - name: Build guarded installer
-        if: hashFiles('packaging/windows/postscript-driver.inf') != ''
+      - name: Build experimental installer candidate
         shell: pwsh
         run: |
+          Set-Location packaging/windows
           makensis /DRECEIVER_EXE=FoisonC24Receiver.exe `
             /DDIAGNOSTIC_EXE=FoisonC24Diagnostic.exe `
             /DPORT_MONITOR_DLL=redmon64.dll `
-            packaging/windows/FoisonC24-Setup.nsi
+            /DOUTFILE=FoisonC24-Teste-Setup-x64.exe `
+            FoisonC24-Setup.nsi
       - name: Upload installer candidate
-        if: hashFiles('packaging/windows/postscript-driver.inf') != ''
         uses: actions/upload-artifact@v4
         with:
           name: foison-c24-installer-candidate
-          path: FoisonC24-Setup-x64.exe
-      - name: Record missing printer integration inputs
-        if: hashFiles('packaging/windows/postscript-driver.inf') == ''
-        shell: pwsh
-        run: |
-          "Installer not generated: a legally redistributable PostScript INF/PPD and tested queue provisioning are still required." |
-            Out-File -Encoding utf8 artifacts/installer-status.txt
-      - name: Upload build status
-        uses: actions/upload-artifact@v4
-        with:
-          name: foison-c24-build-status
-          path: artifacts/installer-status.txt
+          path: packaging/windows/FoisonC24-Teste-Setup-x64.exe

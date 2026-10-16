@@ -88,12 +88,13 @@ de verdade operacional.
 
 ## Entrega para usuário sem conhecimento técnico
 
-O estado atual **não é um instalador** e não deve ser enviado ao operador
-final como se fosse um produto pronto. O roteiro de entrega, a mensagem
-pronta e os critérios mínimos para gerar `FoisonC24-Setup-x64.exe` estão em
+O instalador experimental agora é gerado como
+`packaging/windows/FoisonC24-Teste-Setup-x64.exe` e pelo workflow Windows.
+Ele só deve ser entregue para teste controlado: exige Windows 7 SP1 x64,
+detecta um driver PostScript/PScript já instalado, cria `RPT1:` via RedMon e
+mantém COM2/corte físico intocados. O roteiro de entrega está em
 `docs/entrega-para-usuario.md`.
 
-Foi gerado localmente um pacote **documental, não instalável** em
-`dist/FoisonC24-Teste-Win7-x64.zip`. Ele contém o PDF de instruções e uma
-mensagem de bloqueio; não contém `FoisonC24-Setup-x64.exe` nem deve ser enviado
-ao operador como se permitisse instalar a impressora.
+O candidato local é um binário Windows compilado pelo NSIS, mas ainda não foi
+instalado/testado em Windows 7. Não declare a fila como aprovada antes desse
+teste.

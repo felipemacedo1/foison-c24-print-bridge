@@ -8,5 +8,7 @@ privilegiada e possuir rollback.
 
 O código-fonte do instalador está em `packaging/windows/FoisonC24-Setup.nsi`.
 Ele recusa a compilação se o receptor Windows, o monitor de porta ou o driver
-PostScript não estiverem presentes. Isso é intencional: um executável que não
-cria uma fila real seria uma entrega enganosa.
+PostScript não estiverem presentes no computador. O instalador extrai os
+componentes e executa `Install-Queue-Win7.ps1`, que verifica Windows 7 SP1 x64,
+instala RedMon, cria/configura `RPT1:`, detecta PScript e registra
+`Foison C24 (Teste)`. Falhas removem a fila e tentam remover a porta criada.

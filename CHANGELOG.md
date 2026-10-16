@@ -14,6 +14,9 @@
 - Workflow de build Windows e material RedMon 1.9 x64/GPLv3 verificado.
 - Componentes Windows compilados no run `38959064970`; o instalador foi
   omitido com status explícito por falta de INF/PPD PostScript redistribuível.
+- Candidato NSIS experimental passa a extrair componentes e executar o
+  provisionador RedMon/PrintUIEntry com rollback; não validado ainda no
+  Windows 7.
 - Testes unitários determinísticos em Python.
 
 ### Known limitations
