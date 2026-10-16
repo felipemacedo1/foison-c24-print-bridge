@@ -53,3 +53,17 @@ jobs:
         with:
           name: foison-c24-installer-candidate
           path: packaging/windows/FoisonC24-Teste-Setup-x64.exe
+      - name: Package operator test ZIP
+        shell: pwsh
+        run: |
+          Copy-Item packaging/windows/LEIA-ME.txt artifacts/
+          Copy-Item packaging/windows/INSTRUCOES-DE-TESTE.html artifacts/
+          Copy-Item packaging/windows/FoisonC24-Teste-Setup-x64.exe artifacts/
+          $hash = (Get-FileHash artifacts/FoisonC24-Teste-Setup-x64.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  FoisonC24-Teste-Setup-x64.exe" | Out-File -Encoding ascii artifacts/checksums.sha256
+          Compress-Archive -Path artifacts/* -DestinationPath FoisonC24-Teste-Win7-x64.zip -Force
+      - name: Upload operator test ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: foison-c24-operator-test-zip
+          path: FoisonC24-Teste-Win7-x64.zip

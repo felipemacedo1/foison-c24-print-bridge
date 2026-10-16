@@ -1,12 +1,12 @@
 Foison C24 Print Bridge - pacote de validacao
 
 ATENCAO
-Este pacote NAO e um instalador funcional. A fila de impressao do Windows,
-o driver PostScript, o monitor de porta e o receptor Windows ainda precisam
-ser compilados e testados no Windows 7 SP1 x64.
+Este e um candidato experimental. Ele cria a fila somente se o computador
+for Windows 7 SP1 x64 e possuir um driver PostScript/PScript compativel.
+Ainda nao houve validacao no computador do operador.
 
-Nao execute arquivos deste pacote no computador do operador esperando que a
-impressora apareca. Nao altere o FlexiSIGN, o driver FTDI ou a COM2.
+O primeiro teste nao usa a COM2 e nao move a plotter. Nao altere o FlexiSIGN,
+o driver FTDI ou a COM2.
 
-O arquivo FoisonC24-Setup.nsi e a fonte do instalador. Ele recusa a compilacao
-quando faltam os componentes obrigatorios, para evitar uma instalacao falsa.
+Se a instalacao falhar, nao tente instalar outro driver pela internet. Envie
+a mensagem exibida ao desenvolvedor.

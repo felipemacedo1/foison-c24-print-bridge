@@ -20,6 +20,8 @@ O workflow `.github/workflows/windows-build.yml`, run
   `FoisonC24Diagnostic.exe` x64 para `net48`.
 - `foison-c24-installer-candidate`: candidato NSIS experimental. A instalação
   ainda precisa ser executada em Windows 7.
+- `foison-c24-operator-test-zip`: ZIP para o operador, com instalador,
+  instruções e checksum.
 
 Esses artefatos comprovam compilação no Windows moderno, não compatibilidade
 ou instalação no Windows 7.

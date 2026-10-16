@@ -37,6 +37,8 @@ Status: EM DESENVOLVIMENTO
   detecta driver PostScript e registra a fila por PrintUIEntry com rollback.
 - [x] NSIS extrai os componentes antes de executar o provisionamento e gera
   `FoisonC24-Teste-Setup-x64.exe` localmente.
+- [x] ZIP local `dist/FoisonC24-Teste-Win7-x64.zip` contém candidato,
+  instruções e checksums.
 
 ## Em andamento
 

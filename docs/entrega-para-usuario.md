@@ -2,15 +2,16 @@
 
 ## Situação atual
 
-**Não envie o repositório atual como se fosse um instalador.** Ele ainda não
-contém `FoisonC24-Setup-x64.exe`, não cria uma impressora no Windows e não
-validou o protocolo da plotter. O usuário final não precisa instalar Python,
-Git, GitHub CLI ou abrir o terminal para usar o produto; portanto, enviar o
-código agora só causaria confusão.
+O candidato `FoisonC24-Teste-Setup-x64.exe` já pode ser entregue para um teste
+controlado. Ele cria a fila somente quando encontra Windows 7 SP1 x64, RedMon
+e um driver PostScript/PScript instalado. A fila não usa COM2 e não envia
+comandos de corte nesta versão. O usuário final não precisa instalar Python,
+Git, GitHub CLI ou abrir o terminal.
 
-O artefato atualmente disponível em
-`dist/FoisonC24-Teste-Win7-x64.zip` é apenas documental. Ele serve para
-revisão interna das instruções, não para instalação no computador do usuário.
+O artefato final desta etapa é
+`dist/FoisonC24-Teste-Win7-x64.zip`. Ele contém o candidato, instruções e
+checksums. Ainda não é uma confirmação de compatibilidade: o teste real no
+Windows 7 continua obrigatório.
 
 ## Pacote que o usuário deverá receber
 
