@@ -1,0 +1,50 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/FoisonC24.**/**"
+      - ".github/workflows/windows-build.yml"
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build .NET Framework applications
+        run: |
+          dotnet restore src/FoisonC24.WindowsReceiver/FoisonC24.WindowsReceiver.csproj
+          dotnet restore src/FoisonC24.Diagnostic/FoisonC24.Diagnostic.csproj
+          dotnet publish src/FoisonC24.WindowsReceiver/FoisonC24.WindowsReceiver.csproj -c Release -r win-x64 --self-contained false -o artifacts/receiver
+          dotnet publish src/FoisonC24.Diagnostic/FoisonC24.Diagnostic.csproj -c Release -r win-x64 --self-contained false -o artifacts/diagnostic
+      - name: Upload Windows components
+        uses: actions/upload-artifact@v4
+        with:
+          name: foison-c24-windows-components
+          path: artifacts
+      - name: Install NSIS
+        run: choco install nsis --no-progress -y
+      - name: Prepare packaging inputs
+        shell: pwsh
+        run: |
+          Copy-Item artifacts/receiver/FoisonC24Receiver.exe packaging/windows/
+          Copy-Item artifacts/diagnostic/FoisonC24Diagnostic.exe packaging/windows/
+          Copy-Item third_party/redmon/redmon64.dll packaging/windows/
+          Copy-Item third_party/redmon/setup64.exe packaging/windows/
+      - name: Build guarded installer
+        shell: pwsh
+        run: |
+          makensis /DRECEIVER_EXE=FoisonC24Receiver.exe `
+            /DDIAGNOSTIC_EXE=FoisonC24Diagnostic.exe `
+            /DPORT_MONITOR_DLL=redmon64.dll `
+            packaging/windows/FoisonC24-Setup.nsi
+      - name: Upload installer candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: foison-c24-installer-candidate
+          path: FoisonC24-Setup-x64.exe

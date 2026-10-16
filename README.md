@@ -42,6 +42,12 @@ Descoberta inicial (2026-10-16):
 O Ubuntu atual não tem referência assemblies do .NET Framework. Não se deve
 confundir os testes portáteis com compatibilidade comprovada no Windows 7.
 
+Desde 2026-10-16, o SDK .NET 8 foi instalado em `~/.dotnet` e NSIS 3.09 em
+`~/.local/foison-tools/nsis` (sem privilégios
+de administrador) e os projetos `net48` do receptor e do diagnóstico compilam
+no Ubuntu usando o pacote de reference assemblies. Isso prova compilação, não
+execução/compatibilidade no Windows 7.
+
 ## Desenvolvimento e testes
 
 ```bash
@@ -65,6 +71,14 @@ para formato desconhecido, entrada vazia ou dados acima do limite configurado.
 4. Somente depois validar parsing vetorial e protocolo/escala com simulador.
 5. Testar COM2 apenas com FlexiSIGN fechado e `physical_cut_enabled=false`
    até aprovação explícita do operador.
+
+O workflow `.github/workflows/windows-build.yml` produz os executáveis em um
+runner Windows moderno e tenta gerar um instalador candidato. O artefato não
+será considerado funcional até a fila ser criada e testada no Windows 7.
+
+O build do instalador exige ainda um INF/PPD do driver PostScript que possa ser
+redistribuído legalmente e uma rotina comprovada de criação da fila. Esses
+arquivos não são inventados nem substituídos por um driver aleatório.
 
 Consulte `PROJECT_STATE.md`, `TASKS.md` e `docs/architecture.md` para a fonte
 de verdade operacional.

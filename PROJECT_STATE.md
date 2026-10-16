@@ -1,6 +1,6 @@
 # Estado atual do projeto
 
-Atualizado em: 2026-10-16 16:55
+Atualizado em: 2026-10-16 17:05
 Branch: main
 Último commit: cf176f2
 
@@ -26,6 +26,9 @@ Status: EM DESENVOLVIMENTO
 - [x] Roteiro honesto de entrega para operador sem conhecimento técnico.
 - [x] Fonte do instalador NSIS com verificações de componentes obrigatórios.
 - [x] Pacote documental de pré-validação e instruções em português.
+- [x] Receptor Windows `net48` e aplicativo WinForms de diagnóstico compiláveis.
+- [x] Workflow Windows para compilar componentes e produzir candidato NSIS.
+- [x] SDK .NET local e NSIS local instalados sem privilégios administrativos.
 
 ## Em andamento
 
@@ -42,8 +45,11 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
 - O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
 - Não há toolchain .NET/Mono local nem developer pack .NET Framework.
-- Não há NSIS/Inno Setup, driver PostScript/RedMon nem ambiente Windows para
-  compilar ou validar a fila.
+- Não há ambiente Windows para instalar/validar a fila.
+- Ainda falta INF/PPD PostScript legalmente redistribuível e rotina comprovada
+  de criação da fila.
+- O runner GitHub Actions pode compilar o candidato, mas isso não equivale a
+  teste de instalação no Windows 7.
 
 ## Testes
 
@@ -51,7 +57,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO
-- Distribuição: pacote documental gerado; instalador EXE NÃO GERADO
+- Distribuição: pacote documental gerado; executáveis Windows compilados;
+  instalador funcional NÃO VALIDADO
 
 ## Decisões recentes
 
@@ -72,5 +79,5 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 2. Empacote o receptor para Windows e configure uma fila de teste sem COM2.
 3. Capture um trabalho real do CorelDRAW e valide o relatório antes de criar o
    parser PostScript.
-4. Em ambiente Windows, compilar o receptor e obter componentes de impressão
-   legalmente redistribuíveis antes de executar o script NSIS.
+4. Executar o workflow Windows para obter os executáveis e validar
+   instalação/criação da fila em Windows 7 real após resolver o INF/PPD.

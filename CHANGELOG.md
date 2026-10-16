@@ -10,6 +10,8 @@
 - Simulação textual e gerador HPGL explicitamente não validado.
 - Configuração serial validada, transporte injetável em simulação e fila de
   trabalho de um único transmissor.
+- Receptor `net48` Windows e aplicativo WinForms para exportar diagnóstico.
+- Workflow de build Windows e material RedMon 1.9 x64/GPLv3 verificado.
 - Testes unitários determinísticos em Python.
 
 ### Known limitations
