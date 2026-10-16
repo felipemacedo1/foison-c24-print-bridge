@@ -8,6 +8,10 @@ validou o protocolo da plotter. O usuário final não precisa instalar Python,
 Git, GitHub CLI ou abrir o terminal para usar o produto; portanto, enviar o
 código agora só causaria confusão.
 
+O artefato atualmente disponível em
+`dist/FoisonC24-Teste-Win7-x64.zip` é apenas documental. Ele serve para
+revisão interna das instruções, não para instalação no computador do usuário.
+
 ## Pacote que o usuário deverá receber
 
 Quando a fila tiver sido testada no Windows 7, a entrega deve ser um arquivo

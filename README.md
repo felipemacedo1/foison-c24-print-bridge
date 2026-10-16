@@ -75,3 +75,8 @@ O estado atual **não é um instalador** e não deve ser enviado ao operador
 final como se fosse um produto pronto. O roteiro de entrega, a mensagem
 pronta e os critérios mínimos para gerar `FoisonC24-Setup-x64.exe` estão em
 `docs/entrega-para-usuario.md`.
+
+Foi gerado localmente um pacote **documental, não instalável** em
+`dist/FoisonC24-Teste-Win7-x64.zip`. Ele contém o PDF de instruções e uma
+mensagem de bloqueio; não contém `FoisonC24-Setup-x64.exe` nem deve ser enviado
+ao operador como se permitisse instalar a impressora.

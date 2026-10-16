@@ -1,6 +1,6 @@
 # Estado atual do projeto
 
-Atualizado em: 2026-10-16 16:40
+Atualizado em: 2026-10-16 16:55
 Branch: main
 Último commit: cf176f2
 
@@ -24,10 +24,13 @@ Status: EM DESENVOLVIMENTO
 - [x] Testes determinísticos sem impressora.
 - [x] Fronteira de transporte serial com simulação e fila de um transmissor.
 - [x] Roteiro honesto de entrega para operador sem conhecimento técnico.
+- [x] Fonte do instalador NSIS com verificações de componentes obrigatórios.
+- [x] Pacote documental de pré-validação e instruções em português.
 
 ## Em andamento
 
 - [ ] Integrar captura PostScript real da fila de impressão no Windows 7.
+- [ ] Gerar `FoisonC24-Setup-x64.exe` após obter/validar receptor, monitor e driver.
 
 ## Próxima ação
 
@@ -39,6 +42,8 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Não há Windows 7/CorelDRAW/plotter disponíveis neste Ubuntu.
 - O protocolo e a escala da revisão exata Foison C24 não estão confirmados.
 - Não há toolchain .NET/Mono local nem developer pack .NET Framework.
+- Não há NSIS/Inno Setup, driver PostScript/RedMon nem ambiente Windows para
+  compilar ou validar a fila.
 
 ## Testes
 
@@ -46,6 +51,7 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 - Testes unitários: PASSOU (`./scripts/test.sh`, 9 testes)
 - Testes Windows 7: NÃO EXECUTADO
 - Testes físicos: NÃO EXECUTADO
+- Distribuição: pacote documental gerado; instalador EXE NÃO GERADO
 
 ## Decisões recentes
 
@@ -66,3 +72,5 @@ PostScript ou monitor próprio), então anexar uma captura real do CorelDRAW.
 2. Empacote o receptor para Windows e configure uma fila de teste sem COM2.
 3. Capture um trabalho real do CorelDRAW e valide o relatório antes de criar o
    parser PostScript.
+4. Em ambiente Windows, compilar o receptor e obter componentes de impressão
+   legalmente redistribuíveis antes de executar o script NSIS.

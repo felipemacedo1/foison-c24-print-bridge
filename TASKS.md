@@ -19,3 +19,4 @@
 - [x] TASK-003 — Criar receptor portátil de captura
 - [x] TASK-004 — Criar geometria e serialização HPGL experimental
 - [x] TASK-008a — Isolar configuração de transporte e fila segura em simulação
+- [x] TASK-009a — Preparar fonte do instalador e pacote documental sem fingir EXE
