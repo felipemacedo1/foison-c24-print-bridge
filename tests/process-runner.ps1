@@ -15,6 +15,15 @@ Stage 'PROCESS_REGRESSION'
 $script:cases=@()
 function Assert($condition,$message) {if(-not $condition){throw $message}}
 function Pass($name){$script:cases+=$name;Write-Host ('PASS '+$name)}
+function DirectoryAcl($path) {
+ # Avoid module autoload across PS7 -> Windows PowerShell child environments.
+ # Framework's API exists in CLR2; Core exposes the equivalent as an extension.
+ if($PSVersionTable.PSVersion.Major -ge 6) {
+  $directory=New-Object IO.DirectoryInfo($path)
+  return [IO.FileSystemAclExtensions]::GetAccessControl($directory)
+ }
+ return [IO.Directory]::GetAccessControl($path)
+}
 $phrases=Join-Path $repo 'packaging/windows/TEXTOS-VALIDACAO.txt'
 if($windows) {
  $child=Join-Path $StateDir 'Process Fixture.exe'
@@ -107,11 +116,11 @@ if($windows) {
  SecureStateDirectory;SessionPermissions
  Pass 'real-icacls-owner-grants-session-zero'
  $sidType=[Security.Principal.SecurityIdentifier]
- $acl=Get-Acl $StateDir
+ $acl=DirectoryAcl $StateDir
  Assert ($acl.GetOwner($sidType).Value -eq 'S-1-5-32-544') 'icacls owner readback differs'
  Assert $acl.AreAccessRulesProtected 'Root still inherits uncontrolled permissions'
  foreach($entry in @(@{path=$StateDir;modify=$false},@{path=$LogDirectory;modify=$false},@{path=(Join-Path $StateDir 'session');modify=$true})) {
-  $acl=Get-Acl $entry.path
+  $acl=DirectoryAcl $entry.path
   $rules=@($acl.GetAccessRules($true,$true,$sidType))
   foreach($sid in @('S-1-5-18','S-1-5-32-544','S-1-5-32-545')) {
    $rights=0

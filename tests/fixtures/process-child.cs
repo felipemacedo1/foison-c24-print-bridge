@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 public static class ProcessChild {
+ // Compiled against net20 as well: ACL readback must not need a modern cmdlet.
+ static void LegacyAclApi(string path) { Directory.GetAccessControl(path); }
  public static int Main(string[] args) {
   Stream output=Console.OpenStandardOutput(), error=Console.OpenStandardError();
   string mode=args[0];

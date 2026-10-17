@@ -52,3 +52,7 @@ validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou fina
   invasivo PS2/CLR2 no CI, sem habilitar features; nunca chamar Server2022 Win7.
 - Nenhuma mídia Windows identificada; VDI preexistente tem OSType Ubuntu_64,
   configuração apenas lida, disco preservado. QEMU próprio desligado/QCOW íntegro.
+
+- CI39049680230: falha em Get-Acl autoload no PS5 filho do PS7, após icacls0;
+  não mascarada. Teste passa a usar APIs .NET legadas/Core com mesmas asserções.
+  Recompilar API/testar e enviar próxima revisão; não distribuir esse run falho.

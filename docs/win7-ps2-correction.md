@@ -115,3 +115,11 @@ O CI sonda powershell.exe -Version2 sem instalar/habilitar componentes antigos.
 Só se PSmajor2 e CLRmajor2 forem confirmados executa a mesma regressão real;
 caso contrário preserva código/saídas e registra NOT_CONFIRMED. Mesmo um teste
 PS2 em Server2022 não homologa Win7; não há fallback falso para PS5/7.
+
+A leitura de ACL adicional bloqueou CI39049680230 na dependência de autoload de
+Get-Acl (módulo Security não carregável no processo PS5 filho de PS7). Não era
+falha de icacls: os três processos retornaram zero com captura completa. O teste
+agora lê os mesmos descritores/ACEs diretamente por Directory.GetAccessControl
+no CLR2/4 e FileSystemAclExtensions no Core, sem depender de módulos herdados.
+Não altera PSModulePath/global, não pula asserções e mantém o gate de permissões.
+A disponibilidade de Directory.GetAccessControl também é compilada contra net20.
