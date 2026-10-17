@@ -12,18 +12,15 @@ for /f "delims=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
 for %%I in ("%ComSpec%") do set "CMD_SYSTEM=%%~dpI"
 set "BOOT_MARKER=boot-%RANDOM%-%RANDOM%-%RANDOM%"
 set "LOG_DIR=%ProgramData%\FoisonC24\Logs"
-if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>&1
-set "CMD_LOG=%LOG_DIR%\install-%RUN_ID%-cmd.log"
-(echo [%DATE% %TIME%] [INFO] [%RUN_ID%] [cmd] BEGIN bootstrap OEM log %BOOT_MARKER%) 2>nul >>"%CMD_LOG%"
-"%CMD_SYSTEM%findstr.exe" /L /C:"%BOOT_MARKER%" "%CMD_LOG%" >nul 2>&1
-if not errorlevel 1 goto log_ready
+set "LOG_DESTINATION=ProgramData"
+call :open_log
+if "%LOG_READY%"=="1" goto log_ready
 set "LOG_DIR=%TEMP%\FoisonC24\Logs"
-if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>&1
-set "CMD_LOG=%LOG_DIR%\install-%RUN_ID%-cmd.log"
-(echo [%DATE% %TIME%] [WARN] [%RUN_ID%] [cmd] ProgramData unavailable; TEMP fallback %BOOT_MARKER%) 2>nul >>"%CMD_LOG%"
-"%CMD_SYSTEM%findstr.exe" /L /C:"%BOOT_MARKER%" "%CMD_LOG%" >nul 2>&1
-if not errorlevel 1 goto log_ready
-echo ERRO: Nao foi possivel gravar diagnostico em ProgramData nem TEMP.
+set "LOG_DESTINATION=TEMP-fallback"
+call :open_log
+if "%LOG_READY%"=="1" goto log_ready
+echo ERRO: Nao foi possivel confirmar a escrita do diagnostico em ProgramData nem TEMP.
+echo Verifique permissoes e a disponibilidade de findstr.exe no Windows.
 set "BRIDGE_EXIT=73"
 goto finish
 :log_ready
@@ -82,3 +79,16 @@ echo Pressione uma tecla para fechar. Nao envie comandos a plotter.
 pause >nul
 :return
 exit /b %BRIDGE_EXIT%
+
+:open_log
+set "LOG_READY=0"
+set "CMD_LOG=%LOG_DIR%\install-%RUN_ID%-cmd.log"
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>&1
+rem FINDSTR on Win7 need not accept Unicode filenames: pass an ASCII relative name.
+pushd "%LOG_DIR%" >nul 2>&1
+if errorlevel 1 exit /b 1
+(echo [%DATE% %TIME%] [INFO] [%RUN_ID%] [cmd] BEGIN bootstrap %LOG_DESTINATION% %BOOT_MARKER%) 2>nul >>"install-%RUN_ID%-cmd.log"
+"%CMD_SYSTEM%findstr.exe" /L /C:"%BOOT_MARKER%" "install-%RUN_ID%-cmd.log" >nul 2>&1
+if not errorlevel 1 set "LOG_READY=1"
+popd >nul
+exit /b 0

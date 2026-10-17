@@ -95,3 +95,10 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Novo teste verifica BOM/acentos/CRLF/idempotência da normalização (24 Python).
   NSIS/ZIP continuam comparando bytes exatos do staging/extração; fontes originais
   de engines não são alterados. Aguardar CI final antes de publicar.
+
+## Teste Unicode detectou outro caso real
+- CI c459330 falhou no caso pasta ação & teste: código 73 com erro visível,
+  porque findstr não conseguia verificar o caminho Unicode absoluto do log.
+- Ajustado bootstrap: pushd nativo Unicode e nome ASCII relativo para findstr;
+  não altera codepage global nem depende de nomes 8.3. Mesmo teste permanece
+  obrigatório, sem ignorar falha. Aguardar CI do commit corrigido.
