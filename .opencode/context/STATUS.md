@@ -19,7 +19,10 @@ Primeiro build paralelo falhou sem diagnóstico MSBuild; build -m:1 passou,
 pipeline uniformizado em modo serial (já usado pelos demais projetos).
 RAR:633 arquivos descompactados sem erro/CRC libarchive;7 componentes exatosCIrc.2.
 Escala/rotação/espelho implementados no modelo usado por prévia e HPGL; alterações
-revogam ensaio e troca de porta revoga perfil. CI/UI Windows/NSIS/ZIP pendentes.
+revogam ensaio e troca de porta revoga perfil. CI39057252361:Ubuntu passou;Windows detectou read_text sem encoding em novos
+contratos (cp1252 do runner), corrigido UTF-8 explícito; não foi erro de runtime
+ou instalador. Pipeline local bloqueado por NuGet NU1900/rede mesmo fora sandbox;
+não suprimir auditoria nem promover build parcial. CI/UI/NSIS/ZIP em reexecução.
 Nenhum comando serial/hardware enviado.
 
 # Objetivo / resultado atual

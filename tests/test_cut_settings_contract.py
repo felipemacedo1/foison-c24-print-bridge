@@ -7,7 +7,7 @@ ROOT = Path(__file__).parents[1]
 
 class CutSettingsContractTests(unittest.TestCase):
     def test_ui_uses_one_transformed_model_for_preview_and_hpgl(self):
-        ui = (ROOT / 'src/FoisonC24.Diagnostic/Program.cs').read_text()
+        ui = (ROOT / 'src/FoisonC24.Diagnostic/Program.cs').read_text(encoding='utf-8')
         self.assertIn('drawing=settings.Apply(originalDrawing)', ui)
         self.assertIn('foreach(var path in drawing.Paths)', ui)
         self.assertIn('Hpgl.Build(drawing,jobHash,profile,motion)', ui)
@@ -16,7 +16,7 @@ class CutSettingsContractTests(unittest.TestCase):
         self.assertIn('motionKey=null', apply)
         self.assertNotIn('new SerialWire', apply)
         self.assertIn('settings.Summary', ui)
-        dialog = (ROOT / 'src/FoisonC24.Diagnostic/Dialogs.cs').read_text()
+        dialog = (ROOT / 'src/FoisonC24.Diagnostic/Dialogs.cs').read_text(encoding='utf-8')
         self.assertIn('+settingsSummary+', dialog)
 
     def test_shortcut_is_owned_and_safe_to_uninstall(self):
@@ -27,6 +27,6 @@ class CutSettingsContractTests(unittest.TestCase):
         self.assertNotIn('rundll32', nsis.lower())
 
     def test_documented_driver_boundary_and_unverified_commands(self):
-        guide = (ROOT / 'docs/corel-cut-settings.md').read_text()
+        guide = (ROOT / 'docs/corel-cut-settings.md').read_text(encoding='utf-8')
         for text in ['não adiciona', 'Força, velocidade', 'ainda não executados', '1–100%']:
             self.assertIn(text, guide)
