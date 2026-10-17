@@ -74,7 +74,7 @@ def main():
         notes=root/'NOTES.md'
         notes.write_text(f'''## {version} — teste acompanhado, NÃO estável
 
-Versão SDK implícita anterior **1.0.0.0 → {version}**; não havia tag/release anterior.
+Versão candidata anterior no projeto **1.0.1-rc.3 → {version}**. A tag pública anterior conhecida é `v1.0.1-rc.1`; esta prerelease não substitui nem apaga versões anteriores.
 
 **[ZIP do cliente](https://github.com/{repo}/releases/download/{a.tag}/{bundle.name})** — extraia tudo, execute o instalador com o desenvolvedor e use o menu Iniciar *Foison C24 Print Bridge → Diagnóstico da captura*. O relatório ZIP resultante é somente para o desenvolvedor. Não é uma versão homologada para corte.
 
