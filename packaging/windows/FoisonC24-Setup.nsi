@@ -141,7 +141,7 @@ FunctionEnd
 !macro CheckedExec PREFIX COMMAND
   ClearErrors
   StrCpy $0 9009
-  ExecWait ${COMMAND} $0
+  ExecWait '${COMMAND}' $0
   ${If} ${Errors}
     StrCpy $0 9009
     Call ${PREFIX}Fail
