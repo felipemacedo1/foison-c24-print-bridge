@@ -36,3 +36,11 @@ class DistributionTests(unittest.TestCase):
     def test_encoding_and_portuguese_roundtrip(self):
         self.assertGreater(len(E.audit()),10)
         for phrase in E.PHRASES:self.assertEqual(phrase,phrase.encode('utf-8-sig').decode('utf-8-sig'))
+
+    def test_notepad_win7_text_has_bom_and_crlf(self):
+        text='\n'.join(E.PHRASES)+'\n'
+        encoded=D.win7_text_bytes(text)
+        self.assertTrue(encoded.startswith(b'\xef\xbb\xbf'))
+        self.assertNotIn(b'\n',encoded.replace(b'\r\n',b''))
+        self.assertEqual(encoded.decode('utf-8-sig').replace('\r\n','\n'),text)
+        self.assertEqual(encoded,D.win7_text_bytes(text.replace('\n','\r\n')))

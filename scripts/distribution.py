@@ -134,3 +134,8 @@ def vc_legacy_manifest(path):
         if len(runtime)!=1 or runtime[0].get('Version')!='14.29.30157':raise ValueError('Wrong native runtime package version')
         if not any(x.get('Condition')=='VersionNT64 >= v6.0 OR (VersionNT64 = v5.2 AND ServicePackLevel >= 1)' for x in conditions):raise ValueError('Unexpected VC bundle OS eligibility')
         return {'runtime':runtime[0].attrib,'win7_ucrt':packages[0].attrib,'bootstrap_conditions':conditions,'actual_win7_execution':'NOT EXECUTED'}
+
+
+def win7_text_bytes(text):
+    """UTF-8 BOM + CRLF: Windows 7 Notepad does not understand bare LF."""
+    return b'\xef\xbb\xbf'+text.replace('\r\n','\n').replace('\r','\n').replace('\n','\r\n').encode('utf-8')

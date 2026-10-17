@@ -10,14 +10,14 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from distribution import make_zip, pe_info, sha256, validate_zip, vc_legacy_manifest
+from distribution import make_zip, pe_info, sha256, validate_zip, vc_legacy_manifest, win7_text_bytes
 ROOT=Path(__file__).resolve().parents[1]
 PACK=ROOT/'packaging/windows'
 
 def run(args,**kw):
     print('+',*map(str,args),flush=True)
     return subprocess.run(list(map(str,args)),cwd=ROOT,check=True,**kw)
-def write(path,text):Path(path).write_bytes(b'\xef\xbb\xbf'+text.replace('\r\n','\n').replace('\n','\r\n').encode('utf-8'))
+def write(path,text):Path(path).write_bytes(win7_text_bytes(text))
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--development',action='store_true',help='Dirty source permitted; not publishable');parser.add_argument('--output',type=Path);args=parser.parse_args()
     version=(ROOT/'VERSION').read_text().strip()
@@ -59,6 +59,7 @@ def main():
         stage=Path(temporary)/'installer';stage.mkdir()
         for name in ['Install-Queue-Win7.cmd','Install-Queue-Win7.ps1','FoisonC24-Setup.nsi','LEIA-ME.txt','THIRD-PARTY.txt','PRIMEIRA-SESSAO.md','RECUPERACAO.txt','TEXTOS-VALIDACAO.txt','setup64.exe','redmon64.dll','unredmon64.exe','redmon.chm']:
             shutil.copyfile(PACK/name,stage/name)
+            if Path(name).suffix=='.txt':write(stage/name,(PACK/name).read_text(encoding='utf-8-sig'))
         for folder in ['tools','sources','prerequisites']:shutil.copytree(PACK/folder,stage/folder)
         for project,exe in [('FoisonC24.WindowsReceiver','FoisonC24Receiver.exe'),('FoisonC24.Diagnostic','FoisonC24Diagnostic.exe'),('FoisonC24.Provisioner','FoisonC24Provisioner.exe')]:
             compiled=ROOT/'src'/project/'bin/Release/net48'
@@ -111,14 +112,14 @@ def main():
         shutil.copyfile(stage/'testes/quadrado-20mm.svg',payload/'quadrado-20mm.svg')
         write(payload/'BUILD-INFO.txt','Version: '+version+'\nSource commit: '+commit+'\nDirty development build: '+str(dirty)+'\nNSIS: '+nsis_version+'\nWin7 SP1/PowerShell 2/CorelDRAW/hardware: NOT EXECUTED\nPhysical output: blocked by default; supervised authorization required.\n')
         sums=''.join(sha256(p)+'  '+p.name+'\n' for p in sorted(payload.iterdir()))
-        (payload/'SHA256SUMS.txt').write_text(sums,encoding='ascii')
+        (payload/'SHA256SUMS.txt').write_bytes(sums.replace('\n','\r\n').encode('ascii'))
         bundle=Path(temporary)/('FoisonC24-v'+version+'-Win7-x64.zip')
         files={'FoisonC24-v'+version+'-Win7-x64/'+p.name:p for p in payload.iterdir()}
         make_zip(bundle,files);report=validate_zip(bundle,files)
         report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,win7='NOT EXECUTED',physical='NOT EXECUTED')
         ready=Path(temporary)/'ready';ready.mkdir()
         shutil.copyfile(exe,ready/exe.name);shutil.copyfile(bundle,ready/bundle.name)
-        (ready/'SHA256SUMS.txt').write_text(sha256(exe)+'  '+exe.name+'\n'+sha256(bundle)+'  '+bundle.name+'\n',encoding='ascii')
+        (ready/'SHA256SUMS.txt').write_bytes((sha256(exe)+'  '+exe.name+'\r\n'+sha256(bundle)+'  '+bundle.name+'\r\n').encode('ascii'))
         (ready/'validation.json').write_text(json.dumps(report,indent=2,ensure_ascii=True)+'\n',encoding='utf-8')
         # Same filesystem atomic directory rename: incomplete outputs never become final.
         ready.rename(output)

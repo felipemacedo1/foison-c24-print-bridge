@@ -88,3 +88,10 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Título de boas-vindas longo ficava cortado em três linhas. Ajustado explicitamente
   para duas linhas curtas, sem remover acentos. Requer build/CI final novamente.
 - Conclusão/desinstalação/Win7 real seguem não executados, não estão validados.
+
+## Contrato de texto do pacote
+- Revisão final fixou também CRLF nos TXT do staging, independentemente do host;
+  BOM não basta para Notepad Win7 interpretar LF. Checksums ASCII também CRLF.
+- Novo teste verifica BOM/acentos/CRLF/idempotência da normalização (24 Python).
+  NSIS/ZIP continuam comparando bytes exatos do staging/extração; fontes originais
+  de engines não são alterados. Aguardar CI final antes de publicar.
