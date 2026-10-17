@@ -10,6 +10,13 @@ static class Program
     static int count;
     static void Check(bool ok,string name) { if(!ok) throw new Exception(name); Console.WriteLine("PASS "+name); count++; }
     static void Reject(Action action,string name) { bool rejected=false; try { action(); } catch { rejected=true; } Check(rejected,name); }
+    static string[] ReceiverLogs(string output,string runId)
+    {
+        string common=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"FoisonC24","Logs");
+        string[] roots={Path.Combine(output,"diagnostics"),common,Path.Combine(Path.GetTempPath(),"FoisonC24","Logs")};
+        return roots.Where(Directory.Exists).SelectMany(x=>Directory.GetFiles(x,"receiver-*.log"))
+            .Distinct(StringComparer.OrdinalIgnoreCase).Where(x=>File.ReadAllText(x).Contains("["+runId+"] [receiver]")).ToArray();
+    }
     static MachineProfile Profile() => new MachineProfile { Revision="SIMULATOR ONLY",EvidenceSha256=new string('a',64),UnitsPerMm=40,WidthMm=30,HeightMm=30,InitializationVerified=true,AbsoluteMovesVerified=true,BladeUpDownVerified=true,ResolutionVerified=true };
     static Authorization Approve(CutPlan p) => new Authorization { PlanHash=p.Hash,DeveloperApproved=true,GeometryMeasured=true,OriginAndLimitsChecked=true,OperatorConfirmed=true,BladeRemovedForMotion=true,MotionObserved=true };
     static string Trace(string paths) => "<document><page mediabox='0 0 100 100'>"+paths+"</page></document>";
@@ -127,11 +134,12 @@ static class Program
         if(args.Length>=4)
         {
             string captures=folder+"-spool";Directory.CreateDirectory(captures);
+            string receiverRunId="receiver-contract-"+Guid.NewGuid().ToString("N");
             bool dll=args[3].EndsWith(".dll",StringComparison.OrdinalIgnoreCase);
             for(int i=0;i<2;i++)
             {
                 var start=new System.Diagnostics.ProcessStartInfo(dll?"dotnet":args[3],(dll?Converter.Quote(args[3])+" ":"")+"--output-dir "+Converter.Quote(captures)) { UseShellExecute=false,RedirectStandardInput=true };
-                start.EnvironmentVariables["FOISON_RUN_ID"]="receiver-contract-test";
+                start.EnvironmentVariables["FOISON_RUN_ID"]=receiverRunId;
                 using(var receiver=System.Diagnostics.Process.Start(start))
                 {
                     byte[] bytes=File.ReadAllBytes(Path.Combine(args[2],"square-20mm.ps"));
@@ -141,9 +149,10 @@ static class Program
                 }
             }
             Check(Directory.GetFiles(captures,"*.raw").Length==2 && Directory.GetFiles(captures,"*.json").Length==2,"atomic capture markers and unique concurrent identities");
-            Check(Directory.GetFiles(Path.Combine(captures,"diagnostics"),"receiver-*.log").Length==2,"each Receiver attempt logged before parser and UI");
-            Check(Directory.GetFiles(captures,"*.json").All(f=>File.ReadAllText(f).Contains("receiver-contract-test") && File.ReadAllText(f).Contains("\"status\": \"captured\"")),"accepted capture metadata carries correlated RunId");
-            Check(Directory.GetFiles(Path.Combine(captures,"diagnostics"),"receiver-*.log").All(f=>File.ReadAllText(f).Contains("STDIN_EOF") && File.ReadAllText(f).Contains("QUEUE_REGISTERED") && File.ReadAllText(f).Contains("sha256=")),"Receiver logs EOF, hash and queue publication");
+            string[] acceptedLogs=ReceiverLogs(captures,receiverRunId);
+            Check(acceptedLogs.Length==2,"each Receiver attempt logged before parser and UI");
+            Check(Directory.GetFiles(captures,"*.json").All(f=>File.ReadAllText(f).Contains(receiverRunId) && File.ReadAllText(f).Contains("\"status\": \"captured\"")),"accepted capture metadata carries correlated RunId");
+            Check(acceptedLogs.All(f=>File.ReadAllText(f).Contains("STDIN_EOF") && File.ReadAllText(f).Contains("QUEUE_REGISTERED") && File.ReadAllText(f).Contains("sha256=")),"Receiver logs EOF, hash and queue publication");
             string raw=Directory.GetFiles(captures,"*.raw")[0];
             Check(MachineProfile.FileHash(raw)==MachineProfile.FileHash(Path.Combine(args[2],"square-20mm.ps")),"binary spool simulation preserves exact SHA256 without encoding preamble");
             var d=new Converter(args[0],args[1]).Convert(raw,folder+"-spool-convert",CancellationToken.None);
@@ -152,6 +161,7 @@ static class Program
             Check(serial.Data.Contains("PD880,880;"),"E2E receiver stdin → actual interpreters → geometry → HPGL → fake serial");
             string rejected=folder+"-reject";Directory.CreateDirectory(rejected);
             var rejectStart=new System.Diagnostics.ProcessStartInfo(dll?"dotnet":args[3],(dll?Converter.Quote(args[3])+" ":"")+"--output-dir "+Converter.Quote(rejected)) { UseShellExecute=false,RedirectStandardInput=true };
+            string rejectedRunId="receiver-reject-"+Guid.NewGuid().ToString("N");rejectStart.EnvironmentVariables["FOISON_RUN_ID"]=rejectedRunId;
             using(var receiver=System.Diagnostics.Process.Start(rejectStart))
             {
                 byte[] unknown=new byte[]{0,255,13,10,0x7f,0x80};receiver.StandardInput.BaseStream.Write(unknown,0,unknown.Length);receiver.StandardInput.Close();
@@ -159,7 +169,7 @@ static class Program
                 Check(receiver.ExitCode==2,"unsupported binary format returns nonzero rather than false success");
             }
             Check(Directory.GetFiles(rejected,"*.raw").Length==0 && Directory.GetFiles(Path.Combine(rejected,"attempts"),"attempt-*.json").Length==1,"rejected bytes are not retained; rejection metadata survives");
-            Check(Directory.GetFiles(Path.Combine(rejected,"diagnostics"),"receiver-*.log").Select(File.ReadAllText).Any(x=>x.Contains("unsupported print stream format") && x.Contains("EXIT") && x.Contains("exit_code=2")),"unsupported-format failure is diagnosable with stage and exit code");
+            Check(ReceiverLogs(rejected,rejectedRunId).Select(File.ReadAllText).Any(x=>x.Contains("unsupported print stream format") && x.Contains("EXIT") && x.Contains("exit_code=2")),"unsupported-format failure is diagnosable with stage and exit code");
         }
         Console.WriteLine(count+" checks passed. No physical hardware used.");
     }
