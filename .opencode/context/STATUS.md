@@ -34,8 +34,8 @@
   `b1ea7e7255bbd44cc50a0a45c93eca3427940d4a0d61712fd43666055151ca48`;
   instalador SHA-256 `85c3dd8699282ece4dc28b958896fee6f309da60583c060ea4cace7f3d89c1c3`.
   `validation.json`: dirty=false, build/test PASS; Win7/Corel/hardware NOT
-  EXECUTED. Próximo: commit do estado, tag no commit exato e prerelease após
-  validar os checksums na promoção.
+  EXECUTED. Prerelease pública `v1.0.1-rc.4` publicada após verificar tag,
+  SHA/size de todos os 5 assets: https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.4
 
 Branch `fix/capture-observability`, baseada em `fix/corel-cut-settings` em
 `919ec25`; `main` intacta. Commits de código enviados (`cfb792d`, `7031948`,
@@ -78,9 +78,9 @@ Branch `fix/capture-observability`, baseada em `fix/corel-cut-settings` em
 
 ## Próximos passos
 
-Commitar o estado/documentação, criar tag `v1.0.1-rc.4` no commit exato
-`828bcec` (CI e artefato verificados), então executar promoção prerelease; Win7
-segue não homologado. O relatório final deve indicar o release e limites.
+Atualizar e commitar estado da release; preparar checklist para a sessão guiada
+do cliente e coletar o ZIP diagnóstico. Win7/PS2/Corel/RedMon reais continuam
+não homologados; não habilitar corte.
 
 # Histórico do diagnóstico anterior — captura vazia / painel rc.3
 Branch fix/corel-cut-settings; main7351014 preservada. Sem merge/tag/release final.

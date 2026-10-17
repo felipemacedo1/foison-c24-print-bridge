@@ -1,7 +1,8 @@
 # Ativo 2026-10-17 — candidato diagnóstico de captura 1.0.1-rc.4
 
 Objetivo: transformar as hipóteses da lista vazia em observações verificáveis
-por uma tentativa guiada, sem corte/COM. Código validado em CI; prerelease pendente.
+por uma tentativa guiada, sem corte/COM. Prerelease pública `v1.0.1-rc.4` publicada;
+Win7/cliente ainda não homologado.
 
 - Receiver registra START/identidade/PID/argumentos e variáveis RedMon saneadas,
   stdin, primeiro byte, EOF/total, hash, formato, gravação, marcador, erro/stack,
@@ -55,8 +56,11 @@ por uma tentativa guiada, sem corte/COM. Código validado em CI; prerelease pend
   com hashes acima. Não executados: Win7/PS2, Corel/RedMon real.
 - Atenção: os arquivos locais e hashes da pasta acima são anteriores às últimas
   mudanças de hashing incremental e smoke ZIP; estão obsoletos, não distribuir.
-- Próximo: commit do estado, criar `v1.0.1-rc.4` no commit exato `828bcec` (CI
-  aprovado) e promover somente prerelease após validar os checksums remotos.
+- Release pública: https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.4
+  Assets instalador/ZIP/checksums/validation/evidências anexados; SHA/size remotos
+  conferidos e release marcada prerelease, não estável. Próximo passo: uma sessão
+  acompanhada, baixar relatório diagnóstico e investigar o primeiro estágio sem
+  evidência. Não prometer corte, nem habilitar transmissão física.
   Não afirmar captura corrigida nem homologação antes da sessão real.
 
 ## Candidato rc.3 conferido — não corrige captura por suposição
