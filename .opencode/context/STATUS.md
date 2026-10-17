@@ -1,3 +1,27 @@
+# Em andamento — painel de corte / CorelDRAW (2026-10-17)
+Objetivo: tornar acessíveis as configurações reais de corte, sem substituir o driver
+PostScript compartilhado nem executar UI como spooler/SYSTEM.
+Branch fix/corel-cut-settings, base137b3ad; main preservada.
+Cliente relata instalação rc.2 rápida e fila visível no CorelDRAW X6; relato não
+comprova captura/vetores/serial/corte. Arquivo recebido é Foison.rar (RAR5), local
+privado/ignorado, não foison.zip. Auditoria em andamento; 7z local lista mas não
+suporta descompressão RAR, obtendo extrator oficial sem instalação global.
+Causa no código: propriedades são PScript5 genérico; painel Foison é aplicativo
+separado, fluxo pouco descobrível. Não existe plug-in de propriedades OEM.
+Plano: auditar payload; painel explícito (escala reduzida/rotação/espelho/porta,
+prévia das mesmas coordenadas enviadas); invalidar ensaio ao editar; instruções
+claras/atalhos; testes geométricos + UI CI + build/ZIP. Sem comandos não comprovados
+de força/velocidade; ajustar no painel físico. Escala >100% no Corel para não
+ampliar erro de aproximação de curvas acima de0,01mm.
+Validações locais:35 testes Python,67 checks C# net8 com engines reais e fila/
+serial simulados; net48 UI/Receiver builds sem warnings/erros e gate encoding.
+Primeiro build paralelo falhou sem diagnóstico MSBuild; build -m:1 passou,
+pipeline uniformizado em modo serial (já usado pelos demais projetos).
+RAR:633 arquivos descompactados sem erro/CRC libarchive;7 componentes exatosCIrc.2.
+Escala/rotação/espelho implementados no modelo usado por prévia e HPGL; alterações
+revogam ensaio e troca de porta revoga perfil. CI/UI Windows/NSIS/ZIP pendentes.
+Nenhum comando serial/hardware enviado.
+
 # Objetivo / resultado atual
 Correção Win7/PS2 preparada como candidato 1.0.1-rc.2 na branch
 fix/win7-ps2-process-runner. Não houve merge/main, tag ou release final.

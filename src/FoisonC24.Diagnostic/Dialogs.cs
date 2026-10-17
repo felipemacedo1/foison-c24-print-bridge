@@ -5,6 +5,40 @@ using FoisonC24.Core;
 
 namespace FoisonC24.Diagnostic
 {
+    internal sealed class CutSettingsDialog : Form
+    {
+        public CutSettings Settings { get; private set; }
+        public string PortName { get; private set; }
+        public CutSettingsDialog(CutSettings current,string port,Drawing original)
+        {
+            Text="Configurações de corte — Foison C24";Width=750;Height=590;
+            MinimumSize=new System.Drawing.Size(650,550);
+            var body=new FlowLayoutPanel { Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,WrapContents=false,AutoScroll=true };
+            Controls.Add(body);
+            body.Controls.Add(new Label { Text="Estas opções pertencem ao Bridge, não às Propriedades do driver PostScript no CorelDRAW.\r\nNenhum ajuste abre a porta ou autoriza um movimento. Uma cópia por envio.",AutoSize=true,MaximumSize=new System.Drawing.Size(700,0) });
+            body.Controls.Add(new Label { Text="Porta serial do Bridge (não altera o Windows/FlexiSIGN):",AutoSize=true });
+            var serial=new TextBox { Text=port,Width=160 };body.Controls.Add(serial);
+            body.Controls.Add(new Label { Text="38400 baud · 8 bits · sem paridade · 1 stop · Xon/Xoff · DTR/RTS desligados",AutoSize=true });
+            body.Controls.Add(new Label { Text="Escala (%) — 100 mantém a medida recebida; amplie no CorelDRAW se necessário:",AutoSize=true });
+            var scale=new NumericUpDown { Minimum=1,Maximum=100,DecimalPlaces=3,Value=(decimal)current.ScalePercent,Width=160 };body.Controls.Add(scale);
+            body.Controls.Add(new Label { Text="Rotação anti-horária do desenho (não é a calibração dos eixos da máquina):",AutoSize=true });
+            var rotation=new ComboBox { DropDownStyle=ComboBoxStyle.DropDownList,Width=160 };
+            rotation.Items.AddRange(new object[]{0,90,180,270});rotation.SelectedItem=current.RotationDegrees;body.Controls.Add(rotation);
+            var mx=new CheckBox { Text="Espelhar horizontalmente (X)",Checked=current.MirrorX,AutoSize=true };body.Controls.Add(mx);
+            var my=new CheckBox { Text="Espelhar verticalmente (Y)",Checked=current.MirrorY,AutoSize=true };body.Controls.Add(my);
+            var measure=new Label { AutoSize=true,MaximumSize=new System.Drawing.Size(700,0) };body.Controls.Add(measure);
+            Action update=()=> { var s=new CutSettings((double)scale.Value,(int)rotation.SelectedItem,mx.Checked,my.Checked);measure.Text=original==null?"Imprima e abra uma prévia para medir o desenho.":"Recebido: "+original.SizeLabel+"\r\nSaída após ajustes: "+s.Apply(original).SizeLabel+" (antes do mapeamento dos eixos)."; };
+            scale.ValueChanged+=(s,e)=>update();rotation.SelectedIndexChanged+=(s,e)=>update();mx.CheckedChanged+=(s,e)=>update();my.CheckedChanged+=(s,e)=>update();update();
+            body.Controls.Add(new Label { Text="Origem normalizada + margem de 2 mm. Sem ajuste automático à mídia.\r\nÁrea livre medida e protocolo: botão Validar máquina (dev); até 50 × 50 mm no primeiro teste.\r\nForça, velocidade e ferramenta: ajuste no painel da plotter. Sem comandos presumidos.\r\nAplicar ajustes invalida o ensaio anterior. Confira a prévia e refaça o movimento sem lâmina.",AutoSize=true,MaximumSize=new System.Drawing.Size(700,0) });
+            var apply=new Button { Text="Aplicar e conferir prévia",AutoSize=true };body.Controls.Add(apply);
+            apply.Click+=(s,e)=> {
+                string name=serial.Text.Trim().ToUpperInvariant();
+                if(!System.Text.RegularExpressions.Regex.IsMatch(name,@"^COM[1-9][0-9]{0,2}$")) { MessageBox.Show("Informe uma porta entre COM1 e COM999, por exemplo COM2.");return; }
+                Settings=new CutSettings((double)scale.Value,(int)rotation.SelectedItem,mx.Checked,my.Checked);PortName=name;DialogResult=DialogResult.OK;
+            };
+            var back=new Button { Text="Cancelar",AutoSize=true,DialogResult=DialogResult.Cancel };body.Controls.Add(back);CancelButton=back;
+        }
+    }
     internal sealed class MachineDialog : Form
     {
         public MachineProfile Profile { get; private set; }
@@ -52,12 +86,12 @@ namespace FoisonC24.Diagnostic
     }
     internal sealed class ConfirmationDialog : Form
     {
-        public ConfirmationDialog(string size,bool motion,string port,MachineProfile p,CutPlan plan)
+        public ConfirmationDialog(string size,bool motion,string port,MachineProfile p,CutPlan plan,string settingsSummary)
         {
-            Text=motion ? "Autorizar movimento SEM lâmina" : "Autorizar CORTE FÍSICO";Width=770;Height=500;
-            var body=new FlowLayoutPanel { Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,WrapContents=false };Controls.Add(body);
-            body.Controls.Add(new Label { Text=(motion?"A máquina VAI se mover. Remova fisicamente a lâmina antes de continuar.":"A máquina VAI CORTAR. Insira a ferramenta somente com máquina parada, conforme o manual.")+"\r\nDesenho: "+size+"; origem normalizada + 2 mm; SEM ajuste de escala.\r\nPorta: "+port+" / 38400 8N1 Xon/Xoff; área "+p.WidthMm+" × "+p.HeightMm+" mm.\r\nUnidades/mm: "+p.UnitsPerMm+"; troca XY="+p.SwapAxes+"; inverter X="+p.ReverseX+"; Y="+p.ReverseY+".\r\nPlano: "+plan.Hash.Substring(0,16)+"\r\nCancelar no PC não garante parar movimentos já recebidos: use PAUSE/OFFLINE no painel.",AutoSize=true,MaximumSize=new System.Drawing.Size(740,0) });
-            var geometry=new CheckBox { Text="Conferi a prévia, dimensões, orientação e contornos com o desenho no CorelDRAW (100%).",AutoSize=true };body.Controls.Add(geometry);
+            Text=motion ? "Autorizar movimento SEM lâmina" : "Autorizar CORTE FÍSICO";Width=790;Height=590;
+            var body=new FlowLayoutPanel { Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,WrapContents=false,AutoScroll=true };Controls.Add(body);
+            body.Controls.Add(new Label { Text=(motion?"A máquina VAI se mover. Remova fisicamente a lâmina antes de continuar.":"A máquina VAI CORTAR. Insira a ferramenta somente com máquina parada, conforme o manual.")+"\r\nDesenho: "+size+"; origem normalizada + 2 mm; SEM ajuste automático à mídia.\r\nPorta: "+port+" / 38400 8N1 Xon/Xoff; área "+p.WidthMm+" × "+p.HeightMm+" mm.\r\nUnidades/mm: "+p.UnitsPerMm+"; troca XY="+p.SwapAxes+"; inverter X="+p.ReverseX+"; Y="+p.ReverseY+".\r\n"+settingsSummary+"\r\nPlano: "+plan.Hash.Substring(0,16)+"\r\nCancelar no PC não garante parar movimentos já recebidos: use PAUSE/OFFLINE no painel.",AutoSize=true,MaximumSize=new System.Drawing.Size(740,0) });
+            var geometry=new CheckBox { Text="Conferi prévia, dimensões, orientação e contornos, incluindo os ajustes de corte aplicados.",AutoSize=true };body.Controls.Add(geometry);
             var area=new CheckBox { Text="Origem física, margens e área livre foram conferidas. Ninguém está próximo do carro/material.",AutoSize=true };body.Controls.Add(area);
             var blade=new CheckBox { Text=motion?"Lâmina REMOVIDA; movimento com ferramenta erguida foi comprovado para esta revisão.":"Movimento anterior terminou e foi medido. Ferramenta/material e força/velocidade no painel estão seguros.",AutoSize=true,MaximumSize=new System.Drawing.Size(740,0) };body.Controls.Add(blade);
             var operatorCheck=new CheckBox { Text="Sou o operador e AUTORIZO este único envio, acompanhado pelo desenvolvedor.",AutoSize=true };body.Controls.Add(operatorCheck);

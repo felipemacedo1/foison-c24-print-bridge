@@ -123,3 +123,16 @@ Corel/corte. Proteções de ownership/rollback/journal e protocolo não mudam.
 
 CLR2 foi exercitado de verdade no Server2022 (patch9179); isso não substitui
 Win7/CLR2.8803, impressão alvo nem validação física. Cada estado é independente.
+
+## Painel de corte rc.3 / propriedades do driver
+
+A fila continua usando PScript5 inbox sem plug-in OEM. Propriedades abertas
+pelo CorelDRAW só oferecem opções desse driver. Não alterar DLL/INF do driver
+compartilhado para introduzir preferências Foison. UI explícita do aplicativo,
+usuário normal, não processo filho interativo do spooler/SYSTEM. Detalhes e
+fonte Microsoft em docs/corel-cut-settings.md.
+CutSettings imutável transforma uma cópia do original (redução, espelho, rotação
+ortogonal), antes da prévia e do gerador HPGL. Redução até100% não amplia erro
+de aproximação de curvas. Ampliação deve ocorrer no Corel, antes de interpretar.
+Não persistir aprovação nem abrir COM em configurações. Mudanças revogam ensaio;
+mudança de porta revoga perfil; chave do ensaio é hash do plano de movimento.

@@ -1,3 +1,18 @@
+## Painel de corte — candidato 1.0.1-rc.3
+
+O cliente relatou que a rc.2 instalou rapidamente no Windows 7 e que a fila já
+aparece no CorelDRAW X6. Isso não comprova captura, serial ou corte.
+**Propriedades no CorelDRAW são do driver PostScript, não do controlador de corte.**
+Abra o atalho **Foison C24** já instalado, selecione o trabalho e clique em
+**Pré-visualizar**, **Validar máquina (dev)**, ensaio e corte. Não reinstale a
+rc.2 apenas para procurar opções no driver.
+
+A rc.3 torna explícito o painel **Configurações de corte**: porta do Bridge,
+redução 1–100%, rotação 0/90/180/270°, espelhamento e dimensões reais na prévia.
+Amplie no CorelDRAW para manter tolerância de curvas. Força/velocidade são
+ajustadas na máquina. Não há plug-in OEM em Propriedades nem paridade com Flexi.
+[Fluxo e limites](docs/corel-cut-settings.md). Candidato não homologado no hardware.
+
 # Foison C24 Print Bridge
 
 **Correção em branch: 1.0.1-rc.2.** A rc.1 falhou em Windows 7/PS2 antes de

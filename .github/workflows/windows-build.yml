@@ -94,6 +94,6 @@ jobs:
             dist/*/validation.json
             dist/*/SHA256SUMS.txt
             dist/*.log
-            dist/UI-preview.png
+            dist/UI-preview*.png
             dist/visual/
             dist/evidence/

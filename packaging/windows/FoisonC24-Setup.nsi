@@ -29,7 +29,7 @@ ShowUninstDetails show
 !insertmacro MUI_PAGE_LICENSE "THIRD-PARTY.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_TEXT "Instalação concluída com sucesso.$\r$\nFila, porta, driver e conversão foram verificados neste computador. Imprima o quadrado no CorelDRAW, escala 100%, e abra Foison C24.$\r$\n$\r$\nIsso não comprova CorelDRAW, serial, protocolo nem corte físico. Siga o desenvolvedor antes de qualquer movimento."
+!define MUI_FINISHPAGE_TEXT "Instalação concluída com sucesso.$\r$\nFila, porta, driver e conversão foram verificados neste computador.$\r$\n$\r$\nAbra o atalho Foison C24 - Configurações de corte. No CorelDRAW, imprima uma cópia a 100%, sem ajustar à página; depois abra a prévia no painel Foison.$\r$\n$\r$\nAs Propriedades do driver PostScript não controlam o corte. Força e velocidade são ajustadas no painel da plotter. Siga o desenvolvedor antes de qualquer movimento."
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -267,6 +267,7 @@ Section "Instalação completa — corte bloqueado"
     Call Fail
   ${EndIf}
   CreateShortCut "$DESKTOP\Foison C24.lnk" "$INSTDIR\FoisonC24Diagnostic.exe"
+  CreateShortCut "$DESKTOP\Foison C24 - Configurações de corte.lnk" "$INSTDIR\FoisonC24Diagnostic.exe"
   CreateShortCut "$DESKTOP\Quadrado Foison 20 mm.lnk" "$INSTDIR\testes\quadrado-20mm.svg"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\FoisonC24Bridge" "DisplayName" "Foison C24 Print Bridge (teste acompanhado)"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\FoisonC24Bridge" "DisplayVersion" "${BRIDGE_VERSION}"
@@ -284,6 +285,7 @@ Section "Uninstall"
     Call un.Fail
   ${EndIf}
   Delete "$DESKTOP\Foison C24.lnk"
+  Delete "$DESKTOP\Foison C24 - Configurações de corte.lnk"
   Delete "$DESKTOP\Quadrado Foison 20 mm.lnk"
   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\FoisonC24Bridge"
   ; Delete only known project files. Keep journals, logs and unexpected files.

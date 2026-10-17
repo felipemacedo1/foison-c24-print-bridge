@@ -1,3 +1,14 @@
+# 1.0.1-rc.3 — configurações de corte no aplicativo (candidato)
+
+- Identifica claramente a separação entre Propriedades PScript e painel Foison.
+- Novo diálogo de configurações: porta, redução 1–100%, rotação e espelhamentos;
+  prévia mede a mesma geometria passada ao gerador HPGL, sem acumular ajustes.
+- Alterações revogam ensaio; troca de porta também revoga perfil de máquina.
+  Ensaio vinculado ao plano geométrico exato, não somente ao arquivo original.
+- Atalho explícito e instruções de fluxo; uma cópia, margem2mm, limites mantidos.
+- Nenhum comando de força/velocidade presumido; ajustes no painel da máquina.
+- rc.2: instalação/fila no Corel relatadas pelo cliente, não prova de corte.
+
 # 1.0.1-rc.2 — candidato de correção Win7/PS2 (não homologado)
 
 - Corrige falha real ParameterBindingException antes de icacls na rc.1: executor

@@ -42,6 +42,27 @@ static class Program
         var reversal=new List<Point>{new Point(0,0)};Bezier.Flatten(reversal,reversal[0],new Point(100,0),new Point(-100,0),new Point(1,0));
         Check(reversal.Any(x=>x.X>20) && reversal.Any(x=>x.X< -20),"collinear curve reversal preserved");
         var cut=Hpgl.Build(drawing,hash,p,false); var motion=Hpgl.Build(drawing,hash,p,true);
+        var operatorDrawing=new Drawing();var operatorPath=new CutPath { Closed=false };
+        operatorPath.Points.AddRange(new[]{new Point(10,20),new Point(30,20),new Point(30,30)});operatorDrawing.Paths.Add(operatorPath);
+        var identity=new CutSettings().Apply(operatorDrawing);
+        Check(identity.Width==20 && identity.Height==10 && identity.Points.First().X==0 && identity.Points.First().Y==0,"cut settings default 100% preserves mm, normalized origin");
+        Check(operatorDrawing.Points.First().X==10 && !Object.ReferenceEquals(identity.Paths[0],operatorPath),"cut settings never mutate original geometry");
+        var rotated=new CutSettings(100,90).Apply(operatorDrawing);
+        Check(rotated.Width==10 && rotated.Height==20 && rotated.Points.First().X==10 && rotated.Points.Last().X==0,"90-degree operator rotation preserves exact asymmetric coordinates");
+        var half=new CutSettings(50,270,true).Apply(operatorDrawing);
+        Check(half.Width==5 && half.Height==10 && !half.Paths[0].Closed && half.Points.First().X==0 && half.Points.First().Y==0,"operator mirror, rotation, reduction preserve open paths");
+        var twice=new CutSettings(100,180,false,true).Apply(operatorDrawing);
+        Check(twice.Points.First().X==20 && twice.Points.First().Y==0 && twice.Width==20,"mirror Y before 180-degree rotation exact coordinates");
+        Check(new CutSettings(25).Apply(drawing).Paths[0].Closed,"closed paths remain closed after operator settings");
+        Check(new CutSettings(50).Apply(operatorDrawing).Width==10 && new CutSettings().Apply(operatorDrawing).Width==20,"reapplying settings from original does not accumulate scale");
+        foreach(double scale in new[]{0d,101d,Double.NaN,Double.PositiveInfinity})
+            Reject(()=>new CutSettings(scale),"unsafe operator scale rejected "+scale);
+        Reject(()=>new CutSettings(100,45),"unsupported operator angle rejected");
+        var originalMotion=Hpgl.Build(identity,hash,p,true);var rotatedMotion=Hpgl.Build(rotated,hash,p,true);
+        Check(originalMotion.Hash!=rotatedMotion.Hash && originalMotion.ProfileHash==rotatedMotion.ProfileHash,"rehearsal bound to changed geometry even with same source and machine");
+        Check(rotatedMotion.Commands.Contains("PU480,80;") && rotatedMotion.Commands.Contains("PU80,880;"),"operator preview geometry becomes exact HPGL coordinates");
+        var outside=new Drawing();var outsidePath=new CutPath { Closed=false };outsidePath.Points.AddRange(new[]{new Point(0,0),new Point(40,40)});outside.Paths.Add(outsidePath);
+        Reject(()=>Hpgl.Build(new CutSettings().Apply(outside),hash,p,false),"operator settings do not bypass measured machine limits");
         Check(cut.Commands.First()=="IN;" && cut.Commands.Last()=="PU;" && cut.Commands.Any(x=>x.StartsWith("PD")),"HPGL initialization and blade control");
         Check(!motion.Commands.Any(x=>x.StartsWith("PD")),"motion only never lowers blade");
         Reject(()=>Hpgl.Build(drawing,hash,new MachineProfile(),false),"unverified protocol blocked");

@@ -52,3 +52,7 @@ packaging/windows/redmon.chm
 # Customer diagnostics and isolated legacy validation media (never distribute)
 Logs/
 .legacy-vm/
+
+# Customer-installed payload supplied for local inspection only
+/Foison.rar
+/foison.zip

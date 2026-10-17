@@ -48,6 +48,13 @@ namespace FoisonC24.Diagnostic
                     form.Show(); Application.DoEvents();
                     if(!form.PhysicalButtonsBlocked) throw new InvalidOperationException("UI physical gate not blocked by default");
                     using(var bitmap=new Bitmap(form.Width,form.Height)) { form.DrawToBitmap(bitmap,new Rectangle(0,0,form.Width,form.Height)); bitmap.Save(args[1]); }
+                    form.SmokeSettings();
+                    using(var dialog=new CutSettingsDialog(new CutSettings(),"COM2",form.PreviewDrawing))
+                    {
+                        dialog.Show(form);Application.DoEvents();
+                        using(var bitmap=new Bitmap(dialog.Width,dialog.Height)) { dialog.DrawToBitmap(bitmap,new Rectangle(0,0,dialog.Width,dialog.Height));bitmap.Save(Path.Combine(Path.GetDirectoryName(args[1]),Path.GetFileNameWithoutExtension(args[1])+"-settings.png")); }
+                        dialog.Close();
+                    }
                     form.Close();return 0;
                 }
             }
@@ -62,27 +69,43 @@ namespace FoisonC24.Diagnostic
         private readonly PictureBox preview=new PictureBox { Dock=DockStyle.Fill,BackColor=Color.White };
         private readonly FlowLayoutPanel buttons=new FlowLayoutPanel { Dock=DockStyle.Bottom,Height=100,AutoScroll=true };
         private readonly System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer { Interval=2000 };
-        private Drawing drawing; private string source,jobHash,motionKey;
+        private Drawing drawing,originalDrawing; private string source,jobHash,motionKey;
+        private CutSettings settings=new CutSettings();
+        private readonly Label settingsLabel=new Label { Dock=DockStyle.Top,Height=48 };
         private MachineProfile profile; private CancellationTokenSource cancel;
         private readonly TextBox port=new TextBox { Text="COM2",Width=70 };
         private Button stop,motionButton,cutButton;
-        internal Drawing SmokeDrawing { set { drawing=value;preview.Invalidate(); } }
+        internal Drawing SmokeDrawing { set { originalDrawing=value;drawing=settings.Apply(value);preview.Invalidate(); } }
+        internal Drawing PreviewDrawing => drawing;
+        internal void SmokeSettings()
+        {
+            double width=originalDrawing.Width,height=originalDrawing.Height;
+            ApplySettings(new CutSettings(50,90,true),"COM2");
+            if(Math.Abs(drawing.Width-height/2)>0.001 || Math.Abs(drawing.Height-width/2)>0.001 || !PhysicalButtonsBlocked)
+                throw new InvalidOperationException("Cut settings preview/gate regression");
+            ApplySettings(new CutSettings(),"COM2");
+            if(Math.Abs(drawing.Width-width)>0.001 || Math.Abs(drawing.Height-height)>0.001 || !PhysicalButtonsBlocked)
+                throw new InvalidOperationException("Cut settings accumulated geometry or authorized physical output");
+        }
         internal bool PhysicalButtonsBlocked => !motionButton.Enabled && !cutButton.Enabled;
         public MainForm()
         {
-            Text="Foison C24 — sessão acompanhada (não validada no hardware)";Width=1050;Height=730;
+            Text="Foison C24 — painel de corte (sessão acompanhada)";Width=1150;Height=790;
+            MinimumSize=new Size(1020,720);
             status.Text="1. No CorelDRAW, abra o quadrado 20 mm e imprima em Foison C24 (Teste), escala 100%.\r\n2. Selecione o trabalho e confira a prévia. O envio começa BLOQUEADO.\r\n3. O desenvolvedor valida a máquina; cada movimento/corte exige nova confirmação.";
-            Controls.Add(preview);Controls.Add(buttons);Controls.Add(status);
+            var guide=new Label { Dock=DockStyle.Top,Height=65,Text="CONFIGURAÇÕES DE CORTE: use este painel, não as Propriedades PostScript do CorelDRAW.\r\n1. Imprima 100%, uma cópia → 2. Selecione e abra a prévia → 3. Configurações de corte → 4. Validar máquina (dev) → ensaio → corte.\r\nForça e velocidade: painel da plotter. Não altere a impressora/FTDI/FlexiSIGN para configurar o Bridge." };
+            Controls.Add(preview);Controls.Add(buttons);Controls.Add(settingsLabel);Controls.Add(status);Controls.Add(guide);
             var left=new Panel { Dock=DockStyle.Left,Width=230 };left.Controls.Add(jobs);Controls.Add(left);
             Add("Atualizar trabalhos",RefreshJobs);Add("Pré-visualizar",async()=>await ConvertSelected());
+            Add("Configurações de corte",ConfigureCut);
             Add("Validar máquina (dev)",ApproveMachine);Add("Diagnóstico",Diagnose);Add("Exportar relatório",Export);
             buttons.Controls.Add(port);motionButton=Add("Movimento sem lâmina",async()=>await Send(true));cutButton=Add("Primeiro corte",async()=>await Send(false));
             stop=Add("INTERROMPER ENVIO",()=> { cancel?.Cancel(); status.Text="Cancelando envio. Use PAUSE/OFFLINE no painel. Fechar COM não garante parar o buffer da plotter. Não repita o trabalho."; });
             stop.BackColor=Color.MistyRose;
             port.TextChanged+=(s,e)=> { profile=null;motionKey=null;UpdateGates(); };
-            jobs.SelectedIndexChanged+=(s,e)=> { if(cancel!=null)return;drawing=null;source=null;jobHash=null;motionKey=null;preview.Invalidate();UpdateGates(); };
+            jobs.SelectedIndexChanged+=(s,e)=> { if(cancel!=null)return;drawing=null;originalDrawing=null;source=null;jobHash=null;motionKey=null;preview.Invalidate();UpdateGates(); };
             preview.Paint+=PaintPreview;
-            timer.Tick+=(s,e)=> { if(cancel==null) RefreshJobs(); };timer.Start();RefreshJobs();UpdateGates();
+            timer.Tick+=(s,e)=> { if(cancel==null) { try { RefreshJobs(); } catch(Exception error) { timer.Stop();Error(error); } } };timer.Start();RefreshJobs();UpdateGates();
             FormClosing+=(s,e)=> { if(cancel!=null) { cancel.Cancel();e.Cancel=true;MessageBox.Show("Aguarde a interrupção e use o painel da plotter. O buffer pode continuar executando."); } };
         }
         private Button Add(string text,Action action)
@@ -94,9 +117,26 @@ namespace FoisonC24.Diagnostic
         { foreach(Control c in buttons.Controls) c.Enabled=!value; stop.Enabled=value; jobs.Enabled=!value;UpdateGates(); }
         private void UpdateGates()
         {
+            settingsLabel.Text=settings.Summary+"\r\n"+port.Text+" · 38400 8N1 Xon/Xoff | origem + 2 mm | força/velocidade no painel | uma cópia";
             stop.Enabled=cancel!=null;
             motionButton.Enabled=cancel==null && drawing!=null && profile!=null;
-            cutButton.Enabled=motionButton.Enabled && motionKey==jobHash+profile.Fingerprint;
+            cutButton.Enabled=motionButton.Enabled && motionKey!=null && motionKey==Hpgl.Build(drawing,jobHash,profile,true).Hash;
+        }
+        private void ConfigureCut()
+        {
+            using(var dialog=new CutSettingsDialog(settings,port.Text,originalDrawing))
+            {
+                if(dialog.ShowDialog(this)!=DialogResult.OK)return;
+                ApplySettings(dialog.Settings,dialog.PortName);
+            }
+        }
+        private void ApplySettings(CutSettings next,string portName)
+        {
+            settings=next;motionKey=null;
+            port.Text=portName; // Port changes also revoke the device profile.
+            drawing=originalDrawing==null?null:settings.Apply(originalDrawing);
+            status.Text=drawing==null?"Ajustes aplicados. Imprima no CorelDRAW e abra a prévia.":"Prévia de corte: "+drawing.SizeLabel+". Ajustes aplicados a partir do original, sem acumular escala/rotação.\r\nEnsaio anterior invalidado: confira a geometria e repita o movimento sem lâmina antes do corte.";
+            preview.Invalidate();UpdateGates();
         }
         private void Error(Exception e)
         {
@@ -113,21 +153,23 @@ namespace FoisonC24.Diagnostic
                 string name=Path.GetFileNameWithoutExtension(file);
                 if(File.Exists(Path.Combine(folder,name+".raw")) && !jobs.Items.Contains(name)) jobs.Items.Add(name);
             }
+            if(jobs.SelectedIndex<0 && jobs.Items.Count>0) jobs.SelectedIndex=jobs.Items.Count-1;
         }
         private async Task ConvertSelected()
         {
             if(jobs.SelectedItem==null) { MessageBox.Show("Imprima pelo CorelDRAW e selecione o trabalho na lista.");return; }
-            cancel=new CancellationTokenSource();Busy(true);drawing=null;motionKey=null;
+            cancel=new CancellationTokenSource();Busy(true);drawing=null;originalDrawing=null;motionKey=null;
             try
             {
                 source=Path.Combine(data,"captures",jobs.SelectedItem+".raw");jobHash=MachineProfile.FileHash(source);
                 string scratch=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"FoisonC24","conversion-"+Guid.NewGuid());
-                drawing=await Task.Run(()=>Program.Converter().Convert(source,scratch,cancel.Token));
+                originalDrawing=await Task.Run(()=>Program.Converter().Convert(source,scratch,cancel.Token));
                 if(MachineProfile.FileHash(source)!=jobHash) throw new IOException("Captura mudou durante a conversão.");
+                drawing=settings.Apply(originalDrawing);
                 status.Text="Prévia: "+drawing.SizeLabel+" — "+drawing.Paths.Count+" caminhos.\r\nX → direita; Y ↑. Origem do desenho normalizada, sem escala automática; margem de 2 mm no envio.\r\nContornos são linhas centrais; preenchimentos viram perímetros. Confira caminhos e remova fundo/duplicatas. Envio ainda exige validação.";
                 preview.Invalidate();
             }
-            catch(Exception e) { drawing=null;Error(e); }
+            catch(Exception e) { drawing=null;originalDrawing=null;Error(e); }
             finally { cancel.Dispose();cancel=null;Busy(false); }
         }
         private void ApproveMachine()
@@ -144,9 +186,10 @@ namespace FoisonC24.Diagnostic
             {
                 if(MachineProfile.FileHash(source)!=jobHash) throw new IOException("Captura alterada. Converta novamente.");
                 var plan=Hpgl.Build(drawing,jobHash,profile,motion);
-                string key=jobHash+profile.Fingerprint;
+                // Bind rehearsal to the exact transformed trajectory, not just the raw file.
+                string key=Hpgl.Build(drawing,jobHash,profile,true).Hash;
                 if(!motion && motionKey!=key) throw new InvalidOperationException("Faça e observe primeiro o movimento sem lâmina deste desenho/perfil.");
-                using(var confirm=new ConfirmationDialog(drawing.SizeLabel,motion,port.Text,profile,plan))
+                using(var confirm=new ConfirmationDialog(drawing.SizeLabel,motion,port.Text,profile,plan,settings.Summary))
                 {
                     if(confirm.ShowDialog(this)!=DialogResult.OK)return;
                 }

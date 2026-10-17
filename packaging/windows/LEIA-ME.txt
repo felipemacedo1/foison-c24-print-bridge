@@ -1,12 +1,21 @@
-﻿Foison C24 Print Bridge 1.0.1-rc.2 — TESTE ACOMPANHADO
+﻿Foison C24 Print Bridge 1.0.1-rc.3 — TESTE ACOMPANHADO
 Não validado em Windows 7/CorelDRAW/hardware. Não instalar sem o desenvolvedor.
 
 1. Extraia tudo com "Extrair tudo" do Windows e execute
    FoisonC24-Setup-Win7-x64.exe. Autorize o UAC. Se solicitar, reinicie e repita.
 2. No CorelDRAW X6, abra quadrado-20mm.svg. Imprima em Foison C24 (Teste),
    uma cópia, escala 100%, sem ajustar à página.
-3. Abra o atalho Foison C24. Selecione o trabalho, confira a prévia 20 × 20 mm
-   e siga as confirmações com o desenvolvedor.
+3. Abra o atalho Foison C24 - Configurações de corte. Selecione o trabalho e
+   clique em Pré-visualizar. Confira 20 × 20 mm e Configurações de corte.
+   Siga Validar máquina (dev), Movimento sem lâmina e Primeiro corte.
+
+IMPORTANTE: Propriedades de impressão no CorelDRAW são do driver PostScript,
+não da plotter. O corte é configurado e autorizado no aplicativo Foison C24.
+Nele: porta (COM2 padrão), escala 1 a 100%, rotação, espelhamento e prévia mm.
+Ampliações: faça no CorelDRAW e imprima novamente a 100%, sem ajustar à página.
+Força, velocidade e ferramenta: painel físico da plotter, não o driver.
+Uma cópia por envio; origem normalizada + margem 2 mm; área medida até 50 × 50 mm.
+Configurações não abrem a COM nem autorizam corte. Alterá-las exige novo ensaio.
 
 Movimento/corte começam bloqueados. Não basta transmitir para comprovar corte.
 Se protocolo, escala, direção, limites ou comunicação não forem comprovados,

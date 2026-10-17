@@ -1,3 +1,11 @@
+## Painel de corte rc.3 — retorno do cliente
+- [x] Receber relato positivo de instalação/fila no Corel (não é corte validado).
+- [x] Inspecionar RAR privado; principais componentes idênticos ao CIrc.2.
+- [x] Diagnosticar PScript sem UI OEM e implementar painel explícito no aplicativo.
+- [x] Geometria de ajustes testada, ensaio revogado, protocolo/limites preservados.
+- [ ] Concluir pacote/CI/screenshots do painel novo e conferir artefatos.
+- [ ] Cliente abrir aplicativo, capturar quadrado e validar prévia/ensaio/corte.
+
 ## Correção Win7/PS2 1.0.1-rc.2
 - [x] Auditar main atual e logs reais correlacionados, sem atribuir falha a ACL.
 - [x] Substituir executor e corrigir append/BOM NSIS/código real.

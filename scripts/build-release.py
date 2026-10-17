@@ -45,7 +45,7 @@ def main():
         run(['powershell','-NoLogo','-NoProfile','-File','tests/windows-process-runner.ps1'])
     for project,framework in [('src/FoisonC24.WindowsReceiver','net48'),('src/FoisonC24.Diagnostic',None),('src/FoisonC24.Provisioner',None),('tests/FoisonC24.CoreTests','net48' if os.name=='nt' else 'net8.0')]:
         run([dotnet,'build',str(Path(project)/(Path(project).name+'.csproj')),'-c','Release','-warnaserror','-m:1','-nr:false']+(['-f',framework] if framework else []))
-    if os.name!='nt':run([dotnet,'build','src/FoisonC24.WindowsReceiver','-c','Release','-f','net8.0','-warnaserror'])
+    if os.name!='nt':run([dotnet,'build','src/FoisonC24.WindowsReceiver','-c','Release','-f','net8.0','-warnaserror','-m:1','-nr:false'])
     run([sys.executable,'scripts/prepare-tools.py']);run([sys.executable,'scripts/fetch-redmon.py'])
     if os.name=='nt':
         for project,exe in [('FoisonC24.WindowsReceiver','FoisonC24Receiver.exe'),('FoisonC24.Diagnostic','FoisonC24Diagnostic.exe'),('FoisonC24.Provisioner','FoisonC24Provisioner.exe')]:

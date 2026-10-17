@@ -1,3 +1,18 @@
+## 2026-10-17 — retorno cliente / painel de corte rc.3
+
+Cliente relata instalação rc.2 rápida e impressora reconhecida no CorelDRAW X6.
+Evidência: relato + Foison.rar RAR5,208658971 bytes,660 entradas/633 arquivos;
+sete componentes principais idênticos byte a byte ao instalador CIrc.2 a173d5e.
+Descompressão integral dos arquivos com libarchive passou (7z Ubuntu não suporta
+RAR). Arquivo privado ignorado, sem executar binários recebidos nem publicá-los.
+Não foram recebidos nesta evidência testes de captura/vetores/COM/corte.
+
+Causa do relato sobre propriedades: fila usa PScript5 genérico, sem plug-in de
+propriedades OEM de corte. Aplicativo Foison existente faz prévia/envio. rc.3
+explicita painel de configurações de corte separado; não promete configurar
+força/velocidade via comandos não comprovados. Branch fix/corel-cut-settings,
+main preservada; validações/build desta etapa em andamento no STATUS.
+
 ## Candidato 1.0.1-rc.2 — correção PS2/CLR2 e distribuição conferida
 
 - Branch fix/win7-ps2-process-runner; main preservada em7351014. Código cliente
