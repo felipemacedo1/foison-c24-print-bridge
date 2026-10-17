@@ -23,6 +23,7 @@ SetCompressor zlib
 ShowInstDetails show
 ShowUninstDetails show
 !define MUI_ABORTWARNING
+!define MUI_WELCOMEPAGE_TITLE "Foison C24 Print Bridge$\r$\n${BRIDGE_VERSION} — teste acompanhado"
 !define MUI_WELCOMEPAGE_TEXT "Configuração da impressora Foison C24.$\r$\n$\r$\nCandidato de teste: Windows 7 SP1 x64. Requer acompanhamento do desenvolvedor. Não é compatibilidade comprovada.$\r$\n$\r$\nCorte físico permanece bloqueado por padrão. FTDI, COM2 e FlexiSIGN não serão reconfigurados."
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "THIRD-PARTY.txt"

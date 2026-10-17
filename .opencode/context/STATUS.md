@@ -80,3 +80,11 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
   acrescenta teste em pasta com Unicode e &. Sem mudar domínio/protocolo/UI.
 - Inspeção manual adicional do VC2019: todos os imports estáticos VCRUNTIME140,
   VCRUNTIME140_1 e MSVCP140 dos engines existem nas DLLs do bundle fixado.
+
+## Inspeção visual dos bytes aprovados 705e3df
+- Artefato baixado completo; CRC do ZIP externo passou (245 entradas).
+- Imagens de boas-vindas/licença/diretório/progresso/rejeição e WinForms abertas
+  e revisadas: acentos pt-BR legíveis, prévia 20.000 x 20.000 mm, gates bloqueados.
+- Título de boas-vindas longo ficava cortado em três linhas. Ajustado explicitamente
+  para duas linhas curtas, sem remover acentos. Requer build/CI final novamente.
+- Conclusão/desinstalação/Win7 real seguem não executados, não estão validados.
