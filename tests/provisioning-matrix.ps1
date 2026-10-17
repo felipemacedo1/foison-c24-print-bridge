@@ -111,6 +111,13 @@ Case 'legacy-interrupted-adoption' {
   Assert ((ReadState).stage -eq 'adopting') 'Migration intent not durable'
   $fake.fail='';Assert ((Invoke-BridgeSetup 'install') -eq 0) 'Interrupted adoption not recovered'
 }
+Case 'positive-completion-receipt' {
+  Assert ((Invoke-BridgeSetup 'install') -eq 0) 'Setup'
+  $script:CompletionId='nonce-model'
+  WriteCompletion 'install'
+  $receipt=Join-Path $LogDirectory ('install-'+$RunId+'-'+$CompletionId+'-complete.txt')
+  Assert ([IO.File]::ReadAllText($receipt).Trim() -eq ('SUCCESS Operation=install RunId='+$RunId+' CompletionId='+$CompletionId)) 'Completion proof mismatch'
+}
 # Exercise wrapper diagnostics with a result adapter, never replace ProcessRun/Run.
 # This is explicitly a model; actual ProcessStartInfo tests run separately.
 function InvokeProcessAdapter($file,$arguments,$stdout,$stderr,$timeoutMs) {
@@ -148,4 +155,4 @@ Assert $failed 'Blocked component log falsely succeeded'
 Assert (@(Get-ChildItem $LogDirectory -Filter '*.raw').Count -eq 2) 'Raw evidence lost after logging failure'
 $results+='process-logging-fails'
 [IO.File]::WriteAllLines((Join-Path $base 'RESULTS.txt'),[string[]]$results,[Text.Encoding]::UTF8)
-Write-Host ('PASS '+$results.Count+' model/process cases; evidence='+$base+'; PS2/Win7 NOT EXECUTED')
+Write-Host ('PASS '+$results.Count+' model/process cases; evidence='+$base+'; hostPS='+$PSVersionTable.PSVersion+' CLR='+[Environment]::Version+'; spooler/Win7 NOT EXECUTED')

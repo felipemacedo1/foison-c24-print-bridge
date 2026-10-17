@@ -9,7 +9,7 @@ $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
 try{$principal=New-Object Security.Principal.WindowsPrincipal($identity);if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Execute como administrador'}}finally{$identity.Dispose()}
 $evidence=Join-Path $env:TEMP ('foison-matrix-legacy-'+[Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($evidence)|Out-Null
-$envText=@('Caption='+$os.Caption,'Version='+$os.Version,'SP='+$os.ServicePackMajorVersion,'Architecture='+$os.OSArchitecture,'PowerShell='+$PSVersionTable.PSVersion,'CLR='+[Environment]::Version,'Installer=NOT EXECUTED','Queue=NOT EXECUTED','CorelDRAW=NOT EXECUTED','Physical=NOT EXECUTED')
+$envText=@(('Caption='+$os.Caption),('Version='+$os.Version),('SP='+$os.ServicePackMajorVersion),('Architecture='+$os.OSArchitecture),('PowerShell='+$PSVersionTable.PSVersion),('CLR='+[Environment]::Version),'Installer=NOT EXECUTED','Queue=NOT EXECUTED','CorelDRAW=NOT EXECUTED','Physical=NOT EXECUTED')
 [IO.File]::WriteAllLines((Join-Path $evidence 'environment.properties'),[string[]]$envText,[Text.Encoding]::UTF8)
 # Preserve actual PS2 command metadata; modern syntax is not proof of old parameter sets.
 Get-Command Start-Process -Syntax | Out-File (Join-Path $evidence 'Start-Process-syntax.txt') -Encoding UTF8

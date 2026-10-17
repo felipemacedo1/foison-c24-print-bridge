@@ -46,15 +46,29 @@ set "BRIDGE_EXIT=64"
 goto report
 :invoke
 set "FOISON_RUN_ID=%RUN_ID%"
+set "COMPLETION_ID=c%RANDOM%-%RANDOM%-%RANDOM%"
 >>"%CMD_LOG%" echo Command="%PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File Install-Queue-Win7.ps1 %MODE% [correlation/log directory]
 rem Separate raw streams retain syntax/startup errors even before PS logging is initialized.
 "%ComSpec%" /d /c exit 9009
-"%PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0Install-Queue-Win7.ps1" -Operation "%MODE%" -RunId "%RUN_ID%" -LogDirectory "%LOG_DIR%" 1>>"%LOG_DIR%\install-%RUN_ID%-stdout.raw" 2>>"%LOG_DIR%\install-%RUN_ID%-stderr.raw"
+"%PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0Install-Queue-Win7.ps1" -Operation "%MODE%" -RunId "%RUN_ID%" -LogDirectory "%LOG_DIR%" -CompletionId "%COMPLETION_ID%" 1>>"%LOG_DIR%\install-%RUN_ID%-stdout.raw" 2>>"%LOG_DIR%\install-%RUN_ID%-stderr.raw"
 set "BRIDGE_EXIT=%ERRORLEVEL%"
 >>"%CMD_LOG%" echo [%DATE% %TIME%] PowerShellExitCode=%BRIDGE_EXIT% (invocation; 9009 may mean startup or stream failure)
 if "%BRIDGE_EXIT%"=="9009" >>"%CMD_LOG%" echo [FATAL] PowerShell startup or stdout/stderr initialization failed.
 >>"%CMD_LOG%" echo Stdout=install-%RUN_ID%-stdout.raw
 >>"%CMD_LOG%" echo Stderr=install-%RUN_ID%-stderr.raw
+if not "%BRIDGE_EXIT%"=="0" goto report
+rem A zero PS2 -File exit does NOT prove the script reached its success path.
+set "COMPLETION_OK=0"
+pushd "%LOG_DIR%" >nul 2>&1
+if errorlevel 1 goto missing_completion
+"%CMD_SYSTEM%findstr.exe" /L /X /C:"SUCCESS Operation=%MODE% RunId=%RUN_ID% CompletionId=%COMPLETION_ID%" "install-%RUN_ID%-%COMPLETION_ID%-complete.txt" >nul 2>&1
+if not errorlevel 1 set "COMPLETION_OK=1"
+popd >nul
+if "%COMPLETION_OK%"=="1" goto report
+:missing_completion
+set "BRIDGE_EXIT=74"
+>>"%CMD_LOG%" echo [FATAL] PowerShellExitCode=0 but fresh completion receipt is missing/invalid. ExitCode=74.
+echo ERRO: O PowerShell terminou sem comprovante de conclusao. Consulte stdout/stderr nos logs.
 goto report
 :missing_script
 set "BRIDGE_EXIT=66"

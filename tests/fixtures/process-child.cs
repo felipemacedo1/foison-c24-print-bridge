@@ -6,6 +6,7 @@ using System.Threading;
 public static class ProcessChild {
  // Compiled against net20 as well: ACL readback must not need a modern cmdlet.
  static void LegacyAclApi(string path) { Directory.GetAccessControl(path); }
+ static void LegacyHashApi() { System.Security.Cryptography.SHA256 hash=System.Security.Cryptography.SHA256.Create(); hash.Clear(); }
  public static int Main(string[] args) {
   Stream output=Console.OpenStandardOutput(), error=Console.OpenStandardError();
   string mode=args[0];

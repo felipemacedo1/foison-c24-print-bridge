@@ -60,3 +60,11 @@ class WindowsProvisioningContractTests(unittest.TestCase):
         version=(ROOT/'VERSION').read_text().strip()
         header=(ROOT/'packaging/windows/LEIA-ME.txt').read_text(encoding='utf-8-sig').splitlines()[0]
         self.assertIn('Foison C24 Print Bridge '+version+' ',header)
+
+    def test_clr2_hash_cleanup_uses_public_clear(self):
+        self.assertIn('$sha.Clear()',SCRIPT)
+        self.assertNotIn('$sha.Dispose()',SCRIPT)
+    def test_cmd_success_requires_fresh_positive_completion(self):
+        for text in ['COMPLETION_ID=c%RANDOM%','-CompletionId "%COMPLETION_ID%"','SUCCESS Operation=%MODE% RunId=%RUN_ID% CompletionId=%COMPLETION_ID%','BRIDGE_EXIT=74','/L /X']:
+            self.assertIn(text,CMD)
+        self.assertLess(SCRIPT.index('$result = [int](Invoke-BridgeSetup $Operation)'),SCRIPT.index('WriteCompletion $Operation'))

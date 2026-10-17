@@ -59,10 +59,10 @@ CLR2; a API moderna documentada não é alegação de execução Win7.
 
 | Camada | Execução disponível | Estado alvo Win7/PS2 |
 |---|---|---|
-| Contratos, ZIP, encoding Python | 30 testes Ubuntu | não substitui runtime |
+| Contratos, ZIP, encoding Python | 32 testes Ubuntu | não substitui runtime |
 | Executor + fixture C# | C#2, referências net20, zero warnings/erros | API compile, não execução |
 | Zero/não zero, streams, argumentos, binário/OEM, flood, timeout, ausente | 9 testes reais Ubuntu pwsh7 | pendente PS2 |
-| Orquestração, admin/lock, rollback/idempotência/uninstall | 24 modelos, PS7 | pendente APIs reais |
+| Orquestração, admin/lock, rollback/idempotência/uninstall | 25 modelos, PS7 | pendente APIs reais |
 | icacls real/ACL/session/lock, erros e token herdado | CI Windows moderno a executar | pendente Win7 |
 | NSIS silencioso, código 50, BOM/append/cronologia | CI Windows moderno a executar | pendente Win7 |
 | net48, vetores/serial simulada, NSIS, ZIP/extração/hashes/UI | pipeline a executar | instalação alvo pendente |
@@ -128,3 +128,26 @@ A revisão final do pacote encontrou cabeçalho LEIA-ME ainda rc.1 apesar de
 VERSION/EXE/ZIP rc.2. Corrigido antes de distribuir, com contrato que compara o
 cabeçalho à VERSION para impedir reincidência. Os pacotes intermediários não são
 o candidato final. Não se modificou runtime nem proteções nesta última fatia.
+
+## Descoberta real no CLR2: não aceitar apenas ExitCode
+
+A inspeção dos **raw** do probe e55fa34 refutou sua classificação inicial de
+sucesso: o engine era de fato PS2/CLR2, mas interrompeu o harness em
+SHA256Managed.Dispose (não exposto publicamente nesse runtime), retornando **0**
+com `-File`. Nenhum RESULTS/marker de conclusão existia. Esse resultado anterior
+**não é teste PS2 aprovado**, ainda que o job tenha ficado verde.
+
+- Substituído `$sha.Dispose()` por `Clear()` público CLR2, inclusive no fingerprint
+  **de produção** e no harness. C#2/net20 verifica também essa superfície.
+- Probe agora usa wrapper com saída explícita, exige marker positivo do harness,
+  stderr vazio e executa modelos de orquestração no CLR2 (25 casos), não só EXE.
+- Bootstrap CMD exige recibo ASCII fresco, com nonce/run/operação, emitido só
+  depois da orquestração real retornar sucesso. Exit0 sem recibo => **74**.
+  Instalador e verify recebem nonces diferentes; recibos antigos não bastam.
+- Novos testes CMD: zero sem recibo, recibo válido/inválido e runtime PS2 -File
+  que falha com code0 (mesmo Dispose antigo), preservando stderr e recusando
+  falso sucesso; também recibo válido via PS2.
+- Relatórios de ambiente são linhas separadas, não concatenação ambígua de array.
+
+Isso demonstra por que fontes/CI moderno não bastam. Ainda é necessário testar
+Windows7 SP1 real; PS2/CLR2 em Server2022 não valida spooler/driver/Win7.

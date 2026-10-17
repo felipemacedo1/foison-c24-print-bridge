@@ -19,7 +19,7 @@ Branch fix/win7-ps2-process-runner; base main 7351014. Sem merge/release estáve
 4. Documentar evidências/limites e commits na branch, sem alterar main.
 
 ## Validações / bloqueios
-Executor e append NSIS implementados; 30 Python, 24 modelos PS, 9 processos reais
+Executor e append NSIS implementados; 32 Python, 24 modelos PS, 9 processos reais
 em pwsh7, C#2/net20 API compile sem warnings/erros. CI/build/pacote pendentes.
 Ubuntu 24.04 x64, i5 VT-x, 15 GiB RAM/~10 disponíveis, 92 GiB livres.
 KVM API12 e QMP present/enabled confirmados fora do sandbox. QEMU8.2.2 extraído
@@ -60,3 +60,12 @@ validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou fina
 - e55fa34: CI39050190394 aprovado Ubuntu+Windows; ACLs reais agora verificadas.
   Última revisão do pacote encontrou LEIA-ME com rc.1; corrigido para rc.2 com
   gate automático VERSION. Congelar próximo SHA e usar só seu pacote aprovado.
+
+## Achado crítico da inspeção raw / correção em andamento
+- e55fa34 foi verde mas o probe PS2 tinha falso positivo: runtime CLR2 real
+  falhou SHA256Managed.Dispose e -File retornou0. Raw preservado; NÃO é aceite PS2.
+- Produção QueueFingerprint e harness corrigidos para SHA.Clear público CLR2.
+- Probe exige wrapper explícito + marker positivo + stderr vazio e roda modelos
+  no CLR2. CMD agora exige recibo nonce/run/op fresco; code0 sem prova=>74.
+- Novos testes bootstrap reproduzem erro PS2 code0 e comprovam recusa; versão
+  final ainda precisa CI/pacote. Main não alterada. Win7/hardware continuam pendentes.

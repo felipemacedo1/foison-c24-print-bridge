@@ -1,5 +1,5 @@
 ﻿#requires -version 2.0
-param([string]$Operation = "install", [string]$RunId = "", [string]$LogDirectory = "")
+param([string]$Operation = "install", [string]$RunId = "", [string]$LogDirectory = "", [string]$CompletionId = "")
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PrinterName = "Foison C24 (Teste)"
@@ -339,7 +339,7 @@ function QueueFingerprint($queue, $ignoreComment = $false) {
   $comment = $queue.Comment; if ($ignoreComment) { $comment = "migration" }
   $text = @($queue.Name,$queue.PortName,$queue.DriverName,$comment,$queue.PrintProcessor,$queue.Shared,$queue.ShareName,$queue.RawOnly,$queue.Location,$queue.SeparatorFile,$queue.Parameters,$queue.Priority,$queue.DefaultPriority,$queue.StartTime,$queue.UntilTime,$queue.KeepPrintedJobs,$queue.Direct,$queue.Queued,$queue.EnableBIDI,$queue.EnableDevQueryPrint,$queue.DoCompleteFirst,$queue.Published) -join "|"
   $sha = [Security.Cryptography.SHA256]::Create()
-  try { return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text))).Replace("-","").ToLowerInvariant()) } finally { $sha.Dispose() }
+  try { return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text))).Replace("-","").ToLowerInvariant()) } finally { $sha.Clear() }
 }
 function QueueOwned($state,$queue) {
   if (-not $queue -or $queue.Name -ne $state.printer -or $queue.PortName -ne $state.port -or $queue.DriverName -ne $state.driver) { throw "Fila alterada externamente ou nao pertence comprovadamente ao Bridge; preservada." }
@@ -535,4 +535,23 @@ function Invoke-BridgeSetup($mode) {
     try { Log ("END operation=" + $mode + " lock_state=" + $lockState + " DurationMs=" + $setupWatch.ElapsedMilliseconds) } catch { Write-Host $_.Exception.Message }
   }
 }
-if ($MyInvocation.InvocationName -ne ".") { exit (Invoke-BridgeSetup $Operation) }
+function WriteCompletion($mode) {
+  if ($CompletionId -notmatch "^[a-zA-Z0-9_-]{1,80}$") { throw "Identificador de conclusão inválido." }
+  $receipt = Join-Path $LogDirectory ("install-" + $RunId + "-" + $CompletionId + "-complete.txt")
+  $text = "SUCCESS Operation=" + $mode + " RunId=" + $RunId + " CompletionId=" + $CompletionId
+  [IO.File]::WriteAllText($receipt,$text + "`r`n",[Text.Encoding]::ASCII)
+  Log ("COMPLETION receipt=" + $receipt + " operation=" + $mode + " physical_cut_enabled=false")
+}
+if ($MyInvocation.InvocationName -ne ".") {
+  try {
+    $result = [int](Invoke-BridgeSetup $Operation)
+    # PS2 -File can exit zero after an uncaught runtime error. CMD requires a fresh
+    # positive receipt, written ONLY after the real orchestration returns success.
+    if ($result -eq 0 -and $CompletionId) { WriteCompletion $Operation }
+    exit $result
+  } catch {
+    try { LogException $_ } catch { Write-Host $_.Exception.Message }
+    Write-Host ("FATAL: Conclusão não comprovada; diagnóstico em " + $LogDirectory)
+    exit 1
+  }
+}

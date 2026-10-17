@@ -87,7 +87,7 @@ foreach($suffix in @('.out','.err')) {
  try {
   $expected=New-Object byte[] 2097152;for($i=0;$i -lt $expected.Length;$i++){$expected[$i]=[byte]($i%256)}
   Assert ([Convert]::ToBase64String($sha.ComputeHash($data)) -ceq [Convert]::ToBase64String($sha.ComputeHash($expected))) 'Flood hash changed'
- } finally {$sha.Dispose()}
+ } finally {$sha.Clear()}
 }
 Pass 'simultaneous-2MiB-stdout-and-stderr-no-deadlock'
 $script:LastProcessCode=27
@@ -150,6 +150,6 @@ if($windows) {
  Pass 'real-icacls-error-code-output'
  # Invalid PrintUI invocation could display a modal dialog; do not invoke it as a test.
 }
-$report=@('OS='+[Environment]::OSVersion.VersionString,'PS='+$PSVersionTable.PSVersion,'CLR='+[Environment]::Version,'LegacyHost='+$legacy,'Cases='+$cases.Count,'Physical=NOT EXECUTED')+$cases
+$report=@(('OS='+[Environment]::OSVersion.VersionString),('PS='+$PSVersionTable.PSVersion),('CLR='+[Environment]::Version),('LegacyHost='+$legacy),('Cases='+$cases.Count),'Physical=NOT EXECUTED')+$cases
 [IO.File]::WriteAllLines((Join-Path $base 'RESULTS.txt'),[string[]]$report,[Text.Encoding]::UTF8)
 Write-Host ('PASS '+$cases.Count+' REAL process tests; evidence='+$base+'; LegacyHost='+$legacy)
