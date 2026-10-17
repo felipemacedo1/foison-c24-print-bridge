@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from distribution import make_zip, pe_info, sha256, validate_zip, vc_legacy_manifest, win7_text_bytes
+from distribution import make_zip, pe_info, sha256, validate_zip, vc_legacy_manifest, win7_text_bytes, prune_build_only
 ROOT=Path(__file__).resolve().parents[1]
 PACK=ROOT/'packaging/windows'
 
@@ -61,6 +61,7 @@ def main():
             shutil.copyfile(PACK/name,stage/name)
             if Path(name).suffix=='.txt':write(stage/name,(PACK/name).read_text(encoding='utf-8-sig'))
         for folder in ['tools','sources','prerequisites']:shutil.copytree(PACK/folder,stage/folder)
+        omitted=prune_build_only(stage/'tools')
         for project,exe in [('FoisonC24.WindowsReceiver','FoisonC24Receiver.exe'),('FoisonC24.Diagnostic','FoisonC24Diagnostic.exe'),('FoisonC24.Provisioner','FoisonC24Provisioner.exe')]:
             compiled=ROOT/'src'/project/'bin/Release/net48'
             shutil.copyfile(compiled/exe,stage/exe)
@@ -116,7 +117,7 @@ def main():
         bundle=Path(temporary)/('FoisonC24-v'+version+'-Win7-x64.zip')
         files={'FoisonC24-v'+version+'-Win7-x64/'+p.name:p for p in payload.iterdir()}
         make_zip(bundle,files);report=validate_zip(bundle,files)
-        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,win7='NOT EXECUTED',physical='NOT EXECUTED')
+        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,omitted_development_files=omitted,win7='NOT EXECUTED',physical='NOT EXECUTED')
         ready=Path(temporary)/'ready';ready.mkdir()
         shutil.copyfile(exe,ready/exe.name);shutil.copyfile(bundle,ready/bundle.name)
         (ready/'SHA256SUMS.txt').write_bytes((sha256(exe)+'  '+exe.name+'\r\n'+sha256(bundle)+'  '+bundle.name+'\r\n').encode('ascii'))

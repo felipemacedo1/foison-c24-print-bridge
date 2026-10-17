@@ -44,3 +44,11 @@ class DistributionTests(unittest.TestCase):
         self.assertNotIn(b'\n',encoded.replace(b'\r\n',b''))
         self.assertEqual(encoded.decode('utf-8-sig').replace('\r\n','\n'),text)
         self.assertEqual(encoded,D.win7_text_bytes(text.replace('\n','\r\n')))
+
+    def test_runtime_staging_omits_build_only_files(self):
+        tools=self.root/'tools';(tools/'lib').mkdir(parents=True)
+        for name in ['gsdll64.lib','debug.pdb','temp.obj','gsdll64.dll','lib/runtime.ps']:
+            (tools/name).write_bytes(b'fixture')
+        self.assertEqual(D.prune_build_only(tools),['debug.pdb','gsdll64.lib','temp.obj'])
+        self.assertTrue((tools/'gsdll64.dll').exists())
+        self.assertTrue((tools/'lib/runtime.ps').exists())

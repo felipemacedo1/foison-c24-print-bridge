@@ -111,3 +111,10 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Upload CI separado em ZIP cliente e evidências pequenas: EXE exato está dentro
   do ZIP e é conferido pelo SHA externo, evitando transferir duas cópias de 360 MB.
 - O download do candidato anterior continua como evidência, não será publicado.
+
+## Higiene do payload
+- Inspeção encontrou gsdll64.lib (biblioteca de link, não necessária em runtime)
+  no bin oficial. Staging agora omite apenas .lib/.exp/.obj/.pdb, sem tocar nas
+  fontes correspondentes ou no diretório lib/ de scripts PostScript necessário.
+- Novo teste preserva DLL e lib/runtime.ps, removendo só intermediários (25 Python).
+  Relatório validation.json lista omissões. Release aguarda este CI final.

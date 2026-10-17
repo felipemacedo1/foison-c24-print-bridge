@@ -139,3 +139,13 @@ def vc_legacy_manifest(path):
 def win7_text_bytes(text):
     """UTF-8 BOM + CRLF: Windows 7 Notepad does not understand bare LF."""
     return b'\xef\xbb\xbf'+text.replace('\r\n','\n').replace('\r','\n').replace('\n','\r\n').encode('utf-8')
+
+
+def prune_build_only(directory):
+    """Omit linker/debug intermediates from our owned runtime staging copy only."""
+    removed=[]
+    for file in Path(directory).rglob('*'):
+        if file.is_file() and file.suffix.lower() in ('.lib','.exp','.obj','.pdb'):
+            removed.append(str(file.relative_to(directory)).replace('\\','/'))
+            file.unlink()
+    return sorted(removed)
