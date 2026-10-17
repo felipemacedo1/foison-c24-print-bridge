@@ -149,3 +149,10 @@ def prune_build_only(directory):
             removed.append(str(file.relative_to(directory)).replace('\\','/'))
             file.unlink()
     return sorted(removed)
+
+
+def unique_package(directory, name):
+    """Actions preserves wildcard path prefixes; accept exactly one named file."""
+    matches=[p for p in Path(directory).rglob(name) if p.is_file()]
+    if len(matches)!=1:raise ValueError('Expected exactly one artifact package: '+name)
+    return matches[0]

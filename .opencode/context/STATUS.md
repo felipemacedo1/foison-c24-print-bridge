@@ -131,3 +131,13 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
   não podem herdar exit=27 de um filho anterior. Teste nativo exige null nesses
   dois cenários; resumo do próprio processo já registrava código ausente/timeout.
 - Último código será congelado após este gate; publicar somente o ZIP desse SHA.
+
+## Promoção sem rebuild
+- Código cliente congelado/tagueado b2df7cd, CI 38993143001 aprovado e build
+  Ubuntu local completo aprovado; imagens finais inspecionadas com acentos legíveis.
+- Workflow manual promove exatamente os artifacts desse run/tag, verificando hashes,
+  CRC/extração/PE e criando somente prerelease; token gerenciado pelo GitHub, não lido.
+- Primeira promoção detectou prefixo 1.0.1-rc.1/ preservado pelo Actions no artefato
+  separado. Nenhuma release foi criada antes da verificação. Resolver agora exige
+  um único arquivo pelo nome, aceitando prefixo e rejeitando duplicidade (teste novo).
+- Fonte do cliente não foi alterada; manifesto externo do CI identifica EXE/ZIP exatos.

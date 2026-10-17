@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 import zipfile
 from pathlib import Path
-from distribution import make_zip, pe_info, sha256, validate_zip, win7_text_bytes
+from distribution import make_zip, pe_info, sha256, validate_zip, win7_text_bytes, unique_package
 
 
 def checked(args, **kwargs):
@@ -38,7 +38,7 @@ def main():
             checked(['gh','run','download',a.run_id,'--repo',repo,'--name',name,'--dir',folder])
         report_path=metadata/version/'validation.json';report=json.loads(report_path.read_text())
         if report['commit']!=a.source or report['dirty'] or report['version']!=version:raise ValueError('Artifact/source mismatch')
-        bundle=package/('FoisonC24-v'+version+'-Win7-x64.zip')
+        bundle=unique_package(package,'FoisonC24-v'+version+'-Win7-x64.zip')
         inspected=validate_zip(bundle)
         if inspected['sha256']!=report['sha256'] or inspected['files']!=8:raise ValueError('ZIP differs from validated CI')
         prefix='FoisonC24-v'+version+'-Win7-x64/'

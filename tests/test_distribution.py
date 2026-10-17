@@ -52,3 +52,10 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(D.prune_build_only(tools),['debug.pdb','gsdll64.lib','temp.obj'])
         self.assertTrue((tools/'gsdll64.dll').exists())
         self.assertTrue((tools/'lib/runtime.ps').exists())
+
+    def test_promotion_accepts_actions_prefix_but_rejects_ambiguity(self):
+        with self.assertRaises(ValueError):D.unique_package(self.root,'client.zip')
+        folder=self.root/'1.0.1-rc.1';folder.mkdir();file=folder/'client.zip';file.write_bytes(b'fixture')
+        self.assertEqual(D.unique_package(self.root,'client.zip'),file)
+        (self.root/'client.zip').write_bytes(b'duplicate')
+        with self.assertRaises(ValueError):D.unique_package(self.root,'client.zip')
