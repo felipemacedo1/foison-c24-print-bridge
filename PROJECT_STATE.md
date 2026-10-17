@@ -1,7 +1,7 @@
 # Ativo 2026-10-17 — candidato diagnóstico de captura 1.0.1-rc.4
 
 Objetivo: transformar as hipóteses da lista vazia em observações verificáveis
-por uma tentativa guiada, sem corte/COM. Estado ainda local e não publicado.
+por uma tentativa guiada, sem corte/COM. Código validado em CI; prerelease pendente.
 
 - Receiver registra START/identidade/PID/argumentos e variáveis RedMon saneadas,
   stdin, primeiro byte, EOF/total, hash, formato, gravação, marcador, erro/stack,
@@ -24,22 +24,39 @@ por uma tentativa guiada, sem corte/COM. Estado ainda local e não publicado.
   apenas simulada). NSIS 3.09-4 sem warnings; payload chave extraído e comparado
   por SHA; ZIP PKZIP Deflate, 8 arquivos, CRC/extract/hash/7z passaram.
 - Workflow Windows ampliado com smoke end-to-end do gerador do ZIP de diagnóstico
-  sintético, validação de integridade/allowlist e confirmação de UNKNOWN; pendente
-  executar via Actions. O contrato Python foi corrigido após variável de teste
-  não inicializada; suíte final 38/38 aprovada.
-- Candidate development-build local `dist/1.0.1-rc.4-candidate-final` (8-entry
+  sintético, validação de integridade/allowlist e confirmação de UNKNOWN; Actions
+  passou. O contrato Python foi corrigido após variável não inicializada; 38/38.
+- Primeiro Actions `39069412287` detectou que o teste Windows esperava logs na
+  pasta da captura, mas a precedência correta do Receiver em Win32 é ProgramData.
+  Harness agora correlaciona RunId e pesquisa os destinos ProgramData/captura/TEMP;
+  73 checks passaram localmente. Correção commit `7031948`, enviada; Actions
+  `39069926356` em execução.
+- Segundo Actions `39069926356`: build/package/NSIS/E2E/visual passaram; smoke
+  do ZIP criou e verificou 9 itens via 7z, mas comparação de acento falhou por
+  literal Unicode dentro de script Windows PowerShell. Alterado para construir
+  U+00C3 por codepoint (`6d0d815` enviado).
+- Actions `39070334614` passou o smoke após essa correção. Actions
+  `39070594835` (commit `828bcec`) passou Ubuntu+Windows 2022, build Release,
+  testes, NSIS, ZIP/extração nativa, UI e ZIP de diagnóstico sintético com
+  allowlist e UNKNOWN. Esse run é sobre o código/candidato; não prova Win7 real.
+- Artifact baixado e inspecionado: `validation.json` confirma 1.0.1-rc.4, commit
+  `828bcecc2e1b0b46b73d99e8cc357c8a0d260948`, dirty=false, 8 arquivos. ZIP
+  361267595 bytes, PKZIP Deflate8, `zipfile.testzip()` limpo; SHA256
+  `b1ea7e7255bbd44cc50a0a45c93eca3427940d4a0d61712fd43666055151ca48`.
+  Instalador SHA256 `85c3dd8699282ece4dc28b958896fee6f309da60583c060ea4cace7f3d89c1c3`.
+  Win7/Corel/RedMon real/hardware NOT EXECUTED.
+- Candidate development-build local obsoleto `dist/1.0.1-rc.4-candidate-final` (8-entry
   PKZIP Deflate,361266881bytes, CRC/extract/hash/7z checked): EXE SHA256
   `3a113ef60b9133e37bb8585863406572b8108fd809aa65e45a749e000005a41b`, ZIP
   SHA256 `ab912bc2677434309a4028a7acd629bac9c73962542a6e1c9e8148af85b2cab4`.
   `scripts/build-release.py` inteiro não rodou localmente por ausência de
   PowerShell 7; o instalador/ZIP foram criados em staging local com o mesmo
-  NSIS/Deflate e verificados. O CI oficial ainda deve produzir artefato de fonte
-  limpa. Não executados: Win7/PS2, UI guiada/ZIP WinForms, Corel/RedMon real.
+  NSIS/Deflate e verificados. O artifact oficial é o run Actions `39070594835`,
+  com hashes acima. Não executados: Win7/PS2, Corel/RedMon real.
 - Atenção: os arquivos locais e hashes da pasta acima são anteriores às últimas
   mudanças de hashing incremental e smoke ZIP; estão obsoletos, não distribuir.
-  O próximo candidato deve ser o artefato do Actions após commit.
-- Próximo: revisão integral, commit/push da branch `fix/capture-observability`,
-  aguardar CI e, se válido e acessível, publicar nova prerelease com limitações.
+- Próximo: commit do estado, criar `v1.0.1-rc.4` no commit exato `828bcec` (CI
+  aprovado) e promover somente prerelease após validar os checksums remotos.
   Não afirmar captura corrigida nem homologação antes da sessão real.
 
 ## Candidato rc.3 conferido — não corrige captura por suposição

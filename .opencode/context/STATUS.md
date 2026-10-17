@@ -10,17 +10,37 @@
   38/38; encoding e `git diff --check` aprovados; E2E pós-alteração: 73 checks.
 - A primeira repetição do teste Python encontrou NameError no próprio contrato
   estático (variáveis workflow/report_builder não carregadas); foi corrigido e a
-  suíte passou. A smoke WinForms de ZIP foi adicionada ao workflow Windows e
-  depende do próximo Actions para validar em execução.
+  suíte passou. A smoke WinForms do ZIP foi executada posteriormente pelo Actions.
+- Primeiro Actions `39069412287` falhou no teste E2E Windows, não no produto:
+  teste assumia logs em `captures/diagnostics`, mas Receiver Win32 usa primeiro
+  `ProgramData\FoisonC24\Logs`. Ajustado harness para correlacionar RunId e
+  procurar em todas as localizações oficiais; execução Linux passou 73/73.
+  Correção em `7031948`, push realizado.
+- O segundo run `39069926356` aprovou build, NSIS, pacote, testes E2E e smoke
+  visual, mas a asserção da smoke do ZIP falhou ao ler literal `NÃO` no script
+  PowerShell (code page do próprio script); 7z já havia validado os 9 itens do
+  ZIP. Asserção alterada para gerar U+00C3 via `[char]`, evitando encoding
+  ambíguo; commit/push `6d0d815`.
+- Actions `39070334614` aprovou o smoke da UI/ZIP após esse ajuste, mas seu SHA
+  era anterior ao commit documental que corrigiu as notas de versão. O run
+  `39070594835` no commit `828bcec` concluiu sucesso em Ubuntu e Windows 2022,
+  incluindo build integrado, testes, NSIS, empacotamento, ZIP nativo e smoke
+  sintético do relatório. Nenhum run valida Win7/Corel/RedMon no cliente.
 - Builds de artefato local anteriores são obsoletos após essas alterações; não
   distribuir seus hashes. `pwsh` ausente impede o pipeline release completo aqui.
-- Próximo: revisar diff, commit/push branch, conferir CI/artefatos e publicar
-  prerelease somente após CI; não há teste real de Win7/PowerShell2/Corel/RedMon.
+- Run `39070594835` validou o commit `828bcecc2e1b0b46b73d99e8cc357c8a0d260948`.
+  Artifact baixado e inspecionado independentemente: ZIP 361267595 bytes,
+  8 entradas, PKZIP Deflate (método 8), `zipfile.testzip()` sem erro. ZIP SHA-256
+  `b1ea7e7255bbd44cc50a0a45c93eca3427940d4a0d61712fd43666055151ca48`;
+  instalador SHA-256 `85c3dd8699282ece4dc28b958896fee6f309da60583c060ea4cace7f3d89c1c3`.
+  `validation.json`: dirty=false, build/test PASS; Win7/Corel/hardware NOT
+  EXECUTED. Próximo: commit do estado, tag no commit exato e prerelease após
+  validar os checksums na promoção.
 
-Branch-base `fix/corel-cut-settings`, HEAD anterior `919ec25`; `main` intacta.
-Alterações locais pré-existentes (painel, coletor, docs e testes) preservadas.
-Versão local elevada de 1.0.1-rc.3 para candidata 1.0.1-rc.4 (tag remoto ainda
-não auditável por falha de conexão da API GitHub; não há tag local rc.4).
+Branch `fix/capture-observability`, baseada em `fix/corel-cut-settings` em
+`919ec25`; `main` intacta. Commits de código enviados (`cfb792d`, `7031948`,
+`6d0d815`, `828bcec`). Versão candidata `1.0.1-rc.4`. Tags remotas auditadas:
+única anterior conhecida `v1.0.1-rc.1`; `v1.0.1-rc.4` ainda não criada.
 
 ## Marco: instrumentação Receiver e fluxo guiado
 
@@ -44,7 +64,7 @@ não auditável por falha de conexão da API GitHub; não há tag local rc.4).
   binário, unknown e serial simulada. NSIS 3.09-4 gerou instalador sem warnings;
   extração 7z conferiu EXEs/DLL/CMD byte a byte. ZIP testado com cabeçalhos/CRC,
   extração+SHA-256 e `7z t`: 8 arquivos, Deflate, sem ZIP64/AES.
-- Artefato local **development build** em `dist/1.0.1-rc.4-candidate-final/`
+- Artefato local **development build obsoleto** em `dist/1.0.1-rc.4-candidate-final/`
   (ZIP8, Deflate8, 361266881 bytes, CRC/headers/Python extraction+hash/7z t).
   EXE SHA256 `3a113ef60b9133e37bb8585863406572b8108fd809aa65e45a749e000005a41b`,
   ZIP SHA256 `ab912bc2677434309a4028a7acd629bac9c73962542a6e1c9e8148af85b2cab4`.
@@ -58,9 +78,9 @@ não auditável por falha de conexão da API GitHub; não há tag local rc.4).
 
 ## Próximos passos
 
-Revisar o diff integral e os arquivos novos; commit/push em `fix/capture-observability`
-para obter CI limpo e candidate ZIP produzido pelo pipeline oficial. Só então
-promover prerelease se fluxo/permissões disponíveis; Win7 segue não homologado.
+Commitar o estado/documentação, criar tag `v1.0.1-rc.4` no commit exato
+`828bcec` (CI e artefato verificados), então executar promoção prerelease; Win7
+segue não homologado. O relatório final deve indicar o release e limites.
 
 # Histórico do diagnóstico anterior — captura vazia / painel rc.3
 Branch fix/corel-cut-settings; main7351014 preservada. Sem merge/tag/release final.
