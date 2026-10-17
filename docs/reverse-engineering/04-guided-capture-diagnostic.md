@@ -67,9 +67,12 @@ Receiver direto: PASS — 273 bytes, SHA-256 9675e988ce4bf48ff31e7d88f49bbbe0a40
 Formato: PostScript; stdin aberto/primeiro byte/EOF; persistência raw+JSON: PASS
 Parser vetorial E2E: PASS — quadrado PostScript 20 × 20 mm, GS + MuPDF via Wine; 73 checks C# no total
 Unknown binário: ExitCode 2; metadados de rejeição + log: PASS; conteúdo bruto: NÃO preservado
-UI guiada/ZIP, WMI Windows, spooler/RedMon, PowerShell 2, CorelDRAW real e Foison C24: NÃO TESTADOS
+Fluxo interativo/UI guiada, WMI do alvo, spooler/RedMon do cliente, PowerShell 2, CorelDRAW real e Foison C24: NÃO TESTADOS
 ```
 
-O parser foi exercitado pelo harness automatizado com fixture; o formulário
-WinForms e a produção de ZIP não foram executados. Este resumo não é um ZIP
-coletado do cliente, nem valida Windows 7 ou uma impressão real.
+Este resumo é um exemplo sintético, não dados do cliente. O executável real
+produziu um ZIP de smoke no Windows 2022; o CI confirmou 9 entradas exatas,
+integridade 7z, allowlist sem `.raw`/`.pdf` e status `UNKNOWN` sem alegar captura
+real. Isso valida somente o gerador/formato do relatório, não o fluxo guiado no
+Windows 7 nem uma impressão Corel/RedMon real. O parser 20 × 20 mm foi exercitado
+separadamente pelo harness com fixture real e stdin binário.
