@@ -69,3 +69,14 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
   erro 9009 preparado antes de lançar PS para falha de redirecionamento não virar 0.
 - Teste nativo adicional força stdout.raw como diretório. Build local limpo 9404ca6
   passou completo, mas não é elegível para publicar porque falta esta correção.
+
+## CI aprovado 38989726020 / 705e3df
+- Ubuntu + Windows concluíram com sucesso. 23 Python, 22 modelos PS (7 e 5.1),
+  52 C# net8/net48; builds 0 warnings/erros e NSIS 3.10 /WX.
+- 6 cenários bootstrap nativos, subprocesso real Unicode/exit27/timeout/start failure,
+  RedMon real isolado, UI real PortugueseBR/rejeição OS e Shell ZIP/hashes passaram.
+- Artefato 12084776848 está sendo baixado para inspeção visual/CRC/hashes locais.
+- Revisão final protege metacaracteres nos metadados CMD (aspas em caminhos) e
+  acrescenta teste em pasta com Unicode e &. Sem mudar domínio/protocolo/UI.
+- Inspeção manual adicional do VC2019: todos os imports estáticos VCRUNTIME140,
+  VCRUNTIME140_1 e MSVCP140 dos engines existem nas DLLs do bundle fixado.

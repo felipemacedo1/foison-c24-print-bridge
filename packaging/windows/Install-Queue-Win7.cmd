@@ -28,14 +28,14 @@ set "BRIDGE_EXIT=73"
 goto finish
 :log_ready
 forfiles /P "%LOG_DIR%" /M install-* /D -90 /C "cmd /c del /q @path" >nul 2>&1
->>"%CMD_LOG%" echo Script=%~f0
->>"%CMD_LOG%" echo WorkingDirectory=%CD%
+>>"%CMD_LOG%" echo Script="%~f0"
+>>"%CMD_LOG%" echo WorkingDirectory="%CD%"
 >>"%CMD_LOG%" echo OS=%OS% Architecture=%PROCESSOR_ARCHITECTURE% NativeArchitecture=%PROCESSOR_ARCHITEW6432%
 ver >>"%CMD_LOG%" 2>&1
 chcp >>"%CMD_LOG%" 2>&1
 set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if exist "%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe" set "PS=%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
->>"%CMD_LOG%" echo PS1=%~dp0Install-Queue-Win7.ps1
+>>"%CMD_LOG%" echo PS1="%~dp0Install-Queue-Win7.ps1"
 if not exist "%~dp0Install-Queue-Win7.ps1" goto missing_script
 >>"%CMD_LOG%" echo PS1Exists=true
 if not exist "%PS%" goto missing_powershell

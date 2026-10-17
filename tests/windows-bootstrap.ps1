@@ -3,8 +3,10 @@ $ErrorActionPreference='Stop'
 $root=Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $base=Join-Path $env:TEMP ('foison-bootstrap-'+[Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $base | Out-Null
-foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','fallback','raw-stream-unwritable')) {
-  $dir=Join-Path $base $case;New-Item -ItemType Directory $dir|Out-Null
+foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','fallback','raw-stream-unwritable','unicode-path')) {
+  $dir=Join-Path $base $case
+  if($case -eq 'unicode-path') {$dir=Join-Path $base 'ação & teste'}
+  New-Item -ItemType Directory $dir|Out-Null
   Copy-Item (Join-Path $root 'packaging/windows/Install-Queue-Win7.cmd') $dir
   if($case -ne 'missing-ps1') {
     $source='[Console]::OutputEncoding=New-Object Text.UTF8Encoding($false);Write-Host "stdout: Instalação";[Console]::Error.WriteLine("stderr evidence");exit 23'
