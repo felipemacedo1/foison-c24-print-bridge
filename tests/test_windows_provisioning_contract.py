@@ -28,7 +28,8 @@ class WindowsProvisioningContractTests(unittest.TestCase):
     def test_bootstrap_diagnostics_and_noninteractive_failure(self):
         for text in ['PS1Exists=false','PowerShellExists=false','PowerShellExitCode=','stdout.raw','stderr.raw','ProgramData','%TEMP%','--noninteractive','exit /b %BRIDGE_EXIT%','Sysnative','pause >nul']:
             self.assertIn(text,CMD)
-        self.assertLess(CMD.index('BEGIN bootstrap'),CMD.index('"%PS%" -NoLogo'))
+        self.assertLess(CMD.index('call :open_log'),CMD.index('"%PS%" -NoLogo'))
+        self.assertIn('BEGIN bootstrap',CMD[CMD.index(':open_log\n'):])
     def test_unicode_installer(self):
         self.assertIn('Unicode true',NSIS)
         self.assertIn('MUI_LANGUAGE "PortugueseBR"',NSIS)
