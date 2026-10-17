@@ -1,4 +1,23 @@
-## Correção versionada em andamento — 1.0.1-rc.1
+## Release 1.0.1-rc.1 publicada — candidato, não estável
+
+- [Release](https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.1),
+  tag/código cliente b2df7cd; CI 38993143001 e promoção 38995440164 aprovados.
+- EXE 361331246 bytes; ZIP PKZIP/Deflate 8 com 8 arquivos, 361149977 bytes.
+  ZIP SHA256 a3aa2cc69a1c432a0b1390a61abff6830a94cb9b4ce8fc25b18e49d76c5a6ee9.
+- Provisionamento/ownership/rollback/estado .properties/migração, logging desde CMD,
+  códigos nativos, Unicode/BOM/CRLF, NSIS sem falso sucesso e pipeline único integrados.
+- 25 Python do candidato (26 atuais com promoção), 22 modelos PS, 52 C# por runtime;
+  builds/net48/NSIS sem warnings/erros; APIs RedMon/erros/subprocessos/UI/Shell ZIP
+  reais no Windows 2022. ZIP/NSIS extraídos e hashes conferidos também localmente.
+- Evidências de falha e imagens anexadas à release. Código de promoção verifica
+  run/SHA/tag/ZIP/hashes/PE e digests GitHub, sem rebuild/overwrite, só prerelease.
+- **Win7/PowerShell 2/CorelDRAW/Foison/serial/corte físico NÃO EXECUTADOS.**
+  Físico bloqueado por padrão; não é compatibilidade comprovada nem corte garantido.
+- Matriz, hashes, causas-raiz e limites completos em docs/release-validation.md.
+  Próximo passo: uma sessão acompanhada no alvo; se falhar qualquer condição,
+  preservar FlexiSIGN/configuração e não enviar movimentos.
+
+## Histórico da correção versionada — 1.0.1-rc.1
 
 - Auditoria inicial: main d36eeb5, sem tags/releases; SDK implícito 1.0.0.0.
 - ZIP anterior é PKZIP válido (8 arquivos, Deflate, CRC Python/7z); causa do

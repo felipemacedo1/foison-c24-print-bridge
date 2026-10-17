@@ -83,3 +83,25 @@ Envelopes EOT/PJL PostScript são normalizados estritamente (8 KiB de metadados)
 sem executar PJL e preservando o raw. Clip retangular que contém integralmente
 todos os vértices e controles é aceito por não alterar a geometria; qualquer
 interseção, clip curvo ou desconhecido bloqueia, sem fingir aplicar recorte.
+
+## Instalação 1.0.1-rc.1 e rastreabilidade
+
+NSIS Unicode/PortugueseBR x86 é bootstrap para payload AMD64 e PS 64 bits no
+Win7 SP1. Runtimes precedem os helpers net48; o monitor é comprovado por
+EnumMonitors antes de EnumPorts. AddPrinter atribui comentário de ownership
+atomicamente; porta RedMon recebe o mesmo UUID e configuração com read-back.
+PS usa WMI compatível com PS2, lock exclusivo e manifesto literal UTF-8
+.properties com publicação atômica. Legado .json chave=valor requer prova de fila/
+porta e intenção de migração persistida antes de adoção. Incerteza/alteração externa
+bloqueia remoção, não autoriza adivinhar propriedade. Monitor e driver compartilhados
+nunca são removidos. NSIS possui mutex e verificação independente antes de concluir.
+
+Logs por execução iniciam no CMD antes do PS; mensagens bootstrap ASCII e codepage
+registrado, PS UTF-8 BOM, NSIS UTF-16LE BOM, streams raw separados. Fallback TEMP,
+retention, timeouts, etapas e códigos/Win32 nativos preservados. Configuração/exes
+não recebem escrita de Users; somente diretório de sessão necessário à operação.
+TXT do cliente normalizados BOM+CRLF; fontes/bytes de engines permanecem íntegros,
+com omissão de intermediários de link/debug do runtime. ZIP PKZIP Deflate validado
+por CRC/headers/extração/hash/7z e Shell Windows 2022. Promoção manual não reconstrói:
+confere run/SHA/tag e hashes e só cria prerelease com bytes aprovados. Isso não
+substitui a aceitação Win7/PS2/CorelDRAW/hardware.

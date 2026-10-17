@@ -3,6 +3,8 @@
 ## 1.0.1-rc.1 — correção de instalação e distribuição
 
 Versão anterior implícita SDK 1.0.0.0, sem tag/release. Candidato, não estável.
+Publicado: código b2df7cd / tag v1.0.1-rc.1, CI 38993143001, promoção 38995440164.
+25 Python/22 modelos PS/52 C# por runtime; matriz e hashes em docs/release-validation.md.
 - RedMon instalado/verificado antes de enumerar portas; admin/OS/64 bits explícitos.
 - Dependências completas e engines reais; driver exato, leitura final independente.
 - Manifesto literal .properties atômico; migração recuperável do falso .json legado.

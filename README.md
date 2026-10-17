@@ -1,5 +1,8 @@
 # Foison C24 Print Bridge
 
+**[Baixar 1.0.1-rc.1 (prerelease)](https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.1)** — ZIP do cliente e instalador
+publicados com checksums e evidências. Win7/CorelDRAW/hardware ainda não validados.
+
 Candidato para a primeira sessão acompanhada:
 **CorelDRAW X6 → impressora Foison C24 (Teste) → PostScript vetorial → prévia mm
 → HPGL condicionado à validação → COM2 → ensaio/corte autorizado.**
@@ -82,3 +85,12 @@ os engines Windows, simula stdin da fila/serial e publica o ZIP único.
 Isso **não executa** spooler/RedMon/PScript/CorelDRAW reais em Win7.
 [Arquitetura](docs/architecture.md), [protocolo](docs/protocol.md),
 [testes](docs/testing.md) e [licenças](packaging/windows/THIRD-PARTY.txt).
+
+## Promoção de release (somente mantenedor)
+
+`publish-candidate.yml` é manual e recebe ID do CI aprovado, SHA exato e tag rc
+existente. Verifica origem/conclusão do run, tag, CRC/extração/hashes/PE e promove
+os mesmos bytes, sem rebuild, stable ou sobrescrita de assets. A publicação usa
+token efêmero gerenciado pelo GitHub com contents:write/actions:read; não se deve
+copiar credenciais para arquivos ou logs. Não confundir o ZIP de evidências com
+o único ZIP do cliente.

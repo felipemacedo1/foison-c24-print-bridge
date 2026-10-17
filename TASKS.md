@@ -2,9 +2,10 @@
 - [x] Auditar repositório e ZIP anterior sem presumir corrupção.
 - [x] Corrigir orquestração, estado, ownership, logs e contrato Unicode.
 - [x] Implementar pipeline único e testes negativos/modelos.
-- [ ] Concluir build/NSIS/extração/hash/ZIP e CI Windows nativo.
-- [ ] Inspecionar evidências visuais disponíveis e registrar pendências Win7.
-- [ ] Publicar prerelease versionada com EXE/ZIP/checksums após aceite aplicável.
+- [x] Concluir build/NSIS/extração/hash/ZIP e CI Windows nativo.
+- [x] Inspecionar evidências visuais disponíveis e registrar pendências Win7.
+- [x] Publicar prerelease versionada com EXE/ZIP/checksums após aceite aplicável.
+- [ ] Validar Win7/PowerShell 2/CorelDRAW e hardware reais na sessão acompanhada (não disponíveis aqui).
 
 # Tarefas — prioridade primeiro quadrado físico
 
