@@ -41,6 +41,7 @@ Var LogFile
 Var Step
 Var FailureCode
 Var LogHandle
+Var SetupMutex
 
 !macro Logging PREFIX
 Function ${PREFIX}InitLog
@@ -73,6 +74,18 @@ Function ${PREFIX}InitLog
   FileClose $LogHandle
   StrCpy $Step "INITIALIZE"
   StrCpy $FailureCode 1
+  StrCpy $Step "SETUP_MUTEX"
+  System::Call 'kernel32::CreateMutexW(p 0, i 0, w "Global\FoisonC24BridgeSetup") p.r1 ?e'
+  Pop $0
+  StrCpy $SetupMutex $1
+  ${If} $0 == 183
+  ${OrIf} $SetupMutex == 0
+    StrCpy $3 "Outra instalação/desinstalação ativa, ou mutex indisponível; Win32=$0"
+    Call ${PREFIX}Log
+    StrCpy $0 1618
+    StrCpy $FailureCode 1618
+    Call ${PREFIX}Fail
+  ${EndIf}
 FunctionEnd
 Function ${PREFIX}Log
   ; $3 holds a fixed diagnostic message, never credentials or a print stream.
@@ -105,10 +118,20 @@ Function un.onInit
   StrCpy $3 "BEGIN uninstall. Log=$LogFile"
   Call un.Log
 FunctionEnd
+Function .onGUIEnd
+  System::Call 'kernel32::CloseHandle(p $SetupMutex)'
+FunctionEnd
+Function un.onGUIEnd
+  System::Call 'kernel32::CloseHandle(p $SetupMutex)'
+FunctionEnd
 Function .onInstFailed
+  StrCpy $3 "ERROR instalação falhou/foi interrompida. ExitCode=$FailureCode"
+  Call Log
   SetErrorLevel $FailureCode
 FunctionEnd
 Function un.onUninstFailed
+  StrCpy $3 "ERROR desinstalação falhou/foi interrompida. ExitCode=$FailureCode"
+  Call un.Log
   SetErrorLevel $FailureCode
 FunctionEnd
 Function CheckPrerequisiteExit

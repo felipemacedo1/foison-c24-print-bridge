@@ -40,6 +40,7 @@ def main():
     if os.name=='nt':
         run(['powershell','-NoLogo','-NoProfile','-File','tests/provisioning-matrix.ps1'])
         run(['powershell','-NoLogo','-NoProfile','-File','tests/windows-bootstrap.ps1'])
+        run(['powershell','-NoLogo','-NoProfile','-File','tests/windows-process-runner.ps1'])
     for project,framework in [('src/FoisonC24.WindowsReceiver','net48'),('src/FoisonC24.Diagnostic',None),('src/FoisonC24.Provisioner',None),('tests/FoisonC24.CoreTests','net48' if os.name=='nt' else 'net8.0')]:
         run([dotnet,'build',str(Path(project)/(Path(project).name+'.csproj')),'-c','Release','-warnaserror','-m:1','-nr:false']+(['-f',framework] if framework else []))
     if os.name!='nt':run([dotnet,'build','src/FoisonC24.WindowsReceiver','-c','Release','-f','net8.0','-warnaserror'])

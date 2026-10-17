@@ -9,15 +9,19 @@ set "RUN_ID=b%RANDOM%-%RANDOM%-%RANDOM%"
 if not "%~3"=="" set "RUN_ID=%~3"
 rem Never accept arbitrary path characters in the correlation identifier.
 for /f "delims=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" %%A in ("%RUN_ID%") do set "RUN_ID=b%RANDOM%-%RANDOM%-%RANDOM%"
+for %%I in ("%ComSpec%") do set "CMD_SYSTEM=%%~dpI"
+set "BOOT_MARKER=boot-%RANDOM%-%RANDOM%-%RANDOM%"
 set "LOG_DIR=%ProgramData%\FoisonC24\Logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>&1
 set "CMD_LOG=%LOG_DIR%\install-%RUN_ID%-cmd.log"
-(echo [%DATE% %TIME%] [INFO] [%RUN_ID%] [cmd] BEGIN bootstrap OEM log) >>"%CMD_LOG%" 2>nul
+(echo [%DATE% %TIME%] [INFO] [%RUN_ID%] [cmd] BEGIN bootstrap OEM log %BOOT_MARKER%) 2>nul >>"%CMD_LOG%"
+"%CMD_SYSTEM%findstr.exe" /L /C:"%BOOT_MARKER%" "%CMD_LOG%" >nul 2>&1
 if not errorlevel 1 goto log_ready
 set "LOG_DIR=%TEMP%\FoisonC24\Logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>&1
 set "CMD_LOG=%LOG_DIR%\install-%RUN_ID%-cmd.log"
-(echo [%DATE% %TIME%] [WARN] [%RUN_ID%] [cmd] ProgramData unavailable; TEMP fallback) >>"%CMD_LOG%" 2>nul
+(echo [%DATE% %TIME%] [WARN] [%RUN_ID%] [cmd] ProgramData unavailable; TEMP fallback %BOOT_MARKER%) 2>nul >>"%CMD_LOG%"
+"%CMD_SYSTEM%findstr.exe" /L /C:"%BOOT_MARKER%" "%CMD_LOG%" >nul 2>&1
 if not errorlevel 1 goto log_ready
 echo ERRO: Nao foi possivel gravar diagnostico em ProgramData nem TEMP.
 set "BRIDGE_EXIT=73"
@@ -47,9 +51,11 @@ goto report
 set "FOISON_RUN_ID=%RUN_ID%"
 >>"%CMD_LOG%" echo Command="%PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File Install-Queue-Win7.ps1 %MODE% [correlation/log directory]
 rem Separate raw streams retain syntax/startup errors even before PS logging is initialized.
+"%ComSpec%" /d /c exit 9009
 "%PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0Install-Queue-Win7.ps1" -Operation "%MODE%" -RunId "%RUN_ID%" -LogDirectory "%LOG_DIR%" 1>>"%LOG_DIR%\install-%RUN_ID%-stdout.raw" 2>>"%LOG_DIR%\install-%RUN_ID%-stderr.raw"
 set "BRIDGE_EXIT=%ERRORLEVEL%"
->>"%CMD_LOG%" echo [%DATE% %TIME%] PowerShellExitCode=%BRIDGE_EXIT%
+>>"%CMD_LOG%" echo [%DATE% %TIME%] PowerShellExitCode=%BRIDGE_EXIT% (invocation; 9009 may mean startup or stream failure)
+if "%BRIDGE_EXIT%"=="9009" >>"%CMD_LOG%" echo [FATAL] PowerShell startup or stdout/stderr initialization failed.
 >>"%CMD_LOG%" echo Stdout=install-%RUN_ID%-stdout.raw
 >>"%CMD_LOG%" echo Stderr=install-%RUN_ID%-stderr.raw
 goto report

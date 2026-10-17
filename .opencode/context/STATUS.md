@@ -52,3 +52,20 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Acrescentados casos migração interrompida e ProgramData bloqueado (22 modelos),
   preservação do código original após rollback, duração total e inspeção Burn do
   VC2019 (Win7 x64 KB2999226 explícito). Testes locais passaram.
+
+## Revisão adicional
+- Mutex global NSIS protege também extração/desinstalação simultâneas, além do lock
+  do PS; abortos NSIS são logados. Sucesso não afirma captura de spool não testada.
+- Novo teste Windows executa subprocesso real com exit27/UTF-8/stdout/stderr,
+  timeout e arquivo inexistente, independente dos modelos de processo.
+- Build local limpo 9404ca6 em andamento; somente o CI final revisado será publicado.
+
+## CI 38989478088 / 9404ca6
+- Ubuntu e 22 modelos em pwsh/Windows PowerShell passaram. Bootstrap real: ausente
+  ps1=66, PowerShell=69, sintaxe=1, exit23=23 com logs preservados.
+- Detectado defeito real: redirecionamento ECHO em destino inválido não atualiza
+  ERRORLEVEL de forma confiável no CMD; fallback podia seguir com código 0 antigo.
+  Correção: marcador único efetivamente lido por findstr para provar escrita;
+  erro 9009 preparado antes de lançar PS para falha de redirecionamento não virar 0.
+- Teste nativo adicional força stdout.raw como diretório. Build local limpo 9404ca6
+  passou completo, mas não é elegível para publicar porque falta esta correção.

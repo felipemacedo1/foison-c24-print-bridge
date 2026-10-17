@@ -373,7 +373,7 @@ function Invoke-BridgeSetup($mode) {
     SessionPermissions
     Stage "VERIFY_FINAL"
     VerifyInstallation $current
-    Log "Instalação concluída com sucesso. Captura e conversão verificadas; corte físico bloqueado."
+    Log "Instalação concluída com sucesso. Propriedades da fila e conversão verificadas; captura via impressão ainda requer teste; corte físico bloqueado."
     return 0
   } catch {
     $record = $_; $failure = $_.Exception.Message; $failedStep = $Step; $failureExternalCode = $LastProcessCode

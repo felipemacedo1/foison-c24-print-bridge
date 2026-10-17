@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $base=Join-Path $env:TEMP ('foison-bootstrap-'+[Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $base | Out-Null
-foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','fallback')) {
+foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','fallback','raw-stream-unwritable')) {
   $dir=Join-Path $base $case;New-Item -ItemType Directory $dir|Out-Null
   Copy-Item (Join-Path $root 'packaging/windows/Install-Queue-Win7.cmd') $dir
   if($case -ne 'missing-ps1') {
@@ -18,12 +18,17 @@ foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','f
   $start.EnvironmentVariables['TEMP']=$dir
   if($case -eq 'missing-powershell') {$start.EnvironmentVariables['SystemRoot']=$dir}
   if($case -eq 'fallback') { [IO.File]::WriteAllText((Join-Path $dir 'blocked'),'x');$start.EnvironmentVariables['ProgramData']=Join-Path $dir 'blocked' }
+  if($case -eq 'raw-stream-unwritable') {
+    $blocked=Join-Path $dir ('FoisonC24/Logs/install-'+$case+'-stdout.raw')
+    New-Item -ItemType Directory -Force $blocked|Out-Null
+  }
   $p=[Diagnostics.Process]::Start($start)
   if(-not $p.WaitForExit(30000)) {$p.Kill();throw 'Noninteractive CMD paused/hung'}
   $expected=23
   if($case -eq 'missing-ps1') {$expected=66}
   if($case -eq 'missing-powershell') {$expected=69}
   if($case -eq 'syntax-error') {$expected=1}
+  if($case -eq 'raw-stream-unwritable') {if($p.ExitCode -eq 0){throw 'Stream failure reported success'};$expected=$p.ExitCode}
   if($p.ExitCode -ne $expected) {throw "$case code=$($p.ExitCode); expected=$expected"}
   $logs=@(Get-ChildItem $dir -Recurse -Filter 'install-*-cmd.log')
   if($logs.Count -ne 1) {throw "${case}: CMD diagnostic missing"}
