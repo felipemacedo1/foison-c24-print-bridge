@@ -59,7 +59,7 @@ def main():
     output.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='foison-stage-',dir=ROOT/'.build-cache') as temporary:
         stage=Path(temporary)/'installer';stage.mkdir()
-        for name in ['Install-Queue-Win7.cmd','Install-Queue-Win7.ps1','FoisonC24-Setup.nsi','LEIA-ME.txt','THIRD-PARTY.txt','PRIMEIRA-SESSAO.md','RECUPERACAO.txt','TEXTOS-VALIDACAO.txt','setup64.exe','redmon64.dll','unredmon64.exe','redmon.chm']:
+        for name in ['Install-Queue-Win7.cmd','Install-Queue-Win7.ps1','Collect-Print-Diagnostics-Win7.ps1','FoisonC24-Diagnostico.cmd','FoisonC24-Setup.nsi','LEIA-ME.txt','THIRD-PARTY.txt','PRIMEIRA-SESSAO.md','RECUPERACAO.txt','TEXTOS-VALIDACAO.txt','setup64.exe','redmon64.dll','unredmon64.exe','redmon.chm']:
             shutil.copyfile(PACK/name,stage/name)
             if Path(name).suffix=='.txt':write(stage/name,(PACK/name).read_text(encoding='utf-8-sig'))
         for folder in ['tools','sources','prerequisites']:shutil.copytree(PACK/folder,stage/folder)

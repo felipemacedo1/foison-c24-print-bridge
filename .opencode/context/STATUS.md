@@ -1,81 +1,138 @@
-# Retorno adicional — captura vazia (prioridade atual)
-Cliente confirmou lista de trabalhos vazia após imprimir. Instalação/fila visível
-não comprovam captura. Solicitado Exportar relatório da instalação existente;
-Foison.rar contém arquivos de instalação, não estado/logs ProgramData atuais.
-Não assumir causa. Revisão fonte RedMon confirma que ele já coloca aspas no
-Command; não inserir aspas extras nem alterar configuração sem evidência.
-Adicionado coletor somente leitura (pasta/pares, Spooler/fila WMI/registroRedMon),
-exportado no ZIP sem desenho bruto; não abre COM/imprime/reinicia serviços.
-CI39057524445/2643fad aprovou painel/67C#/35Python/build/NSIS/ZIP; coletor em
-validação subsequente. Sem afirmar que novo painel resolve captura vazia.
+# Objetivo atual — candidato de diagnóstico observável rc.4
 
-# Em andamento — painel de corte / CorelDRAW (2026-10-17)
-Objetivo: tornar acessíveis as configurações reais de corte, sem substituir o driver
-PostScript compartilhado nem executar UI como spooler/SYSTEM.
-Branch fix/corel-cut-settings, base137b3ad; main preservada.
-Cliente relata instalação rc.2 rápida e fila visível no CorelDRAW X6; relato não
-comprova captura/vetores/serial/corte. Arquivo recebido é Foison.rar (RAR5), local
-privado/ignorado, não foison.zip. Auditoria em andamento; 7z local lista mas não
-suporta descompressão RAR, obtendo extrator oficial sem instalação global.
-Causa no código: propriedades são PScript5 genérico; painel Foison é aplicativo
-separado, fluxo pouco descobrível. Não existe plug-in de propriedades OEM.
-Plano: auditar payload; painel explícito (escala reduzida/rotação/espelho/porta,
-prévia das mesmas coordenadas enviadas); invalidar ensaio ao editar; instruções
-claras/atalhos; testes geométricos + UI CI + build/ZIP. Sem comandos não comprovados
-de força/velocidade; ajustar no painel físico. Escala >100% no Corel para não
-ampliar erro de aproximação de curvas acima de0,01mm.
-Validações locais:35 testes Python,67 checks C# net8 com engines reais e fila/
-serial simulados; net48 UI/Receiver builds sem warnings/erros e gate encoding.
-Primeiro build paralelo falhou sem diagnóstico MSBuild; build -m:1 passou,
-pipeline uniformizado em modo serial (já usado pelos demais projetos).
-RAR:633 arquivos descompactados sem erro/CRC libarchive;7 componentes exatosCIrc.2.
-Escala/rotação/espelho implementados no modelo usado por prévia e HPGL; alterações
-revogam ensaio e troca de porta revoga perfil. CI39057252361:Ubuntu passou;Windows detectou read_text sem encoding em novos
-contratos (cp1252 do runner), corrigido UTF-8 explícito; não foi erro de runtime
-ou instalador. Pipeline local bloqueado por NuGet NU1900/rede mesmo fora sandbox;
-não suprimir auditoria nem promover build parcial. CI/UI/NSIS/ZIP em reexecução.
-Nenhum comando serial/hardware enviado.
+## Atualização de validação (2026-10-17)
 
-# Objetivo / resultado atual
-Correção Win7/PS2 preparada como candidato 1.0.1-rc.2 na branch
-fix/win7-ps2-process-runner. Não houve merge/main, tag ou release final.
-Código cliente congelado: a173d5e; CI39051351567 aprovado Ubuntu+Windows2022.
+- Hash do Receiver alterado para incremental. Quando a entrada excede o limite,
+  continua drenando stdin até EOF, registra bytes/hash completos e rejeita sem
+  alocar nem persistir o excesso.
+- Builds explícitos MSBuild: Diagnostic/net48, Receiver/net48/net8 e
+  Provisioner/net48 aprovados; API C#2/net20 aprovada. `./scripts/test.sh`:
+  38/38; encoding e `git diff --check` aprovados; E2E pós-alteração: 73 checks.
+- A primeira repetição do teste Python encontrou NameError no próprio contrato
+  estático (variáveis workflow/report_builder não carregadas); foi corrigido e a
+  suíte passou. A smoke WinForms de ZIP foi adicionada ao workflow Windows e
+  depende do próximo Actions para validar em execução.
+- Builds de artefato local anteriores são obsoletos após essas alterações; não
+  distribuir seus hashes. `pwsh` ausente impede o pipeline release completo aqui.
+- Próximo: revisar diff, commit/push branch, conferir CI/artefatos e publicar
+  prerelease somente após CI; não há teste real de Win7/PowerShell2/Corel/RedMon.
 
-## Decisões / causas comprovadas
-- Logs reais rc.1: RunId n16722667-4980, OS6.1.7601/PS2, ADMIN aprovado,
-  LOCK falha binding Start-Process antes de icacls; não é prova de erro de ACL.
-- Executor ProcessStartInfo/C#2/CLR2, token herdado, captura binária concorrente,
-  PeekNamedPipe no Windows, timeout/kill só do próprio filho, estado UNKNOWN.
-- NSIS append antes sobrescrevia BOM/histórico; seek END e códigos reais corrigidos.
-  CheckedExec nas 5 chamadas impede reutilizar zero se filho não inicia.
-- Execução CLR2 revelou SHA256Managed.Dispose não público: usar Clear no
-  fingerprint e harness. PS2 -File retornou0 no erro: CMD exige recibo fresco
-  nonce/run/op após orquestração positiva; sem prova retorna74.
-- Probe antigo e55fa34 tinha falso positivo; raw refutou o aceite. Corrigido para
-  wrapper/marker/err vazio; só a173d5e é candidato final. Nada intermediário publicado.
-- Físico/FTDI/Flexi/COM2/filas externas/journals preservados; sem movimentos.
+Branch-base `fix/corel-cut-settings`, HEAD anterior `919ec25`; `main` intacta.
+Alterações locais pré-existentes (painel, coletor, docs e testes) preservadas.
+Versão local elevada de 1.0.1-rc.3 para candidata 1.0.1-rc.4 (tag remoto ainda
+não auditável por falha de conexão da API GitHub; não há tag local rc.4).
 
-## Validações
-- 32 Python, 25 modelos PS, 9 processos reais Ubuntu pwsh7.6.7/CLR10.0.13.
-- Windows2022: 13 processos/ACLs reais em PS7.6.6, PS5.1 e PS2.0/CLR2.0.50727.9179;
-  markers positivos/err vazio inspecionados. PS2 também concluiu25 modelos.
-- 12 cenários CMD, inclusive erro PS2 exit0=>74 e recibo PS2 válido=>0.
-- C#2/net20 API compile, 52 checks C# por runtime, Release net48/net8, NSIS
-  Unicode3.09 local/3.10 CI sem warnings/erros. RedMon isolado/UI/Shell ZIP aprovados.
-- Imagens pt-BR disponíveis revisadas; finish/uninstall em Win7 pendentes.
-- ZIP8 arquivos, PKZIP/Deflate8,361187683 bytes; CRC/7z/extração/hashes/payload
-  conferidos. 103 fontes embarcados comparados com Git (só EOL Windows normalizado).
-- ZIP SHA256454c997985ecd1347b4bbfcc2380690893c4128974549d2f0bf72cdade32d9d7.
-- EXE361368940 bytes SHA256408c835bdc0ce64f2404a8ade5cee07cfb6aefd50b8585fe5276ebc3af2ae9f3.
-- Bytes CI em dist/1.0.1-rc.2; evidências/checagem extra artifacts/rc2-final.
-  Logs de cliente ignorados/preservados; não embarcados nem publicados.
+## Marco: instrumentação Receiver e fluxo guiado
 
-## VM / bloqueio / próximos passos
-QEMU8.2.2 oficial extraído localmente, KVM_API12/QMP enabled/present provados;
-QCOW2 vazio32GiB (2vCPU/3072MiB), snapshot blank-before-os, sem NIC/passthrough,
-VM desligada e imagem íntegra. Sem ISO/licença Windows fornecida/localizada;
-outra VDI preexistente é Ubuntu64 e foi preservada. Guia docs/win7-vm.md.
-Win7 real rc.2 NÃO EXECUTADO; cliente usa CLR2.0.50727.8803, CI9179 em outro SO.
-Faltam instalação/fila/reinstalação/uninstall/captura/Corel/serial/hardware no alvo.
-Fornecer mídia legítima, executar legado com prova PASS, testar snapshots/alvo;
-não mesclar nem declarar stable/hardware validado antes de comprovar critérios.
+- Receiver agora loga antes da detecção: RunId/AttemptId, PID, identidade,
+  argumentos/REDMON_* com DOCNAME redigido, abertura stdin, primeiro byte, EOF,
+  contagem, hash SHA-256, formato, persistência/marker, exceção/stack e exitcode.
+  Rejeições deixam JSON de metadados/hash/causa sem salvar bytes brutos. Log
+  tenta CommonApplicationData, captura/diagnostics e TEMP.
+- Nova `GuidedDiagnosticForm`: teste A envia fixture binária exata para stdin e
+  verifica raw/hash/JSON/parser 20×20; B inicia observação WMI start/stop,
+  amostra PrintJob/fila/RedMon/Receiver/metadados durante a sessão e pede
+  confirmação manual de lista e prévia. Exportação allowlist ZIP sem RAW/PDF.
+- `FoisonC24-Diagnostico.cmd`, comando `--guided-diagnosis`, payload NSIS e
+  atalho Menu Iniciar adicionados. README/LEIA-ME/CHANGELOG/PROJECT_STATE e
+  documento operacional atualizado.
+- Builds Receiver `net8.0`, Receiver `net48`, Diagnostic `net48`, Provisioner
+  `net48` e CoreTests `net8.0` passaram sem warnings (analyzer CA1416 e escopo
+  corrigidos). 38 testes Python passaram; encoding gate passou; API compile C#2 /
+  net20 passou (não é runtime PS2). C# E2E: 73 checks passaram, incluindo
+  Ghostscript + MuPDF empacotado sob Wine, geometria real 20×20 mm, Receiver
+  binário, unknown e serial simulada. NSIS 3.09-4 gerou instalador sem warnings;
+  extração 7z conferiu EXEs/DLL/CMD byte a byte. ZIP testado com cabeçalhos/CRC,
+  extração+SHA-256 e `7z t`: 8 arquivos, Deflate, sem ZIP64/AES.
+- Artefato local **development build** em `dist/1.0.1-rc.4-candidate-final/`
+  (ZIP8, Deflate8, 361266881 bytes, CRC/headers/Python extraction+hash/7z t).
+  EXE SHA256 `3a113ef60b9133e37bb8585863406572b8108fd809aa65e45a749e000005a41b`,
+  ZIP SHA256 `ab912bc2677434309a4028a7acd629bac9c73962542a6e1c9e8148af85b2cab4`.
+  Build pipeline unificado não executou localmente: PowerShell/pwsh indisponível;
+  artefato local foi gerado com staging/NSIS/ZIP manual verificável. CI ainda
+  necessário para artefato imutável de fonte limpa. Não executados: Win7/PS2, UI
+  guiada/ZIP pelo WinForms, Corel/RedMon real.
+- Segurança: nenhum comando serial, corte físico, alteração de fila/driver/FTDI,
+  FlexiSIGN ou COM2. ZIP não inclui bruto. `summary` reporta UNKNOWN em estágios
+  sem observação. O cliente desinstalou e não há logs daquela impressão antiga.
+
+## Próximos passos
+
+Revisar o diff integral e os arquivos novos; commit/push em `fix/capture-observability`
+para obter CI limpo e candidate ZIP produzido pelo pipeline oficial. Só então
+promover prerelease se fluxo/permissões disponíveis; Win7 segue não homologado.
+
+# Histórico do diagnóstico anterior — captura vazia / painel rc.3
+Branch fix/corel-cut-settings; main7351014 preservada. Sem merge/tag/release final.
+Cliente relata rc.2 instalada rapidamente e fila visível no CorelDRAW X6, mas
+confirmou lista vazia no aplicativo após imprimir. Captura NÃO comprovada;
+causa real pendente de relatório atual, não atribuir por hipótese a ACL/driver.
+Solicitado Exportar relatório da instalação existente; ainda não recebido. O cliente
+posteriormente desinstalou o software; não há coleta retroativa desse print.
+
+## Marco 2026-10-17 — auditoria do pipeline e coleta somente leitura
+
+- Reconciliado: branch `fix/corel-cut-settings` em `919ec25`; alterações de
+  documentação anteriores preservadas. `Logs/` contém apenas RunId rc.1
+  `n16722667-4980`, que falhou no LOCK antes de provisionar; não é log do print
+  rc.2. O `Foison.rar` não contém estado runtime/ProgramData.
+- Código: Receiver lê stdin até EOF, limite64MiB, exige prefixo PS/EOT+PS ou
+  envelope UEL/PJL suportado; só publica raw+JSON depois da detecção e escrita.
+  UI enumera pares. Falha antes do marcador produz lista vazia, mas não sabemos
+  se foi launch, stdin, formato, persistência ou refresh no cliente.
+- Fonte RedMon 1.9 confirma child com hStdInput ligado ao pipe e variáveis
+  `REDMON_*`; `Output=0` é "Program handles output" em redmonrc.h e log RedMon
+  está desativado na config Bridge. Isso prova capacidade/configuração de fonte,
+  não execução real no cliente. Error logger do Receiver captura IOException,
+  mas não isola todas as falhas de logging; registrar isso como gap, não causa.
+- Criados `docs/reverse-engineering/00-current-state.md` e
+  `01-spooler-capture-hypotheses.md`, estados H01–H12 e coleta/correlação.
+  `Collect-Print-Diagnostics-Win7.ps1` é PS2 syntax-surface, BOM UTF-8,
+  somente leitura WMI/Registro/serviço/metadados sem nomes/conteúdo de documentos;
+  incluído no staging, NSIS/uninstaller. README/TASKS atualizados.
+- Validações: 37 testes Python passaram (`PYTHONPATH=src`), encoding e diff check
+  passaram, parser PowerShell 7 aceitou sintaxe. **Não executado em Windows 7/PS2**;
+  parser moderno não comprova compatibilidade runtime. Nenhum hardware alterado.
+- Próximo passo técnico: instrumentar o Receiver para log de tentativa/bytes/EOF,
+  assinatura, persistência/ExitCode sem conteúdo bruto; depois reconstruir
+  candidato. Causa do print do cliente exige observação nova; após desinstalação
+  não há eventos runtime para coletar retroativamente.
+
+## Decisões / alterações
+- Propriedades são PScript5 sem plug-in OEM; painel Foison separado, não dentro
+  do Corel. Não alterar driver compartilhado/Flexi/FTDI/COM2 para adicionar UI.
+- CutSettings imutável: redução1–100%, rotação ortogonal, espelhos; prévia e HPGL
+  usam mesma cópia do original. Ampliações no Corel preservam tolerância0,01mm.
+- Alterar ajustes revoga ensaio; alterar porta revoga perfil. Ensaio por hash
+  exato do plano de movimento. Limites50mm/margem2mm/confirmações preservados.
+- Força/velocidade/ferramenta no painel físico: sem comandos presumidos.
+- Coletor/exportação somente leitura: pasta/pares, Spooler/filaWMI/registroRedMon,
+  executável/configReceiver. Não imprime, abre COM ou reinicia serviços.
+- RAR cliente privado ignorado:633 arquivos/660 entradas;7 componentes idênticos
+  byte a byte ao CIrc.2. Libarchive oficial local descompactou todos os arquivos;
+  7z Ubuntu não suporta RAR. Não executar nem distribuir o payload recebido.
+
+## Validações / candidato
+Código cliente919ec25, versão1.0.1-rc.3, CI39058232989 aprovado Ubuntu+Windows2022.
+36Python/67C# por runtime, net48/buildNSIS sem warnings/erros. 25modelosPS,
+13processos/ACL Windows emPS5/7 ePS2/CLR2 real Server2022 (nãoWin7);12CMD.
+Probe positivo PS2 markers13/25 conferidos. UI/prévia/diálogo pt-BR vistos,
+images finais idênticas às revisadas; coletor nativo gerou relatório legível.
+Relatório OS do coletor usa Environment.OSVersion, sujeito à versão de
+compatibilidade no Windows moderno (CI devolve6.2); não prova SO alvo.
+CI inicial39057252361 falhou em novos testes por cp1252; UTF8 explícito corrigiu.
+Pipeline completo local bloqueado por NuGet NU1900/rede (também fora sandbox),
+não suprimido; CI completo aprovado é origem dos artefatos finais.
+Dist/1.0.1-rc.3: ZIP8 arquivosPKZIP/Deflate8,361210504bytes,
+SHA2565262fb82c770ecbb834fbfc873e578e099e2406674578477f855b7e6887cf1af.
+EXE361392281bytes SHA256b1fc546c413de86f87ce280798838ab82f5300b4a26ad9379fff5ab64d13701a.
+CRC/7zt/extração/hashes/NSIS/107 fontes embarcados conferidos. Evidências privadas
+locais em artifacts/rc3-final, relatório docs/corel-cut-validation.md.
+
+## Bloqueios / próximo passo
+Não pedir reinstalação como tentativa de resolver captura. Receber ZIP Exportar
+relatório da rc.2, correlacionar tentativa real e só corrigir causa comprovada.
+Se necessário, comando existente Install-Queue-Win7.cmd capture-test (admin)
+exercita somente fila→Receiver→vetores sem COM; não executar hardware por teste.
+Novo painel/coletor rc.3/captura/serial/hardware NÃO executados no alvo. Sem
+movimentos locais. Sem mídia/licençaWin7; VMKVM vazia offline preservada/desligada.

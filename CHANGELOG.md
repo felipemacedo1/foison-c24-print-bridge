@@ -1,3 +1,20 @@
+# 1.0.1-rc.4 — observabilidade da captura e diagnóstico guiado (candidato)
+
+- Receiver registra tentativa, RunId, PID/identidade, variáveis RedMon sem título
+  do documento, stdin/primeiro byte/EOF, contagem, SHA-256, assinatura, estado,
+  gravação, marcador e código de saída antes/depois da classificação.
+- Entradas não suportadas deixam metadados de rejeição; o conteúdo bruto não é
+  salvo por padrão. Teto de 64 MiB e bloqueio de corte são mantidos.
+- Diagnóstico de um clique incluído no instalador e menu Iniciar: experimento A
+  transmite a fixture binária sem conversão de texto; experimento B mantém WMI,
+  fila, RedMon, Receiver e marcadores sob observação durante impressão no Corel.
+- Relatório ZIP contém resumo PASS/FAIL/UNKNOWN, snapshots, logs, metadados e
+  SHA-256; omite arquivos RAW e não abre COM. Lista/prévia são confirmações do
+  operador; ausências de observação permanecem UNKNOWN.
+- Incluídos contratos automatizados de log, bytes exatos e rejeição segura.
+- Windows 7/PowerShell 2, CorelDRAW, RedMon instalado, UI visual e dispositivo
+  físico ainda precisam ser exercitados na máquina alvo; sem homologação.
+
 # 1.0.1-rc.3 — configurações de corte no aplicativo (candidato)
 
 - Identifica claramente a separação entre Propriedades PScript e painel Foison.

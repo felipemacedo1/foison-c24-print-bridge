@@ -1,4 +1,27 @@
-## Painel de corte — candidato 1.0.1-rc.3
+## Diagnóstico da captura — candidato 1.0.1-rc.4
+
+Esta versão adiciona evidência ponta a ponta para investigar por que um trabalho
+impresso no CorelDRAW não aparece no painel. Use o menu Iniciar **Foison C24
+Print Bridge → Diagnóstico da captura**: rode o experimento direto, inicie o
+monitoramento antes de imprimir o quadrado sintético de 20 × 20 mm no CorelDRAW,
+conclua e exporte o ZIP. O relatório não inclui arquivos RAW. Consulte
+`CHANGELOG.md` e `docs/reverse-engineering/`.
+
+O resultado A testa Receiver→parser→persistência sem spooler/RedMon. O resultado
+B observa Spooler/fila/RedMon/Receiver durante a impressão e pede confirmação
+manual de lista/prévia. `UNKNOWN` significa que não houve evidência suficiente.
+Não abre COM2, não altera FlexiSIGN/FTDI e não executa corte. Windows 7 SP1,
+PowerShell 2, CorelDRAW e UI ainda precisam ser exercitados no alvo; candidato
+não homologado.
+
+## Painel de corte — candidato anterior 1.0.1-rc.3
+
+Código919ec25: [CI aprovado](https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/39058232989),
+artefatos conferidos em `dist/1.0.1-rc.3/`. [Evidências e limites](docs/corel-cut-validation.md).
+
+**Captura no cliente ainda pendente:** o usuário confirmou lista vazia no aplicativo
+depois de imprimir. Solicitado Exportar relatório da instalação atual; o painel
+novo não deve ser apresentado como correção comprovada da captura.
 
 O cliente relatou que a rc.2 instalou rapidamente no Windows 7 e que a fila já
 aparece no CorelDRAW X6. Isso não comprova captura, serial ou corte.
@@ -104,6 +127,11 @@ extraído do NSIS, headers ZIP/CRC, extração/hash de cada entrada e `7z t`.
 ZIP: Deflate 8, nomes ASCII, diretório único, sem ZIP64/AES/multipartes.
 [Recuperação e logs](packaging/windows/RECUPERACAO.txt),
 [matriz de validação](docs/release-validation.md) e [auditoria ZIP anterior](docs/previous-zip-audit.json).
+Para localizar captura ausente em sessão acompanhada, use o roteiro
+[pipeline/spooler](docs/reverse-engineering/01-spooler-capture-hypotheses.md) e o
+coletor PS2 somente leitura `Collect-Print-Diagnostics-Win7.ps1`, incluído no
+setup. Ele não envia trabalhos nem abre COM; o pipeline real ainda precisa ser
+observado no Windows 7 do alvo.
 
 O Git deve conter as fontes atuais commitadas antes de preparar o arquivo fonte
 com `git archive HEAD`. O CI automatiza todos esses passos, executa net48 com

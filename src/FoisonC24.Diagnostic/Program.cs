@@ -18,6 +18,15 @@ namespace FoisonC24.Diagnostic
         [STAThread]
         private static int Main(string[] args)
         {
+            if(args.Length==2 && args[0]=="--diagnostic-report-smoke")
+            {
+                GuidedDiagnosticReport.CreateSyntheticSmoke(args[1]);return 0;
+            }
+            if(args.Length==1 && args[0]=="--guided-diagnosis")
+            {
+                Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new GuidedDiagnosticForm());return 0;
+            }
             if(args.Length==2 && args[0]=="--capture-diagnostics")
             {
                 File.WriteAllText(args[1],CaptureDiagnostics.Collect(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"FoisonC24")),new System.Text.UTF8Encoding(true));
@@ -147,6 +156,7 @@ namespace FoisonC24.Diagnostic
         {
             UpdateGates();
             status.Text="BLOQUEADO — "+e.Message;
+            AppLog("ERROR","UI",e.GetType().FullName+": "+e.Message+"; "+e.StackTrace);
             try { Directory.CreateDirectory(Path.Combine(data,"session"));File.AppendAllText(Path.Combine(data,"session","diagnostic.log"),DateTime.UtcNow.ToString("O")+" "+e.GetType().Name+": "+e.Message+Environment.NewLine); } catch(Exception logError) when(logError is IOException || logError is UnauthorizedAccessException) { status.Text+="\r\nFalha ao gravar diagnostic.log: "+logError.GetType().Name; }
             MessageBox.Show(e.Message+"\r\nNenhum reenvio automático será feito. Se houve transmissão, confira PAUSE/OFFLINE no painel.",Text,MessageBoxButtons.OK,MessageBoxIcon.Warning);
         }
@@ -167,15 +177,27 @@ namespace FoisonC24.Diagnostic
             try
             {
                 source=Path.Combine(data,"captures",jobs.SelectedItem+".raw");jobHash=MachineProfile.FileHash(source);
+                AppLog("INFO","PARSER_START","job="+jobs.SelectedItem+"; sha256="+jobHash+"; raw bytes="+new FileInfo(source).Length);
                 string scratch=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"FoisonC24","conversion-"+Guid.NewGuid());
                 originalDrawing=await Task.Run(()=>Program.Converter().Convert(source,scratch,cancel.Token));
                 if(MachineProfile.FileHash(source)!=jobHash) throw new IOException("Captura mudou durante a conversão.");
                 drawing=settings.Apply(originalDrawing);
+                AppLog("INFO","PARSER_PASS","job="+jobs.SelectedItem+"; paths="+originalDrawing.Paths.Count+"; size_mm="+originalDrawing.SizeLabel);
                 status.Text="Prévia: "+drawing.SizeLabel+" — "+drawing.Paths.Count+" caminhos.\r\nX → direita; Y ↑. Origem do desenho normalizada, sem escala automática; margem de 2 mm no envio.\r\nContornos são linhas centrais; preenchimentos viram perímetros. Confira caminhos e remova fundo/duplicatas. Envio ainda exige validação.";
                 preview.Invalidate();
             }
             catch(Exception e) { drawing=null;originalDrawing=null;Error(e); }
             finally { cancel.Dispose();cancel=null;Busy(false); }
+        }
+        private void AppLog(string level,string stage,string message)
+        {
+            try
+            {
+                string folder=Path.Combine(data,"Logs");Directory.CreateDirectory(folder);
+                string id=Environment.GetEnvironmentVariable("FOISON_RUN_ID");if(String.IsNullOrEmpty(id))id="app-"+Process.GetCurrentProcess().Id;
+                File.AppendAllText(Path.Combine(folder,"application-"+id+".log"),DateTime.UtcNow.ToString("o")+" ["+level+"] ["+id+"] [application] ["+stage+"] "+(message??"").Replace("\r"," ").Replace("\n"," ")+Environment.NewLine,new System.Text.UTF8Encoding(false));
+            }
+            catch { }
         }
         private void ApproveMachine()
         {

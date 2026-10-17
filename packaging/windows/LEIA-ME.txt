@@ -1,15 +1,17 @@
-﻿Foison C24 Print Bridge 1.0.1-rc.3 — TESTE ACOMPANHADO
+﻿Foison C24 Print Bridge 1.0.1-rc.4 — DIAGNÓSTICO DE CAPTURA (CANDIDATO)
 Não validado em Windows 7/CorelDRAW/hardware. Não instalar sem o desenvolvedor.
 
 1. Extraia tudo com "Extrair tudo" do Windows e execute
    FoisonC24-Setup-Win7-x64.exe. Autorize o UAC. Se solicitar, reinicie e repita.
-2. No CorelDRAW X6, abra quadrado-20mm.svg. Imprima em Foison C24 (Teste),
-   uma cópia, escala 100%, sem ajustar à página.
-3. Abra o atalho Foison C24 - Configurações de corte. Selecione o trabalho e
-   clique em Pré-visualizar. Confira 20 × 20 mm e Configurações de corte.
-   Siga Validar máquina (dev), Movimento sem lâmina e Primeiro corte.
+2. No menu Iniciar, abra Foison C24 Print Bridge > Diagnóstico da captura.
+3. Execute Experimento A e confirme se o trabalho aparece no painel.
+4. Inicie monitoramento; no CorelDRAW X6 abra quadrado-20mm.svg, imprima uma
+   cópia em Foison C24 (Teste), escala 100%, sem ajustar à página.
+5. Volte ao diagnóstico, conclua e exporte o ZIP. Envie o ZIP ao desenvolvedor.
 
-IMPORTANTE: Propriedades de impressão no CorelDRAW são do driver PostScript,
+IMPORTANTE: Este candidato diagnostica captura; não representa corte pronto.
+O teste B exige monitoramento ativo durante a impressão no CorelDRAW.
+Propriedades de impressão no CorelDRAW são do driver PostScript,
 não da plotter. O corte é configurado e autorizado no aplicativo Foison C24.
 Nele: porta (COM2 padrão), escala 1 a 100%, rotação, espelhamento e prévia mm.
 Ampliações: faça no CorelDRAW e imprima novamente a 100%, sem ajustar à página.
@@ -17,7 +19,8 @@ Força, velocidade e ferramenta: painel físico da plotter, não o driver.
 Uma cópia por envio; origem normalizada + margem 2 mm; área medida até 50 × 50 mm.
 Configurações não abrem a COM nem autorizam corte. Alterá-las exige novo ensaio.
 
-Movimento/corte começam bloqueados. Não basta transmitir para comprovar corte.
+Movimento/corte começam bloqueados. O diagnóstico não abre COM2 nem transmite.
+Não basta transmitir para comprovar corte.
 Se protocolo, escala, direção, limites ou comunicação não forem comprovados,
 não movimente a plotter. FlexiSIGN/FTDI/COM2 existentes não serão reconfigurados.
 Não feche a janela de erro sem anotar o ID. Logs ficam em

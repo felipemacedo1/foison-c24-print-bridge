@@ -75,6 +75,25 @@ jobs:
           foreach ($section in @('[CAPTURE_FOLDER]', '[QUEUE]', '[SPOOLER]', 'não abriu COM')) {
             if (-not $text.Contains($section)) { throw "Missing diagnostic section: $section" }
           }
+      - name: Guided diagnostic ZIP allowlist smoke (synthetic only)
+        shell: powershell
+        run: |
+          $report = Join-Path $PWD 'dist/guided-diagnostic-smoke.zip'
+          $p = Start-Process packaging/windows/FoisonC24Diagnostic.exe -ArgumentList @('--diagnostic-report-smoke', "`"$report`"") -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or -not (Test-Path $report)) { throw 'Guided diagnostic ZIP smoke failed' }
+          & 7z t $report
+          if ($LASTEXITCODE -ne 0) { throw 'ZIP integrity check failed' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($report)
+          try {
+            $names = @($zip.Entries | ForEach-Object { $_.FullName } | Sort-Object)
+            $expected = @('application.log','capture-metadata.json','checksums.txt','environment.json','errors.log','receiver.log','printer-state.json','redmon-state.txt','summary.txt') | Sort-Object
+            if (($names -join '|') -ne ($expected -join '|')) { throw 'Unexpected diagnostic report entries' }
+            if ($zip.Entries | Where-Object { $_.FullName -match '\.(raw|pdf)$' }) { throw 'Raw user content found in report' }
+            $summary = New-Object IO.StreamReader($zip.GetEntry('summary.txt').Open())
+            try { $text = $summary.ReadToEnd() } finally { $summary.Dispose() }
+            if (-not $text.Contains('Windows Spooler: UNKNOWN') -or -not $text.Contains('NÃO EXECUTADOS')) { throw 'Smoke report must not claim real spooler/hardware validation' }
+          } finally { $zip.Dispose() }
       - name: Preserve failure evidence, not customer jobs
         if: always()
         shell: pwsh

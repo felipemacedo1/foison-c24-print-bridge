@@ -1,3 +1,58 @@
+# Ativo 2026-10-17 — candidato diagnóstico de captura 1.0.1-rc.4
+
+Objetivo: transformar as hipóteses da lista vazia em observações verificáveis
+por uma tentativa guiada, sem corte/COM. Estado ainda local e não publicado.
+
+- Receiver registra START/identidade/PID/argumentos e variáveis RedMon saneadas,
+  stdin, primeiro byte, EOF/total, hash, formato, gravação, marcador, erro/stack,
+  duração e exit code. Tentativas rejeitadas salvam JSON com hash/causa em
+  captures/attempts; bytes rejeitados não são guardados. Log tenta ProgramData,
+  depois saída de captura/TEMP. Captura aceita mantém convenção raw+json.
+- `GuidedDiagnosticForm` executa Experimento A por escrita binária direta em
+  stdin com fixture quadrado e parser real; Experimento B registra WMI process
+  start/stop, fila/jobs, estado RedMon e metadados enquanto o operador imprime.
+  Lista/prévia exigem confirmação manual. O ZIP é allowlist sem arquivos brutos.
+- `FoisonC24-Diagnostico.cmd` executa a UI; NSIS inclui o arquivo e cria atalho
+  no menu Iniciar. `FoisonC24-Diagnostico.exe --guided-diagnosis` inicia fluxo.
+- Receiver usa SHA-256 incremental; mesmo entrada acima do limite é drenada até
+  EOF para registrar tamanho/hash completos, sendo rejeitada sem persistência do
+  excedente. Falhas de logging não mascaram o código de saída da captura.
+- Testes locais: builds Receiver net48/net8, Diagnostic net48, Provisioner
+  net48, CoreTests net8 sem warnings; 38 Python e encoding gate passaram; API
+  compile C#2/net20 passou. Harness C# E2E 73 checks passou (GS + MuPDF real via
+  Wine, quadrado PS 20×20, stdin binário, formato desconhecido sem raw, serial
+  apenas simulada). NSIS 3.09-4 sem warnings; payload chave extraído e comparado
+  por SHA; ZIP PKZIP Deflate, 8 arquivos, CRC/extract/hash/7z passaram.
+- Workflow Windows ampliado com smoke end-to-end do gerador do ZIP de diagnóstico
+  sintético, validação de integridade/allowlist e confirmação de UNKNOWN; pendente
+  executar via Actions. O contrato Python foi corrigido após variável de teste
+  não inicializada; suíte final 38/38 aprovada.
+- Candidate development-build local `dist/1.0.1-rc.4-candidate-final` (8-entry
+  PKZIP Deflate,361266881bytes, CRC/extract/hash/7z checked): EXE SHA256
+  `3a113ef60b9133e37bb8585863406572b8108fd809aa65e45a749e000005a41b`, ZIP
+  SHA256 `ab912bc2677434309a4028a7acd629bac9c73962542a6e1c9e8148af85b2cab4`.
+  `scripts/build-release.py` inteiro não rodou localmente por ausência de
+  PowerShell 7; o instalador/ZIP foram criados em staging local com o mesmo
+  NSIS/Deflate e verificados. O CI oficial ainda deve produzir artefato de fonte
+  limpa. Não executados: Win7/PS2, UI guiada/ZIP WinForms, Corel/RedMon real.
+- Atenção: os arquivos locais e hashes da pasta acima são anteriores às últimas
+  mudanças de hashing incremental e smoke ZIP; estão obsoletos, não distribuir.
+  O próximo candidato deve ser o artefato do Actions após commit.
+- Próximo: revisão integral, commit/push da branch `fix/capture-observability`,
+  aguardar CI e, se válido e acessível, publicar nova prerelease com limitações.
+  Não afirmar captura corrigida nem homologação antes da sessão real.
+
+## Candidato rc.3 conferido — não corrige captura por suposição
+
+Código919ec25, branch fix/corel-cut-settings, CI39058232989 aprovado. 36Python,
+67C# por runtime, builds/NSIS/ZIP, UI e coletor somente leitura aprovados nas
+condições documentadas em docs/corel-cut-validation.md. Dist/1.0.1-rc.3 contém
+os bytes CI conferidos (ZIP8 arquivos Deflate8,361210504bytes). Fonte embarcada
+107 arquivos conferida. Sem merge/tag/release final.
+**Pendência principal:** cliente confirmou lista vazia depois de imprimir.
+Aguarda-se Exportar relatório atual; não declarar captura ou corte funcionais.
+Não reinstalar por tentativa nem modificar recursos externos. Físico preservado.
+
 ## Retorno posterior: fila visível, captura NÃO aparece
 
 Usuário confirmou lista vazia no aplicativo depois de imprimir. Não declarar
@@ -80,6 +135,28 @@ main preservada; validações/build desta etapa em andamento no STATUS.
 - Win7/PS2/CorelDRAW/serial/Foison não executados. Corte físico bloqueado.
 - Matriz e limites: docs/release-validation.md. Publicação somente prerelease
   após concluir verificações aplicáveis; não há compatibilidade real comprovada.
+
+# Investigação do spooler — situação 2026-10-17
+
+Prioridade ativa: localizar a ausência de trabalhos na lista, sem avançar para
+protocolo físico. Cliente relata fila no Corel e lista vazia; posteriormente
+desinstalou o Bridge. Não há evidência runtime retroativa do print. O RAR contém
+arquivos de instalação, não ProgramData; `Logs/` disponível é uma falha rc.1 em
+LOCK anterior ao provisionamento, não a instalação rc.2.
+
+`docs/reverse-engineering/00-current-state.md` registra a cadeia etapa a etapa:
+fila visível é relato confirmado; spool JobId, RedMon launch, bytes stdin,
+persistência e refresh UI são não comprovados no cliente. Fonte RedMon confirma
+pipeline de stdin como capacidade do produto, mas não a execução no alvo.
+`docs/reverse-engineering/01-spooler-capture-hypotheses.md` contém H01–H12 e
+plano de correlação.
+
+Preparado coletor PS2 read-only `packaging/windows/Collect-Print-Diagnostics-Win7.ps1`
+para incluir no próximo setup (WMI/Registro/Spooler/processos/metadados, sem
+documento bruto/título, alterações ou COM). Testes sintáticos atuais usaram
+PowerShell 7; execução Win7/PS2 não feita. Próximo passo é instrumentação do
+Receiver por tentativa e uma única coleta correlacionada em Windows 7; corrigir
+somente o primeiro estágio observado falhando. Sem root cause ou corte declarado.
 
 # Estado do projeto — candidato para primeira sessão acompanhada
 

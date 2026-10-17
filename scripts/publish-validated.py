@@ -76,7 +76,7 @@ def main():
 
 Versão SDK implícita anterior **1.0.0.0 → {version}**; não havia tag/release anterior.
 
-**[ZIP do cliente](https://github.com/{repo}/releases/download/{a.tag}/{bundle.name})** — extraia tudo, execute o instalador com o desenvolvedor, imprima o quadrado no CorelDRAW X6 a 100% e siga a prévia/confirmações. O ZIP de evidências é somente para o desenvolvedor.
+**[ZIP do cliente](https://github.com/{repo}/releases/download/{a.tag}/{bundle.name})** — extraia tudo, execute o instalador com o desenvolvedor e use o menu Iniciar *Foison C24 Print Bridge → Diagnóstico da captura*. O relatório ZIP resultante é somente para o desenvolvedor. Não é uma versão homologada para corte.
 
 ### Correções
 - RedMon instalado/verificado nas APIs antes de enumerar portas; elevação, PowerShell x64 e dependências completas.
@@ -85,15 +85,17 @@ Versão SDK implícita anterior **1.0.0.0 → {version}**; não havia tag/releas
 - NSIS só conclui após pré-requisitos, autoteste vetorial, provisionamento e verificação independente. Logs preservados em ProgramData/FoisonC24/Logs (fallback TEMP).
 - NSIS Unicode/PortugueseBR e charset explícito; PS/TXT com BOM, TXT CRLF, bootstrap ASCII, gates de texto e inspeção de telas compiladas. Título corrigido após revisão visual.
 - Pipeline único Release/testes/staging/NSIS/extração e hashes/PKZIP Deflate. Intermediários de link/debug omitidos. Engines reais, fontes/licenças e pré-requisitos estão no instalador; não é captura-only.
+- Receiver registra antes de classificar: RunId/AttemptId, PID/identidade, variáveis RedMon sem título do documento, abertura/primeiro byte/EOF, tamanho/hash/assinatura, persistência, exceções e ExitCode. Entradas rejeitadas deixam metadados/hash/causa sem guardar o conteúdo bruto.
+- Diagnóstico de um clique pelo menu Iniciar. Experimento A testa stdin binário direto e parser; Experimento B mantém WMI/process trace, spooler/fila/RedMon e metadados sob observação enquanto o operador imprime o quadrado sintético. ZIP sanitizado inclui snapshots/logs/checksums, sem RAW. A lista/prévia são confirmações manuais; falta de evidência continua UNKNOWN.
 
 ### Evidência
 [CI aprovado]({producer['html_url']}), commit `{a.source}`, tag `{a.tag}`.
-25 Python, 22 cenários PS com adaptadores simulados, 52 checks C# por runtime com engines reais e stdin/serial simulados. Windows 2022: sete cenários CMD nativos, subprocessos reais/Unicode/timeout/start failure, RedMon isolado e falha Win32 controlada, UI pt-BR/rejeição do OS e Shell.Application extraindo ZIP com hashes. Release/net48 e NSIS 3.10 `/WX` sem warnings/erros.
+38 testes Python, 73 checks C# por runtime com engines reais, bytes de stdin e serial simulados. Windows 2022: testes de provisionamento/process runner, RedMon isolado, UI pt-BR/rejeição do OS e Shell.Application extraindo ZIP com hashes. Release/net48 e NSIS 3.10 `/WX` sem warnings/erros.
 ZIP PKZIP, método 8, 8 arquivos, {bundle.stat().st_size} bytes, sem ZIP64/AES/multipartes; CRC Python, extração/hash e 7z. Manifestos externos/internos e versão PE conferidos novamente na promoção. Instalador SHA256: `{sha256(exe)}`. ZIP SHA256: `{sha256(bundle)}`.
 VC2019 x64 14.29.30157 fixado por hash; manifesto real inclui Win7 x64 KB2999226. Isso não comprova execução no Win7. ZIP anterior disponível passou CRC/7z; causa do sintoma do cliente não determinada.
 
 ### Limites obrigatórios
-**Windows 7/PowerShell 2/CorelDRAW X6/serial/Foison/corte físico NÃO EXECUTADOS.** Instalação real e telas finais/desinstalação em Win7 continuam pendentes. Não se declara compatibilidade comprovada nem garantia de corte na primeira sessão.
+**Windows 7/PowerShell 2/CorelDRAW X6/instalação/captura real/serial/Foison/corte físico NÃO EXECUTADOS.** Instalação real e telas finais/desinstalação em Win7 continuam pendentes. Não se declara compatibilidade comprovada nem garantia de corte na primeira sessão. O candidato é para diagnóstico acompanhado e não desbloqueia envio físico.
 Corte físico bloqueado por padrão. Sem protocolo específico, escala/orientação/limites/comunicação e confirmações acompanhadas, não envie movimentos. Transmissão não comprova corte. PAUSE/OFFLINE no painel continua obrigatório; cancelar no PC não esvazia com certeza o buffer.
 FTDI, COM2, FlexiSIGN e filas de terceiros não são reconfigurados. Pode haver reinicialização/atualizações legítimas pelos pré-requisitos. Veja RECUPERACAO.txt e PROJECT_STATE.md.
 ''',encoding='utf-8')
