@@ -1,3 +1,7 @@
+> **Estado posterior:** a rc.1 falhou no Win7/PS2 do cliente. Ver
+> [correção rc.2 em branch e limites](win7-ps2-correction.md).
+> O relatório abaixo é histórico e não homologa o ambiente legado.
+
 # 1.0.1-rc.1 — matriz de aceitação e limites
 
 Versão implícita anterior: SDK 1.0.0.0; nenhuma tag/release no remoto durante a

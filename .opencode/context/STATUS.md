@@ -19,7 +19,7 @@ Branch fix/win7-ps2-process-runner; base main 7351014. Sem merge/release estáve
 4. Documentar evidências/limites e commits na branch, sem alterar main.
 
 ## Validações / bloqueios
-Executor e append NSIS implementados; 28 Python, 22 modelos PS, 9 processos reais
+Executor e append NSIS implementados; 28 Python, 24 modelos PS, 9 processos reais
 em pwsh7, C#2/net20 API compile sem warnings/erros. CI/build/pacote pendentes.
 Ubuntu 24.04 x64, i5 VT-x, 15 GiB RAM/~10 disponíveis, 92 GiB livres.
 KVM API12 e QMP present/enabled confirmados fora do sandbox. QEMU8.2.2 extraído
@@ -31,3 +31,11 @@ Win7/PS2 local, instalação/fila/Corel/serial/hardware ainda NÃO EXECUTADOS aq
 ## Próximos passos
 Commit/push branch, executar CI Windows + build único local, investigar falhas,
 validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou final.
+
+## Marco de build / CI
+- Build local a48feff aprovado, net48/NSIS3.09/52 checks C#/ZIP/hashes em
+  dist/local-rc2-a48feff (não substituído). CI39048647575: Ubuntu aprovado;
+  Windows bloqueou fixture Add-Type ConsoleApplication não suportada no PS7.
+- Corrigido harness Core com csc.exe Framework pelo executor real. Adicionados
+  modelos captura incompleta exit0 e log bloqueado; lock tem estado honesto.
+- Revalidar/push para CI; o candidato definitivo ainda não está pronto.

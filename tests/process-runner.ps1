@@ -18,7 +18,15 @@ function Pass($name){$script:cases+=$name;Write-Host ('PASS '+$name)}
 $phrases=Join-Path $repo 'packaging/windows/TEXTOS-VALIDACAO.txt'
 if($windows) {
  $child=Join-Path $StateDir 'Process Fixture.exe'
- Add-Type -OutputAssembly $child -OutputType ConsoleApplication -TypeDefinition ([IO.File]::ReadAllText((Join-Path $repo 'tests/fixtures/process-child.cs')))
+ if($PSVersionTable.PSVersion.Major -ge 6) {
+  # Core Add-Type cannot emit an EXE. Compile the same CLR fixture with the
+  # installed Framework compiler, through the actual production executor.
+  $compiler=Join-Path $env:windir 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+  $compileArgs='/nologo /target:exe /out:"'+$child+'" "'+(Join-Path $repo 'tests/fixtures/process-child.cs')+'"'
+  Assert ((ProcessRun $compiler $compileArgs) -eq 0) 'Fixture compiler failed'
+ } else {
+  Add-Type -OutputAssembly $child -OutputType ConsoleApplication -TypeDefinition ([IO.File]::ReadAllText((Join-Path $repo 'tests/fixtures/process-child.cs')))
+ }
  $prefix=''
 } else {
  $child=(Get-Command python3).Source
@@ -73,6 +81,7 @@ foreach($suffix in @('.out','.err')) {
  } finally {$sha.Dispose()}
 }
 Pass 'simultaneous-2MiB-stdout-and-stderr-no-deadlock'
+$script:LastProcessCode=27
 $failed=$false;$watch=[Diagnostics.Stopwatch]::StartNew()
 try {ProcessRun $child ($prefix+'timeout "'+$phrases+'"') 200|Out-Null} catch {$failed=$true;LogException $_}
 Assert ($failed -and $null -eq $LastProcessCode -and $watch.ElapsedMilliseconds -lt 8000) 'Timeout did not fail bounded with unknown exit'

@@ -437,6 +437,7 @@ function Invoke-BridgeSetup($mode) {
     InitializeLogging
     Stage "ADMIN"
     if (-not (IsAdmin)) { throw "Execute o instalador como administrador (UAC). Nenhuma politica global foi alterada." }
+    Log ("ElevatedTokenAdmin=true PID=" + $PID + " CLR=" + [Environment]::Version + " ProcessBits=" + ([IntPtr]::Size*8))
     Stage "OPERATING_SYSTEM"
     $os = OperatingSystem
     if ($os.Version -notmatch "^6\.1\." -or $os.ProductType -ne 1 -or $os.ServicePackMajorVersion -lt 1 -or $os.OSArchitecture -notmatch "64" -or [IntPtr]::Size -ne 8) { throw "Necessario Windows 7 SP1 x64 e PowerShell de 64 bits." }
@@ -528,9 +529,10 @@ function Invoke-BridgeSetup($mode) {
     Write-Host ("ERRO: " + $failure + "`r`nEtapa: " + $failedStep + "`r`nCódigo de saída externo: " + $failureExternalCode + "`r`nLog: " + $LogPath + "`r`nA instalação não foi concluída.")
     return 1
   } finally {
-    if ($lock) { $lock.Dispose() }
+    $lockState = "not-acquired"
+    if ($lock) { $lock.Dispose(); $lockState = "released" }
     $setupWatch.Stop()
-    try { Log ("END operation=" + $mode + " lock_released=true DurationMs=" + $setupWatch.ElapsedMilliseconds) } catch { Write-Host $_.Exception.Message }
+    try { Log ("END operation=" + $mode + " lock_state=" + $lockState + " DurationMs=" + $setupWatch.ElapsedMilliseconds) } catch { Write-Host $_.Exception.Message }
   }
 }
 if ($MyInvocation.InvocationName -ne ".") { exit (Invoke-BridgeSetup $Operation) }

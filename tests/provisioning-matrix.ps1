@@ -119,17 +119,33 @@ function InvokeProcessAdapter($file,$arguments,$stdout,$stderr,$timeoutMs) {
   $r=New-Object PSObject -Property @{Started=$true;ProcessId=123;ExitCode=27;TimedOut=$false;CaptureComplete=$true;NativeErrorCode=0;Error='';KillError=''}
   if ($fake.fail -eq 'start') { $r.Started=$false;$r.ExitCode=$null;$r.CaptureComplete=$false;$r.Error='Process launch denied' }
   if ($fake.fail -eq 'timeout') { $r.TimedOut=$true;$r.ExitCode=$null;$r.Error='Timeout' }
+  if ($fake.fail -eq 'capture') { $r.ExitCode=0;$r.CaptureComplete=$false }
   return $r
 }
 ${function:ProcessRun} = $OriginalProcessRun
-foreach ($failure in @('exit27','timeout','start')) {
+foreach ($failure in @('exit27','timeout','start','capture')) {
   ResetModel ('process-'+$failure);InitializeLogging;$fake.fail=$failure
-  try { Run 'FoisonC24Provisioner.exe' 'monitor-status';throw 'Unexpected success' } catch { LogException $_ }
+  $failed=$false
+  try { Run 'FoisonC24Provisioner.exe' 'monitor-status' } catch { $failed=$true;LogException $_ }
+  Assert $failed 'Process failure falsely returned success'
   $log=[IO.File]::ReadAllText((Join-Path $LogDirectory ('install-'+$RunId+'-foisonc24provisioner.log')))
   Assert ($log.Contains('stdout evidence: Instalação concluída com sucesso.') -and $log.Contains('stderr evidence') -and $log.Contains('DurationMs=')) 'Process diagnostics lost'
   if ($failure -eq 'timeout') {Assert ($log.Contains('Timeout=True')) 'Timeout missing'}
   if ($failure -eq 'exit27') {Assert ($LastProcessCode -eq 27) 'Process code lost'}
+  if ($failure -eq 'capture') {Assert ($LastProcessCode -eq 0 -and $log.Contains('CaptureComplete=False')) 'Capture failure lost known exit or became success'}
   $results += 'process-'+$failure
 }
+ResetModel 'process-logging-fails';InitializeLogging;$fake.fail='start'
+$blocked=Join-Path $LogDirectory ('install-'+$RunId+'-foisonc24provisioner.log')
+[IO.Directory]::CreateDirectory($blocked)|Out-Null
+$failed=$false
+try {Run 'FoisonC24Provisioner.exe' 'monitor-status'} catch {
+  $failed=$true
+  Assert ($_.Exception.Message.Contains('Process launch denied')) 'Logging error replaced original launch error'
+  LogException $_
+}
+Assert $failed 'Blocked component log falsely succeeded'
+Assert (@(Get-ChildItem $LogDirectory -Filter '*.raw').Count -eq 2) 'Raw evidence lost after logging failure'
+$results+='process-logging-fails'
 [IO.File]::WriteAllLines((Join-Path $base 'RESULTS.txt'),[string[]]$results,[Text.Encoding]::UTF8)
 Write-Host ('PASS '+$results.Count+' model/process cases; evidence='+$base+'; PS2/Win7 NOT EXECUTED')

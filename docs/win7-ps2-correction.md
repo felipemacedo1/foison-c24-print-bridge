@@ -62,7 +62,7 @@ CLR2; a API moderna documentada não é alegação de execução Win7.
 | Contratos, ZIP, encoding Python | 28 testes Ubuntu | não substitui runtime |
 | Executor + fixture C# | C#2, referências net20, zero warnings/erros | API compile, não execução |
 | Zero/não zero, streams, argumentos, binário/OEM, flood, timeout, ausente | 9 testes reais Ubuntu pwsh7 | pendente PS2 |
-| Orquestração, admin/lock, rollback/idempotência/uninstall | 22 modelos, PS7 | pendente APIs reais |
+| Orquestração, admin/lock, rollback/idempotência/uninstall | 24 modelos, PS7 | pendente APIs reais |
 | icacls real/ACL/session/lock, erros e token herdado | CI Windows moderno a executar | pendente Win7 |
 | NSIS silencioso, código 50, BOM/append/cronologia | CI Windows moderno a executar | pendente Win7 |
 | net48, vetores/serial simulada, NSIS, ZIP/extração/hashes/UI | pipeline a executar | instalação alvo pendente |
@@ -84,3 +84,14 @@ A branch dedicada não deve ser mesclada nem promovida como final enquanto o alv
 não for exercitado. A rc.1 permanece no histórico, mas a falha PS2 é conhecida:
 **não encaminhar a rc.1 como instalador corrigido**. Novo pacote é candidato.
 Logs recebidos e mídia/VM ficam ignorados e não são anexados ao CI/publicação.
+
+### Regressão encontrada pelo primeiro CI desta branch
+
+O primeiro CI 39048647575 passou Ubuntu e bloqueou no gerador de fixture Windows:
+PowerShell7 Add-Type não suporta OutputType ConsoleApplication. Não era erro do
+executor em produção. O harness agora usa o csc.exe Framework instalado no host
+Core, através do próprio executor, e conserva Add-Type em Windows PowerShell
+2/5. Não houve remoção do teste nem substituição por mocks.
+Também se testa captura incompleta com exit0 (deve falhar) e erro de log que não
+pode substituir o erro original de início. O estado do lock agora distingue
+not-acquired de released; não relata liberação de um lock nunca obtido.
