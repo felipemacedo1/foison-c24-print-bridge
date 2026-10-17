@@ -111,18 +111,15 @@ Case 'legacy-interrupted-adoption' {
   Assert ((ReadState).stage -eq 'adopting') 'Migration intent not durable'
   $fake.fail='';Assert ((Invoke-BridgeSetup 'install') -eq 0) 'Interrupted adoption not recovered'
 }
-# Exercise the actual process runner with fake Start-Process, not replacing Run/ProcessRun.
-function Start-Process {
-  param($FilePath,$ArgumentList,[switch]$PassThru,$WindowStyle,$RedirectStandardOutput,$RedirectStandardError)
-  [IO.File]::WriteAllText($RedirectStandardOutput,'stdout evidence: Instalação concluída com sucesso.')
-  [IO.File]::WriteAllText($RedirectStandardError,'stderr evidence')
-  if ($fake.fail -eq 'start') { throw 'Process launch denied' }
-  $p=New-Object PSObject -Property @{Handle=1;ExitCode=27;Killed=$false}
-  $p | Add-Member ScriptMethod WaitForExit { param($ms) return ($fake.fail -ne 'timeout') }
-  $p | Add-Member ScriptMethod Kill { $this.Killed=$true }
-  $p | Add-Member ScriptMethod Refresh { }
-  $p | Add-Member ScriptMethod Dispose { }
-  return $p
+# Exercise wrapper diagnostics with a result adapter, never replace ProcessRun/Run.
+# This is explicitly a model; actual ProcessStartInfo tests run separately.
+function InvokeProcessAdapter($file,$arguments,$stdout,$stderr,$timeoutMs) {
+  [IO.File]::WriteAllText($stdout,'stdout evidence: Instalação concluída com sucesso.')
+  [IO.File]::WriteAllText($stderr,'stderr evidence')
+  $r=New-Object PSObject -Property @{Started=$true;ProcessId=123;ExitCode=27;TimedOut=$false;CaptureComplete=$true;NativeErrorCode=0;Error='';KillError=''}
+  if ($fake.fail -eq 'start') { $r.Started=$false;$r.ExitCode=$null;$r.CaptureComplete=$false;$r.Error='Process launch denied' }
+  if ($fake.fail -eq 'timeout') { $r.TimedOut=$true;$r.ExitCode=$null;$r.Error='Timeout' }
+  return $r
 }
 ${function:ProcessRun} = $OriginalProcessRun
 foreach ($failure in @('exit27','timeout','start')) {

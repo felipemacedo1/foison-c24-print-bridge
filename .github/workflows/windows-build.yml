@@ -24,7 +24,9 @@ jobs:
         run: |
           ./scripts/test.sh
           python3 scripts/check-encoding.py > encoding-audit.json
+          python3 scripts/check-legacy-api.py
           pwsh -NoProfile -File tests/provisioning-matrix.ps1
+          pwsh -NoProfile -File tests/process-runner.ps1
       - name: End-to-end vectors, simulated spool and serial
         run: |
           dotnet build src/FoisonC24.WindowsReceiver -f net8.0 -c Release
@@ -44,6 +46,9 @@ jobs:
         run: choco install nsis --version=3.10.0 --allow-downgrade --no-progress -y
       - name: Unified build, all tests, NSIS, PKZIP and byte verification
         run: python scripts/build-release.py
+      - name: NSIS real silent error, append/BOM/chronology and exit code
+        shell: powershell
+        run: ./tests/windows-nsis-log.ps1
       - name: Real isolated RedMon APIs (Windows 2022, NOT Win7)
         shell: powershell
         run: ./tests/windows-redmon-smoke.ps1

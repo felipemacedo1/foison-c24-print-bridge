@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SUFFIXES={'.nsi','.nsh','.ps1','.cmd','.bat','.cs','.resx','.txt','.md'}
 # Construct patterns to avoid putting corrupted user-facing strings into sources.
 BAD=['\ufffd','\u00c3\u00a7','\u00c3\u00a3','\u00c3\u00a9','\u00e2\u20ac','\u00c2\u00b0']
-PHRASES=['Instalação concluída com sucesso.','Configuração da impressora Foison C24.','Não foi possível instalar o monitor de impressão.','Verificação de dependências concluída.','Falha na comunicação com a porta serial.','Atenção: reinicialização necessária.']
+PHRASES=['Instalação concluída com sucesso.','Não foi possível executar o processo.','Configuração da impressora Foison C24.','Não foi possível instalar o monitor de impressão.','Verificação de dependências concluída.','Falha na comunicação com a porta serial.','Atenção: reinicialização necessária.']
 def audit():
     files=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard'],cwd=ROOT,text=True).splitlines()
     result=[]

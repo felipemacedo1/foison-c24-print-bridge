@@ -36,7 +36,9 @@ def main():
     if not re.search(r'v?3\.(09|1\d)',nsis_version):raise RuntimeError('Unreviewed NSIS version: '+nsis_version)
     run([sys.executable,'scripts/check-encoding.py'],stdout=subprocess.DEVNULL)
     run([sys.executable,'-m','unittest','discover','-s','tests','-v'],env=dict(os.environ,PYTHONPATH=str(ROOT/'src')))
+    run([sys.executable,'scripts/check-legacy-api.py'])
     run([pwsh,'-NoLogo','-NoProfile','-File','tests/provisioning-matrix.ps1'])
+    run([pwsh,'-NoLogo','-NoProfile','-File','tests/process-runner.ps1'])
     if os.name=='nt':
         run(['powershell','-NoLogo','-NoProfile','-File','tests/provisioning-matrix.ps1'])
         run(['powershell','-NoLogo','-NoProfile','-File','tests/windows-bootstrap.ps1'])
@@ -117,7 +119,7 @@ def main():
         bundle=Path(temporary)/('FoisonC24-v'+version+'-Win7-x64.zip')
         files={'FoisonC24-v'+version+'-Win7-x64/'+p.name:p for p in payload.iterdir()}
         make_zip(bundle,files);report=validate_zip(bundle,files)
-        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,omitted_development_files=omitted,win7='NOT EXECUTED',physical='NOT EXECUTED')
+        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,omitted_development_files=omitted,win7='NOT EXECUTED',physical='NOT EXECUTED',validation_states={'build':'PASSED','automated_tests':'PASSED','clr2_api_compile':'PASSED (C#2/net20 references; not runtime)','win7_ps2_clr2':'NOT EXECUTED','target_installation':'NOT EXECUTED','coreldraw':'NOT EXECUTED','physical_hardware':'NOT EXECUTED'})
         ready=Path(temporary)/'ready';ready.mkdir()
         shutil.copyfile(exe,ready/exe.name);shutil.copyfile(bundle,ready/bundle.name)
         (ready/'SHA256SUMS.txt').write_bytes((sha256(exe)+'  '+exe.name+'\r\n'+sha256(bundle)+'  '+bundle.name+'\r\n').encode('ascii'))

@@ -35,3 +35,15 @@ class WindowsProvisioningContractTests(unittest.TestCase):
         self.assertIn('MUI_LANGUAGE "PortugueseBR"',NSIS)
         self.assertIn('FileWriteUTF16LE /BOM',NSIS)
         self.assertNotIn('chcp 65001',CMD)
+
+    def test_process_executor_avoids_ps2_parameter_sets_and_modern_clr_apis(self):
+        self.assertNotIn('Start-Process',SCRIPT)
+        for item in ['UseShellExecute=false','CreateNoWindow=true','RedirectStandardOutput=true','RedirectStandardError=true','ProcessStartInfo','FileMode.CreateNew','PeekNamedPipe','Worker.Join(milliseconds)','ExitCode=','UNKNOWN']:
+            self.assertIn(item,SCRIPT)
+        for item in ['ReadToEnd(', 'WaitForExit()', 'CopyTo(', 'WaitForExitAsync(', 'Task.Run(', '-Verb RunAs']:
+            self.assertNotIn(item,SCRIPT)
+    def test_nsis_append_preserves_bom_and_propagates_actual_code(self):
+        log=NSIS.split('Function ${PREFIX}Log\n',1)[1].split('FunctionEnd',1)[0]
+        self.assertLess(log.index('FileOpen'),log.index('FileSeek $LogHandle 0 END'))
+        self.assertLess(log.index('FileSeek $LogHandle 0 END'),log.index('FileWriteUTF16LE'))
+        self.assertIn('Function ${PREFIX}Fail\n  StrCpy $FailureCode $0',NSIS)

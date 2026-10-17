@@ -92,11 +92,13 @@ Function ${PREFIX}Log
   ; $3 holds a fixed diagnostic message, never credentials or a print stream.
   ${GetTime} "" "L" $4 $5 $6 $7 $8 $9 $R0
   FileOpen $LogHandle "$LogFile" a
+  FileSeek $LogHandle 0 END
   FileWriteUTF16LE $LogHandle "$6-$5-$4 $8:$9:$R0 [INFO] [$RunId] [nsis] [$Step] $3$\r$\n"
   FileClose $LogHandle
   DetailPrint "$Step: $3"
 FunctionEnd
 Function ${PREFIX}Fail
+  StrCpy $FailureCode $0
   StrCpy $3 "ERROR ExitCode=$0; a operação não foi concluída; arquivos/logs preservados."
   Call ${PREFIX}Log
   SetErrorLevel $FailureCode

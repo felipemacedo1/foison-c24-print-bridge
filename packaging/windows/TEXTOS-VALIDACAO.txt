@@ -4,3 +4,4 @@ Não foi possível instalar o monitor de impressão.
 Verificação de dependências concluída.
 Falha na comunicação com a porta serial.
 Atenção: reinicialização necessária.
+Não foi possível executar o processo.

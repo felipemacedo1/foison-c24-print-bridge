@@ -53,7 +53,7 @@ function Stage($name) {
 function LogException($errorRecord) {
   $e = $errorRecord.Exception
   $where = $errorRecord.InvocationInfo
-  $detail = "Exception=" + $e.GetType().FullName + " Message=" + $e.Message + " File=" + $where.ScriptName + " Line=" + $where.ScriptLineNumber + " Command=" + $where.MyCommand + " ExitCode=" + $LastProcessCode
+  $detail = "Exception=" + $e.GetType().FullName + " Message=" + $e.Message + " File=" + $where.ScriptName + " Line=" + $where.ScriptLineNumber + " Command=" + $where.MyCommand + " ExitCode=" + $(if ($null -eq $LastProcessCode) { "UNKNOWN" } else { $LastProcessCode })
   if ($errorRecord.PSObject.Properties["ScriptStackTrace"]) { $detail += " Stack=" + $errorRecord.ScriptStackTrace }
   $inner = $e.InnerException
   while ($inner) { $detail += " Inner=" + $inner.GetType().FullName + ": " + $inner.Message; $inner = $inner.InnerException }
@@ -69,53 +69,195 @@ function IsAdmin {
 function OperatingSystem { return (Get-WmiObject Win32_OperatingSystem) }
 function Printer { return (Get-WmiObject Win32_Printer -Filter "Name='$PrinterName'") }
 function PortUsers($port) { return @(Get-WmiObject Win32_Printer | Where-Object { $_.PortName -eq $port }) }
+function InitializeProcessRunner {
+  if ('FoisonBridge.LegacyProcess' -as [type]) { return }
+  # C# 2 / CLR 2 API surface: no Task, async, CopyTo, or PowerShell callbacks.
+  # Reader threads preserve bytes. On Windows PeekNamedPipe avoids a blocked read
+  # when a descendant inherits a pipe after the direct child has exited.
+  Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Diagnostics;
+using System.Threading;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+namespace FoisonBridge {
+ public sealed class ProcessResult {
+  public bool Started, TimedOut, CaptureComplete;
+  public int ProcessId, NativeErrorCode;
+  public int? ExitCode;
+  public string Error = "", KillError = "";
+ }
+ public static class LegacyProcess {
+  sealed class Pump {
+   internal readonly Stream Source;
+   internal readonly FileStream Target;
+   internal readonly Thread Worker;
+   internal volatile bool Stop;
+   internal string Error = "";
+   internal bool Eof;
+   internal bool Running;
+   readonly bool windows;
+   IntPtr handle;
+   [DllImport("kernel32.dll", SetLastError=true)]
+   static extern bool PeekNamedPipe(IntPtr pipe, IntPtr buffer, uint size,
+       IntPtr read, out uint available, IntPtr left);
+   internal Pump(Stream source, FileStream target) {
+    Source=source; Target=target;
+    windows=Environment.OSVersion.Platform==PlatformID.Win32NT;
+    if (windows) {
+     // .NET 2 uses FileStream; newer runtimes use AnonymousPipeClientStream.
+     System.Reflection.PropertyInfo property=source.GetType().GetProperty("SafeFileHandle");
+     if (property==null) property=source.GetType().GetProperty("SafePipeHandle");
+     if (property==null) throw new IOException("Pipe handle unavailable; capture refused.");
+     SafeHandle safe=(SafeHandle)property.GetValue(source,null);
+     handle=safe.DangerousGetHandle(); // Source stays alive until Worker joins.
+    }
+    Worker=new Thread(new ThreadStart(Copy)); Worker.IsBackground=true;
+   }
+   void Copy() {
+    try {
+     byte[] buffer=new byte[16384];
+     while (!Stop) {
+      int wanted=buffer.Length;
+      if (windows) {
+       uint available;
+       if (!PeekNamedPipe(handle,IntPtr.Zero,0,IntPtr.Zero,out available,IntPtr.Zero)) {
+        int code=Marshal.GetLastWin32Error();
+        if (code==109 || code==233) { Eof=true; break; }
+        throw new Win32Exception(code,"PeekNamedPipe");
+       }
+       if (available==0) { Thread.Sleep(10); continue; }
+       wanted=(int)Math.Min((uint)buffer.Length,available);
+      }
+      int count=Source.Read(buffer,0,wanted);
+      if (count==0) { Eof=true; break; }
+      Target.Write(buffer,0,count);
+     }
+    } catch(Exception e) { Error=e.ToString(); }
+    finally { try { Target.Dispose(); } catch(Exception e) { Error+=" Close: "+e.ToString(); } }
+   }
+   internal void Start() { Worker.Start(); Running=true; }
+   internal bool Join(int milliseconds) { if(!Running) { try { Target.Dispose(); } catch(Exception e) { Error+=" Close: "+e.ToString(); } return true; } return Worker.Join(milliseconds); }
+  }
+  public static ProcessResult Run(string file,string arguments,string stdout,string stderr,int timeout) {
+   if(timeout<1) throw new ArgumentOutOfRangeException("timeout");
+   ProcessResult result=new ProcessResult();
+   Process process=new Process(); Pump output=null, error=null;
+   FileStream outFile=null, errFile=null;
+   bool exited=false;
+   try {
+    // Open both evidence files BEFORE starting. No process runs if capture cannot start.
+    outFile=new FileStream(stdout,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
+    errFile=new FileStream(stderr,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
+    ProcessStartInfo info=new ProcessStartInfo();
+    info.FileName=file; info.Arguments=arguments;
+    info.UseShellExecute=false; info.CreateNoWindow=true;
+    info.RedirectStandardOutput=true; info.RedirectStandardError=true;
+    // No credentials/Verb: inherit the already validated elevated token.
+    process.StartInfo=info;
+    if(!process.Start()) throw new IOException("Process.Start returned false.");
+    result.Started=true; result.ProcessId=process.Id;
+    output=new Pump(process.StandardOutput.BaseStream,outFile); outFile=null; output.Start();
+    error=new Pump(process.StandardError.BaseStream,errFile); errFile=null; error.Start();
+    exited=process.WaitForExit(timeout);
+    if(!exited) { result.TimedOut=true; result.Error="Timeout; no automatic retry."; }
+    else { result.ExitCode=process.ExitCode; }
+   } catch(Exception e) {
+    result.Error=e.ToString();
+    Win32Exception native=e as Win32Exception;
+    if(native!=null) result.NativeErrorCode=native.NativeErrorCode;
+   } finally {
+    if(result.Started && !exited) {
+     try { if(!process.HasExited) process.Kill(); exited=process.WaitForExit(5000); }
+     catch(Exception e) { result.KillError=e.ToString(); }
+     if(!exited) result.KillError+=" Direct child termination unconfirmed.";
+    }
+    // Bounded drain, shared deadline; never parameterless WaitForExit/ReadToEnd.
+    Stopwatch drain=Stopwatch.StartNew();
+    bool outDone=output==null || output.Join(2000);
+    int remaining=Math.Max(0,2000-(int)drain.ElapsedMilliseconds);
+    bool errDone=error==null || error.Join(remaining);
+    if(output!=null) output.Stop=true;
+    if(error!=null) error.Stop=true;
+    if(!outDone && output!=null) outDone=output.Join(500);
+    if(!errDone && error!=null) errDone=error.Join(500);
+    result.CaptureComplete=output!=null && error!=null && outDone && errDone &&
+        output.Eof && error.Eof && output.Error.Length==0 && error.Error.Length==0;
+    if(output!=null && output.Error.Length>0) result.Error+=" Stdout: "+output.Error;
+    if(error!=null && error.Error.Length>0) result.Error+=" Stderr: "+error.Error;
+    if(!result.CaptureComplete && result.Started) result.Error+=" Capture incomplete; raw evidence retained.";
+    if(outFile!=null) outFile.Dispose();
+    if(errFile!=null) errFile.Dispose();
+    // Windows pumps never wait on an empty pipe; owned handles close after join.
+    // A non-Windows inherited-pipe fixture may leave a background reader until EOF.
+    if(outDone && errDone) process.Dispose();
+   }
+   return result;
+  }
+ }
+}
+'@
+}
+function InvokeProcessAdapter($file,$arguments,$stdout,$stderr,$timeoutMs) {
+  InitializeProcessRunner
+  return [FoisonBridge.LegacyProcess]::Run($file,$arguments,$stdout,$stderr,$timeoutMs)
+}
 function ProcessRun($file, $arguments, $timeoutMs = 120000) {
-  $script:LastProcessCode = $null # never attribute a previous child's exit to launch failure/timeout
+  $script:LastProcessCode = $null
   $watch = [Diagnostics.Stopwatch]::StartNew()
-  $p = $null; $code = $null; $timedOut = $false
+  $code = $null; $result = $null; $failure = $null
   $component = [IO.Path]::GetFileNameWithoutExtension($file).ToLowerInvariant()
   $id = [Guid]::NewGuid().ToString("N")
-  $stdout = Join-Path $LogDirectory ("process-" + $id + ".out")
-  $stderr = Join-Path $LogDirectory ("process-" + $id + ".err")
+  $prefix = Join-Path $LogDirectory ("install-" + $RunId + "-" + $component + "-" + $id)
+  $stdout = $prefix + ".out.raw"; $stderr = $prefix + ".err.raw"
   $componentLog = Join-Path $LogDirectory ("install-" + $RunId + "-" + $component + ".log")
   $command = 'exe="' + $file + '" args=' + $arguments
-  Log ("PROCESS " + $command) "INFO" $component
   try {
-    $p = Start-Process -FilePath $file -ArgumentList $arguments -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-    $handle = $p.Handle
-    if (-not $p.WaitForExit($timeoutMs)) {
-      $timedOut = $true
-      $p.Kill()
-      # Bound cleanup too: no indefinite WaitForExit()/stdout pipe read.
-      $p.WaitForExit(5000) | Out-Null
-      throw "Timeout no processo criado pelo Bridge; nenhuma repetição automática."
+    Log ("PROCESS " + $command) "INFO" $component
+    $result = InvokeProcessAdapter $file $arguments $stdout $stderr $timeoutMs
+    # Unknown is never zero. Preserve a real non-timeout code even if capture fails.
+    if ($null -ne $result.ExitCode -and -not $result.TimedOut) {
+      $code = [int]$result.ExitCode; $script:LastProcessCode = $code
     }
-    $p.Refresh(); $code = $p.ExitCode
-    if ($null -eq $code) { throw "Processo sem código de saída verificável." }
-    $script:LastProcessCode = [int]$code
-    return [int]$code
-  } finally {
+    if ($result.Error -or $result.KillError -or -not $result.CaptureComplete -or $null -eq $code) {
+      throw ("Não foi possível executar o processo. Started=" + $result.Started + " PID=" + $result.ProcessId + " Timeout=" + $result.TimedOut + " NativeErrorCode=" + $result.NativeErrorCode + " Error=" + $result.Error + " KillError=" + $result.KillError)
+    }
+    return $code
+  } catch { $failure = $_; throw } finally {
     $watch.Stop()
-    $summary = [DateTime]::UtcNow.ToString("o") + " [" + $RunId + "] [" + $Step + "] " + $command + " ExitCode=" + $code + " Timeout=" + $timedOut + " DurationMs=" + $watch.ElapsedMilliseconds
-    [IO.File]::AppendAllText($componentLog, $summary + "`r`n", $Utf8)
-    foreach ($path in @($stdout,$stderr)) {
-      if (Test-Path $path) {
-        # Native output encoding is not guaranteed. Preserve raw bytes independently;
-        # decode only a bounded excerpt, never concatenate OEM bytes into UTF-8 logs.
-        $stream = [IO.File]::OpenRead($path)
-        try {
-          $bytes = New-Object byte[] 16384
-          $count = $stream.Read($bytes,0,$bytes.Length)
-          $strictUtf8 = New-Object Text.UTF8Encoding($false,$true)
-          try { $content = $strictUtf8.GetString($bytes,0,$count) } catch { $content = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage).GetString($bytes,0,$count) }
-          $content = $content.Replace([string][char]0xfffd,"?")
-          [IO.File]::AppendAllText($componentLog, [IO.Path]::GetExtension($path) + "=" + $content + "`r`n", $Utf8)
-        } finally { $stream.Dispose() }
-        [IO.File]::Move($path, (Join-Path $LogDirectory ("install-" + $RunId + "-" + $component + "-" + $id + [IO.Path]::GetExtension($path) + ".raw")))
+    $exitText = "UNKNOWN"; if ($null -ne $code) { $exitText = [string]$code }
+    $details = "Started=UNKNOWN Timeout=False CaptureComplete=False"
+    if ($result) { $details = "Started=" + $result.Started + " PID=" + $result.ProcessId + " Timeout=" + $result.TimedOut + " CaptureComplete=" + $result.CaptureComplete + " NativeErrorCode=" + $result.NativeErrorCode + " Error=" + $result.Error + " KillError=" + $result.KillError }
+    $summary = [DateTime]::UtcNow.ToString("o") + " [" + $RunId + "] [" + $Step + "] " + $command + " ExitCode=" + $exitText + " " + $details + " DurationMs=" + $watch.ElapsedMilliseconds + " StdoutRaw=" + $stdout + " StderrRaw=" + $stderr
+    if ($failure) { $summary += " Exception=" + $failure.Exception.ToString() }
+    # Diagnostic failure must not replace the original launch/timeout exception.
+    try {
+      [IO.File]::AppendAllText($componentLog, $summary + "`r`n", $Utf8)
+      foreach ($path in @($stdout,$stderr)) {
+        if (Test-Path $path) {
+          $stream = [IO.File]::Open($path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
+          try {
+            $bytes = New-Object byte[] 16384
+            $count = $stream.Read($bytes,0,$bytes.Length)
+            $strictUtf8 = New-Object Text.UTF8Encoding($false,$true)
+            $encodingName = "UTF-8 (validated excerpt; raw authoritative)"
+            try { $content = $strictUtf8.GetString($bytes,0,$count) } catch {
+              $encoding = [Text.Encoding]::GetEncoding([Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
+              $encodingName = "OEM heuristic " + $encoding.CodePage + " (raw authoritative)"
+              $content = $encoding.GetString($bytes,0,$count)
+            }
+            $content = $content.Replace([string][char]0xfffd,"?")
+            [IO.File]::AppendAllText($componentLog, "RawFile=" + $path + " ExcerptEncoding=" + $encodingName + " Excerpt=" + $content + "`r`n", $Utf8)
+          } finally { $stream.Dispose() }
+        }
       }
+      $level = "INFO"; if ($failure -or ($null -ne $code -and $code -ne 0)) { $level = "ERROR" }
+      Log $summary $level $component
+    } catch {
+      Write-Host ("FATAL: Falha ao registrar processo: " + $_.Exception.Message + "; " + $summary)
+      if (-not $failure) { throw }
     }
-    if ($p) { $p.Dispose() }
-    Log $summary "INFO" $component
   }
 }
 function Run($file,$arguments) {
@@ -377,7 +519,7 @@ function Invoke-BridgeSetup($mode) {
     Log "Instalação concluída com sucesso. Propriedades da fila e conversão verificadas; captura via impressão ainda requer teste; corte físico bloqueado."
     return 0
   } catch {
-    $record = $_; $failure = $_.Exception.Message; $failedStep = $Step; $failureExternalCode = $LastProcessCode
+    $record = $_; $failure = $_.Exception.Message; $failedStep = $Step; $failureExternalCode = $LastProcessCode; if ($null -eq $failureExternalCode) { $failureExternalCode = "UNKNOWN" }
     try { LogException $record; Log ("InstallationState=" + $(if ($current) { $current.stage + " port=" + $current.port } else { "not-loaded" })) "ERROR" } catch { Write-Host ("FATAL: " + $failure + " / Logging=" + $_.Exception.Message) }
     if ($lock -and $createdThisRun -and $current) {
       try { Stage "ROLLBACK"; RemoveOwned $current $portCreatedThisRun } catch { try { LogException $_; Log "ROLLBACK preservou recursos sem prova de propriedade." "ERROR" } catch { Write-Host $_.Exception.Message } }
