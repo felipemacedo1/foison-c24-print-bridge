@@ -8,7 +8,7 @@
   logs correlacionados desde CMD e NSIS com verify independente.
 - UTF-8 BOM NSIS/PS/TXT, idioma PortugueseBR, charset explícito, bootstrap ASCII;
   testes de texto e pipeline unificado de build/extração/hashes/ZIP convencional.
-- Evidência local parcial: 23 Python, 20 modelos PS e 52 checks C# reais/simulados;
+- Evidência local parcial: 23 Python, 22 modelos PS e 52 checks C# reais/simulados;
   builds net48 sem warnings. Build NSIS/pacote final e CI em andamento.
 - Win7/PS2/CorelDRAW/serial/Foison não executados. Corte físico bloqueado.
 - Matriz e limites: docs/release-validation.md. Publicação somente prerelease

@@ -43,3 +43,12 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Saída dist/development-rc1 explicitamente dirty/development, NÃO publicar.
 - Últimas correções posteriores (resumo ASCII, ACL, mais propriedades da fila,
   decode UTF-8 primeiro e scripts CI) serão incluídas no build limpo do commit.
+
+## CI 38989247059 / 6bc41db
+- Ubuntu passou (23 Python / 20 modelos / 52 C#).
+- Windows executou modelos e bootstrap missing-ps1 devolveu 66 com diagnóstico.
+  Teste falhou porque filtro *-cmd.log também contou installation-latest-cmd.log;
+  corrigido para install-*-cmd.log. Não foi falha silenciosa do produto.
+- Acrescentados casos migração interrompida e ProgramData bloqueado (22 modelos),
+  preservação do código original após rollback, duração total e inspeção Burn do
+  VC2019 (Win7 x64 KB2999226 explícito). Testes locais passaram.

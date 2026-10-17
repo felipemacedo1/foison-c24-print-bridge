@@ -25,7 +25,7 @@ foreach($case in @('missing-ps1','missing-powershell','syntax-error','exit23','f
   if($case -eq 'missing-powershell') {$expected=69}
   if($case -eq 'syntax-error') {$expected=1}
   if($p.ExitCode -ne $expected) {throw "$case code=$($p.ExitCode); expected=$expected"}
-  $logs=@(Get-ChildItem $dir -Recurse -Filter '*-cmd.log')
+  $logs=@(Get-ChildItem $dir -Recurse -Filter 'install-*-cmd.log')
   if($logs.Count -ne 1) {throw "${case}: CMD diagnostic missing"}
   $text=[IO.File]::ReadAllText($logs[0].FullName,[Text.Encoding]::Default)
   if(-not $text.Contains('ExitCode='+$expected)) {throw 'Missing propagated exit evidence'}

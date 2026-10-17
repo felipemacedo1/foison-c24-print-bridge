@@ -31,7 +31,7 @@ function InitializeLogging {
         $old = @(Get-ChildItem $directory -Filter "install-*" | Where-Object { $_.Name -notlike ("*"+$RunId+"*") -and $_.LastWriteTimeUtc -lt [DateTime]::UtcNow.AddDays(-30) } | Sort-Object LastWriteTimeUtc -Descending)
         if ($old.Count -gt 200) { $old | Select-Object -Skip 200 | Remove-Item -Force }
       } catch { }
-      [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+      try { [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false) } catch { Log "Console sem suporte a UTF-8; bytes stdout/stderr preservados como .raw." "WARN" }
       $env:FOISON_RUN_ID = $RunId
       Log "Iniciando Foison C24 Print Bridge; log UTF-8; sem conteúdo de impressão."
       return
@@ -288,6 +288,7 @@ function SessionPermissions {
   Run (Join-Path $env:windir "System32\icacls.exe") ('"' + $session + '" /grant *S-1-5-32-545:(OI)(CI)M')
 }
 function Invoke-BridgeSetup($mode) {
+  $setupWatch = [Diagnostics.Stopwatch]::StartNew()
   $lock = $null; $current = $null; $createdThisRun = $false; $portCreatedThisRun = $false
   try {
     InitializeLogging
@@ -375,17 +376,18 @@ function Invoke-BridgeSetup($mode) {
     Log "Instalação concluída com sucesso. Captura e conversão verificadas; corte físico bloqueado."
     return 0
   } catch {
-    $record = $_; $failure = $_.Exception.Message; $failedStep = $Step
+    $record = $_; $failure = $_.Exception.Message; $failedStep = $Step; $failureExternalCode = $LastProcessCode
     try { LogException $record; Log ("InstallationState=" + $(if ($current) { $current.stage + " port=" + $current.port } else { "not-loaded" })) "ERROR" } catch { Write-Host ("FATAL: " + $failure + " / Logging=" + $_.Exception.Message) }
     if ($lock -and $createdThisRun -and $current) {
       try { Stage "ROLLBACK"; RemoveOwned $current $portCreatedThisRun } catch { try { LogException $_; Log "ROLLBACK preservou recursos sem prova de propriedade." "ERROR" } catch { Write-Host $_.Exception.Message } }
     }
-    try { [IO.File]::WriteAllText((Join-Path $LogDirectory ("install-" + $RunId + "-summary.txt")), "ERROR Stage=" + $failedStep + " ExternalExit=" + $LastProcessCode + " ExitCode=1", [Text.Encoding]::ASCII) } catch { Write-Host $_.Exception.Message }
-    Write-Host ("ERRO: " + $failure + "`r`nEtapa: " + $failedStep + "`r`nCódigo de saída externo: " + $LastProcessCode + "`r`nLog: " + $LogPath + "`r`nA instalação não foi concluída.")
+    try { [IO.File]::WriteAllText((Join-Path $LogDirectory ("install-" + $RunId + "-summary.txt")), "ERROR Stage=" + $failedStep + " ExternalExit=" + $failureExternalCode + " ExitCode=1", [Text.Encoding]::ASCII) } catch { Write-Host $_.Exception.Message }
+    Write-Host ("ERRO: " + $failure + "`r`nEtapa: " + $failedStep + "`r`nCódigo de saída externo: " + $failureExternalCode + "`r`nLog: " + $LogPath + "`r`nA instalação não foi concluída.")
     return 1
   } finally {
     if ($lock) { $lock.Dispose() }
-    try { Log ("END operation=" + $mode + " lock_released=true") } catch { Write-Host $_.Exception.Message }
+    $setupWatch.Stop()
+    try { Log ("END operation=" + $mode + " lock_released=true DurationMs=" + $setupWatch.ElapsedMilliseconds) } catch { Write-Host $_.Exception.Message }
   }
 }
 if ($MyInvocation.InvocationName -ne ".") { exit (Invoke-BridgeSetup $Operation) }

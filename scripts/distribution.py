@@ -118,3 +118,19 @@ def make_zip(path, files):
             info.compress_type=zipfile.ZIP_DEFLATED;info.create_system=0;info.external_attr=0x20
             with z.open(info,'w',force_zip64=False) as out, Path(source).open('rb') as inp:
                 for block in iter(lambda:inp.read(1024*1024),b''):out.write(block)
+
+
+def vc_legacy_manifest(path):
+    """Inspect pinned official Burn bundle's Win7 x64 UCRT/package conditions."""
+    import xml.etree.ElementTree as xml
+    with tempfile.TemporaryDirectory(prefix='foison-vc-') as tmp:
+        subprocess.run(['7z','x','-y',str(path),'-o'+tmp,'0','u31'],check=True,stdout=subprocess.DEVNULL)
+        manifest=xml.parse(Path(tmp)/'0').getroot()
+        app=xml.parse(Path(tmp)/'u31').getroot()
+        packages=[x for x in manifest.iter() if x.tag.split('}')[-1]=='MsuPackage' and x.get('Id')=='Windows7_MSU_x64']
+        runtime=[x for x in manifest.iter() if x.get('Id')=='vcRuntimeMinimum_x64' and x.tag.split('}')[-1]=='MsiPackage']
+        conditions=[x.attrib for x in app.iter() if x.tag.split('}')[-1]=='WixBalCondition']
+        if len(packages)!=1 or packages[0].get('InstallCondition')!='VersionNT = v6.1 AND VersionNT64' or packages[0].get('KB')!='2999226':raise ValueError('VC bundle no longer targets Windows 7 x64 UCRT')
+        if len(runtime)!=1 or runtime[0].get('Version')!='14.29.30157':raise ValueError('Wrong native runtime package version')
+        if not any(x.get('Condition')=='VersionNT64 >= v6.0 OR (VersionNT64 = v5.2 AND ServicePackLevel >= 1)' for x in conditions):raise ValueError('Unexpected VC bundle OS eligibility')
+        return {'runtime':runtime[0].attrib,'win7_ucrt':packages[0].attrib,'bootstrap_conditions':conditions,'actual_win7_execution':'NOT EXECUTED'}

@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from distribution import make_zip, pe_info, sha256, validate_zip
+from distribution import make_zip, pe_info, sha256, validate_zip, vc_legacy_manifest
 ROOT=Path(__file__).resolve().parents[1]
 PACK=ROOT/'packaging/windows'
 
@@ -78,6 +78,7 @@ def main():
         if checks['FoisonC24.Core.dll']['clr_flags']&2:raise ValueError('Core requires 32-bit')
         vc=stage/'prerequisites/vc_redist.x64.exe'
         if checks['prerequisites/vc_redist.x64.exe']['file_version']!=[14,29,30157,0]:raise ValueError('VC runtime is not pinned Win7-era v142')
+        vc_manifest=vc_legacy_manifest(vc)
         if sha256(vc)!='6afae68a783f11292149175844aed0e2ce3f247bc0250f6cb18c931295b3f399':raise ValueError('Unexpected VC runtime')
         for exe in ['FoisonC24Receiver.exe','FoisonC24Diagnostic.exe','FoisonC24Provisioner.exe']:
             if checks[exe]['file_version']!=[int(match.group(i)) for i in (1,2,3)]+[0]:raise ValueError('Version mismatch: '+exe)
@@ -113,7 +114,7 @@ def main():
         bundle=Path(temporary)/('FoisonC24-v'+version+'-Win7-x64.zip')
         files={'FoisonC24-v'+version+'-Win7-x64/'+p.name:p for p in payload.iterdir()}
         make_zip(bundle,files);report=validate_zip(bundle,files)
-        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,win7='NOT EXECUTED',physical='NOT EXECUTED')
+        report.update(version=version,commit=commit,dirty=dirty,nsis=nsis_version,pe=checks,installer_pe=installer_info,vc_manifest=vc_manifest,win7='NOT EXECUTED',physical='NOT EXECUTED')
         ready=Path(temporary)/'ready';ready.mkdir()
         shutil.copyfile(exe,ready/exe.name);shutil.copyfile(bundle,ready/bundle.name)
         (ready/'SHA256SUMS.txt').write_text(sha256(exe)+'  '+exe.name+'\n'+sha256(bundle)+'  '+bundle.name+'\n',encoding='ascii')

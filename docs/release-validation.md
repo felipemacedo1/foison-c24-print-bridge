@@ -7,7 +7,7 @@ Win7 apenas por build, mocks, APIs em Windows 2022 ou transmissão serial.
 ## Evidências locais (Ubuntu)
 
 - 23 testes Python (domínio, contratos, ZIP negativo/positivo, Unicode).
-- 20 casos PS em PowerShell 7.6.7, orquestração real com adaptadores de spooler
+- 22 casos PS em PowerShell 7.6.7, orquestração real com adaptadores de spooler
   simulados; arquivos de estado/log/lock reais. NÃO executa PowerShell 2.
 - 52 checks C# E2E com GS 10.02.1 e MuPDF 1.23.10 reais; stdin/binário/serial
   simulados; sem porta serial/hardware.
@@ -73,7 +73,10 @@ Referências primárias: [charset NSIS](https://nsis.sourceforge.io/Docs/Chapter
 
 .NET alvo 4.8, não 4.8.1. [Matriz Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 VC++ embarcado 2019 v142 **14.29.30157.0 x64**, versão/hash verificados no build,
-extraído de URL oficial fixada. Não seguir `latest` moderno, cuja matriz não
+extraído de URL oficial fixada. O BurnManifest foi extraído e contém explicitamente
+Windows7_MSU_x64 / KB2999226, condição `VersionNT = v6.1 AND VersionNT64`,
+MSI runtime 14.29.30157 e condição bootstrap que admite NT6.1 x64. O pipeline
+verifica essas condições do bundle real; não confunde isso com execução no Win7. Não seguir `latest` moderno, cuja matriz não
 inclui Win7. [Versões v142](https://learn.microsoft.com/en-us/lifecycle/faq/visual-c-faq),
 [redist moderno](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
 Bootstrap VC é PE x86 contendo runtime x64; engines/RedMon/helpers são AMD64;

@@ -95,6 +95,22 @@ Case 'legacy-literal-path' {
   Assert ((ReadProperties ($LegacyPath+'.legacy.properties.bak')).receiver -eq 'C:\new\test\Receiver.exe') 'Backslash escapes corrupted'
 }
 Case 'logging-fallback' { $script:LogDirectory=Join-Path $StateDir 'not-a-directory';[IO.Directory]::CreateDirectory($StateDir)|Out-Null;[IO.File]::WriteAllText($LogDirectory,'blocked');$badLog=$LogDirectory;$fake.admin=$false;CheckFailure (Invoke-BridgeSetup 'install') 'ADMIN';Assert ($LogPath -notlike ($badLog+'/*')) 'Fallback unavailable' }
+Case 'programdata-unwritable' {
+  [IO.Directory]::CreateDirectory($StateDir)|Out-Null
+  $script:StateDir=Join-Path $StateDir 'blocked';[IO.File]::WriteAllText($StateDir,'file')
+  $script:StatePath=Join-Path $StateDir 'install-state.properties';$fake.admin=$false
+  CheckFailure (Invoke-BridgeSetup 'install') 'ADMIN'
+  Assert ($LogPath.StartsWith((Join-Path ([IO.Path]::GetTempPath()) 'FoisonC24'))) 'TEMP fallback not selected'
+  [IO.File]::Copy($LogPath,(Join-Path $base 'fallback-evidence.log'))
+}
+Case 'legacy-interrupted-adoption' {
+  Assert ((Invoke-BridgeSetup 'install') -eq 0) 'Setup'
+  $s=ReadState;$s.Remove('owner');$s.Remove('queue_fingerprint');WriteState $s
+  [IO.File]::Move($StatePath,$LegacyPath);$fake.queue.Comment='';$fake.ports[$s.port]='legacy'
+  $fake.fail='configure-port';CheckFailure (Invoke-BridgeSetup 'install') 'REDMON_INSTALL'
+  Assert ((ReadState).stage -eq 'adopting') 'Migration intent not durable'
+  $fake.fail='';Assert ((Invoke-BridgeSetup 'install') -eq 0) 'Interrupted adoption not recovered'
+}
 # Exercise the actual process runner with fake Start-Process, not replacing Run/ProcessRun.
 function Start-Process {
   param($FilePath,$ArgumentList,[switch]$PassThru,$WindowStyle,$RedirectStandardOutput,$RedirectStandardError)
