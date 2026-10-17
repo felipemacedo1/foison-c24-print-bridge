@@ -92,7 +92,8 @@ jobs:
             if ($zip.Entries | Where-Object { $_.FullName -match '\.(raw|pdf)$' }) { throw 'Raw user content found in report' }
             $summary = New-Object IO.StreamReader($zip.GetEntry('summary.txt').Open())
             try { $text = $summary.ReadToEnd() } finally { $summary.Dispose() }
-            if (-not $text.Contains('Windows Spooler: UNKNOWN') -or -not $text.Contains('NÃO EXECUTADOS')) { throw 'Smoke report must not claim real spooler/hardware validation' }
+            $notExecuted = 'N' + [char]0x00C3 + 'O EXECUTADOS'
+            if (-not $text.Contains('Windows Spooler: UNKNOWN') -or -not $text.Contains($notExecuted)) { throw 'Smoke report must not claim real spooler/hardware validation' }
           } finally { $zip.Dispose() }
       - name: Preserve failure evidence, not customer jobs
         if: always()
