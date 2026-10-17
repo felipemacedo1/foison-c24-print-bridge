@@ -1,0 +1,40 @@
+name: Promote validated prerelease (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Build and deterministic acceptance run ID
+        required: true
+      source_sha:
+        description: Exact tested 40-character source commit
+        required: true
+      tag:
+        description: Existing rc tag pointing to source_sha
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: foison-prerelease-promotion
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent archive validator
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+      - name: Verify immutable CI artifacts and promote only a prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: python3 scripts/publish-validated.py --run-id "$RUN_ID" --source "$SOURCE_SHA" --tag "$RELEASE_TAG"
