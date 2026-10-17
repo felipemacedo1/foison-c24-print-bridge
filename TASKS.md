@@ -4,7 +4,10 @@
 - [x] Diagnosticar PScript sem UI OEM e implementar painel explícito no aplicativo.
 - [x] Geometria de ajustes testada, ensaio revogado, protocolo/limites preservados.
 - [ ] Concluir pacote/CI/screenshots do painel novo e conferir artefatos.
-- [ ] Cliente abrir aplicativo, capturar quadrado e validar prévia/ensaio/corte.
+- [x] Cliente abriu aplicativo: lista vazia, captura ainda NÃO comprovada.
+- [x] Coletor somente leitura de pasta/fila/Spooler/RedMon e exportação.
+- [ ] Receber relatório da instalação atual e corrigir a causa real da captura.
+- [ ] Validar prévia, ensaio e corte no alvo, sem presumir cadeia funcional.
 
 ## Correção Win7/PS2 1.0.1-rc.2
 - [x] Auditar main atual e logs reais correlacionados, sem atribuir falha a ACL.

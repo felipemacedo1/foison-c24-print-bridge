@@ -1,3 +1,12 @@
+## Retorno posterior: fila visível, captura NÃO aparece
+
+Usuário confirmou lista vazia no aplicativo depois de imprimir. Não declarar
+cadeia funcional nem corte desbloqueado operacionalmente: falta evidência
+RedMon/Receiver/capturas. Solicitado relatório da instalação existente, sem
+reinstalar por tentativa. Coletor somente leitura rc.3 acrescenta contagens,
+WMI/Spooler/registroRedMon e localização do Receiver ao relatório exportável.
+CI39057524445 passou o painel anterior; coletor em validação no STATUS.
+
 ## 2026-10-17 — retorno cliente / painel de corte rc.3
 
 Cliente relata instalação rc.2 rápida e impressora reconhecida no CorelDRAW X6.

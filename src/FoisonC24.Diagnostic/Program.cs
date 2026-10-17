@@ -18,6 +18,11 @@ namespace FoisonC24.Diagnostic
         [STAThread]
         private static int Main(string[] args)
         {
+            if(args.Length==2 && args[0]=="--capture-diagnostics")
+            {
+                File.WriteAllText(args[1],CaptureDiagnostics.Collect(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),"FoisonC24")),new System.Text.UTF8Encoding(true));
+                return 0; // A diagnostic report is not a successful print/cut assertion.
+            }
             if(args.Contains("--selftest") || (args.Length==2 && args[0]=="--capture-check"))
             {
                 Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),new System.Text.UTF8Encoding(false)) { AutoFlush=true });
@@ -98,14 +103,14 @@ namespace FoisonC24.Diagnostic
             var left=new Panel { Dock=DockStyle.Left,Width=230 };left.Controls.Add(jobs);Controls.Add(left);
             Add("Atualizar trabalhos",RefreshJobs);Add("Pré-visualizar",async()=>await ConvertSelected());
             Add("Configurações de corte",ConfigureCut);
-            Add("Validar máquina (dev)",ApproveMachine);Add("Diagnóstico",Diagnose);Add("Exportar relatório",Export);
+            Add("Validar máquina (dev)",ApproveMachine);Add("Diagnóstico",async()=>await Diagnose());Add("Exportar relatório",async()=>await Export());
             buttons.Controls.Add(port);motionButton=Add("Movimento sem lâmina",async()=>await Send(true));cutButton=Add("Primeiro corte",async()=>await Send(false));
             stop=Add("INTERROMPER ENVIO",()=> { cancel?.Cancel(); status.Text="Cancelando envio. Use PAUSE/OFFLINE no painel. Fechar COM não garante parar o buffer da plotter. Não repita o trabalho."; });
             stop.BackColor=Color.MistyRose;
             port.TextChanged+=(s,e)=> { profile=null;motionKey=null;UpdateGates(); };
             jobs.SelectedIndexChanged+=(s,e)=> { if(cancel!=null)return;drawing=null;originalDrawing=null;source=null;jobHash=null;motionKey=null;preview.Invalidate();UpdateGates(); };
             preview.Paint+=PaintPreview;
-            timer.Tick+=(s,e)=> { if(cancel==null) { try { RefreshJobs(); } catch(Exception error) { timer.Stop();Error(error); } } };timer.Start();RefreshJobs();UpdateGates();
+            timer.Tick+=(s,e)=> { if(cancel==null) { try { RefreshJobs(); } catch(Exception error) { timer.Stop();Error(error); } } };timer.Start();try { RefreshJobs(); } catch(Exception error) { timer.Stop();Error(error); }UpdateGates();
             FormClosing+=(s,e)=> { if(cancel!=null) { cancel.Cancel();e.Cancel=true;MessageBox.Show("Aguarde a interrupção e use o painel da plotter. O buffer pode continuar executando."); } };
         }
         private Button Add(string text,Action action)
@@ -142,7 +147,7 @@ namespace FoisonC24.Diagnostic
         {
             UpdateGates();
             status.Text="BLOQUEADO — "+e.Message;
-            try { Directory.CreateDirectory(Path.Combine(data,"session"));File.AppendAllText(Path.Combine(data,"session","diagnostic.log"),DateTime.UtcNow.ToString("O")+" "+e.GetType().Name+": "+e.Message+Environment.NewLine); } catch(IOException) { }
+            try { Directory.CreateDirectory(Path.Combine(data,"session"));File.AppendAllText(Path.Combine(data,"session","diagnostic.log"),DateTime.UtcNow.ToString("O")+" "+e.GetType().Name+": "+e.Message+Environment.NewLine); } catch(Exception logError) when(logError is IOException || logError is UnauthorizedAccessException) { status.Text+="\r\nFalha ao gravar diagnostic.log: "+logError.GetType().Name; }
             MessageBox.Show(e.Message+"\r\nNenhum reenvio automático será feito. Se houve transmissão, confira PAUSE/OFFLINE no painel.",Text,MessageBoxButtons.OK,MessageBoxIcon.Warning);
         }
         private void RefreshJobs()
@@ -218,8 +223,11 @@ namespace FoisonC24.Diagnostic
             }
             e.Graphics.DrawString(drawing.SizeLabel+" | X →  Y ↑",Font,Brushes.Black,5,5);
         }
-        private void Diagnose()
+        private async Task Diagnose()
         {
+            cancel=new CancellationTokenSource();Busy(true);
+            try {
+            string captureReport=await Task.Run(()=>CaptureDiagnostics.Collect(data));
             string spooler;
             try { using(var s=new System.ServiceProcess.ServiceController("Spooler")) spooler=s.Status.ToString(); } catch(Exception e) { spooler=e.Message; }
             string processes=String.Join(", ",Process.GetProcesses().Where(p=>p.ProcessName.IndexOf("flexi",StringComparison.OrdinalIgnoreCase)>=0 || p.ProcessName.IndexOf("production",StringComparison.OrdinalIgnoreCase)>=0).Select(p=>p.ProcessName));
@@ -228,20 +236,33 @@ namespace FoisonC24.Diagnostic
                 "Configuração serial: "+port.Text+" / 38400 / 8N1 / Xon/Xoff. Nenhuma sondagem ou escrita foi feita.\r\n"+
                 "Cancelamento descarta somente o buffer do PC. PAUSE/OFFLINE no painel é obrigatório. Nunca envie reset desconhecido.\r\n"+
                 "Falhas de captura: veja receiver-errors.log; conversão: diagnóstico exportável. FTDI/FlexiSIGN não são alterados.";
-            status.Text=report;MessageBox.Show(report,Text);
+            status.Text="Diagnóstico coletado sem abrir COM. Use Exportar relatório para compartilhar as evidências.";
+            using(var details=new Form { Text="Diagnóstico da impressão — somente leitura",Width=850,Height=650 })
+            {
+                details.Controls.Add(new TextBox { Dock=DockStyle.Fill,Multiline=true,ReadOnly=true,ScrollBars=ScrollBars.Both,WordWrap=false,Text=report+"\r\n\r\n"+captureReport });
+                details.ShowDialog(this);
+            }
+            } catch(Exception error) { Error(error); }
+            finally { cancel.Dispose();cancel=null;Busy(false); }
         }
-        private void Export()
+        private async Task Export()
         {
             using(var dialog=new SaveFileDialog { Filter="ZIP|*.zip",FileName="FoisonC24-diagnostico.zip",OverwritePrompt=true })
             {
                 if(dialog.ShowDialog()!=DialogResult.OK)return;
+                cancel=new CancellationTokenSource();Busy(true);
+                try {
+                string captureReport=await Task.Run(()=>CaptureDiagnostics.Collect(data));
                 using(var f=new FileStream(dialog.FileName,FileMode.Create))
                 using(var zip=new ZipArchive(f,ZipArchiveMode.Create))
                 {
+                    using(var writer=new StreamWriter(zip.CreateEntry("capture-diagnostics.txt").Open(),new System.Text.UTF8Encoding(true)))writer.Write(captureReport);
                     foreach(var folder in new[]{data,Path.Combine(data,"captures"),Path.Combine(data,"session"),Path.Combine(data,"Logs")})
                     if(Directory.Exists(folder)) foreach(var file in Directory.GetFiles(folder).Where(x=>x.EndsWith(".properties") || x.EndsWith(".json") || x.EndsWith(".log") || x.EndsWith(".sent") || Path.GetFileName(x)=="INTERRUPTED")) zip.CreateEntryFromFile(file,Path.GetFileName(folder)+"/"+Path.GetFileName(file));
                 }
                 MessageBox.Show("Relatório exportado sem arquivos brutos/PDF/vetores. Revise os erros antes de compartilhar: podem conter caminhos locais ou trechos de mensagens do interpretador.");
+                } catch(Exception error) { Error(error); }
+                finally { cancel.Dispose();cancel=null;Busy(false); }
             }
         }
     }

@@ -8,6 +8,8 @@
 - Atalho explícito e instruções de fluxo; uma cópia, margem2mm, limites mantidos.
 - Nenhum comando de força/velocidade presumido; ajustes no painel da máquina.
 - rc.2: instalação/fila no Corel relatadas pelo cliente, não prova de corte.
+  Retorno posterior confirma lista vazia: causa real de captura ainda pendente
+  de logs do alvo. Novo coletor/exportação somente leitura não altera recursos.
 
 # 1.0.1-rc.2 — candidato de correção Win7/PS2 (não homologado)
 

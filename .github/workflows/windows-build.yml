@@ -68,6 +68,13 @@ jobs:
         run: |
           $p = Start-Process packaging/windows/FoisonC24Diagnostic.exe -ArgumentList @('--ui-smoke', "`"$PWD/dist/UI-preview.png`"", "`"$PWD/tests/fixtures/square-20mm.ps`"") -Wait -PassThru
           if ($p.ExitCode -ne 0) { exit $p.ExitCode }
+          $report = Join-Path $PWD 'dist/capture-diagnostics.log'
+          $p = Start-Process packaging/windows/FoisonC24Diagnostic.exe -ArgumentList @('--capture-diagnostics', "`"$report`"") -Wait -PassThru
+          if ($p.ExitCode -ne 0 -or -not (Test-Path $report)) { throw 'Capture diagnostic report was not written' }
+          $text = [IO.File]::ReadAllText($report)
+          foreach ($section in @('[CAPTURE_FOLDER]', '[QUEUE]', '[SPOOLER]', 'não abriu COM')) {
+            if (-not $text.Contains($section)) { throw "Missing diagnostic section: $section" }
+          }
       - name: Preserve failure evidence, not customer jobs
         if: always()
         shell: pwsh

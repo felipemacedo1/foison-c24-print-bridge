@@ -64,3 +64,19 @@ qualidade equivalente ao FlexiSIGN. A rc.3 continua limitada ao primeiro ensaio.
 - Win7/CorelDRAW: instalação/fila rc.2 relatadas; **painel rc.3, captura real,
   comunicação e corte ainda não executados no alvo**. Imagens do CI não são
   evidência visual de Windows7.
+
+## Retorno adicional: lista vazia no aplicativo
+
+O cliente confirmou que nenhum trabalho aparece após imprimir. Portanto não
+está comprovado o trecho fila → RedMon → Receiver; melhorar configurações não
+resolve essa falha por si só. Foi solicitado **Exportar relatório** da instalação
+existente (inclui manifesto/logs, não o desenho bruto). Não presumir driver,
+permissão, sintaxe ou formato sem evidência correlacionada dessa tentativa.
+
+A rc.3 acrescenta diagnóstico somente leitura: pasta/contagens de pares raw+JSON,
+estado da fila WMI/Spooler, porta e configuração RedMon/Receiver. Erros de consulta
+são registrados por seção, nunca transformados em prova de captura. Exportar
+relatório inclui capture-diagnostics.txt; CLI `--capture-diagnostics arquivo.txt`
+permite coleta sem UI, sem imprimir, reiniciar serviços, configurar portas ou
+abrir COM. Argumentos externos são representados só por vazio/não vazio.
+A causa da lista vazia no alvo continua pendente do relatório real.

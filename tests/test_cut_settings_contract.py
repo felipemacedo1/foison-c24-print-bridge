@@ -30,3 +30,12 @@ class CutSettingsContractTests(unittest.TestCase):
         guide = (ROOT / 'docs/corel-cut-settings.md').read_text(encoding='utf-8')
         for text in ['não adiciona', 'Força, velocidade', 'ainda não executados', '1–100%']:
             self.assertIn(text, guide)
+
+    def test_capture_diagnostic_is_read_only_and_exported_without_job_content(self):
+        diagnostic = (ROOT / 'src/FoisonC24.Diagnostic/CaptureDiagnostics.cs').read_text(encoding='utf-8')
+        for forbidden in ['SerialPort', 'new SerialWire', '.Print(', '.StartService(', '.SetValue(', 'File.ReadAllBytes', 'DocumentName']:
+            self.assertNotIn(forbidden, diagnostic)
+        for required in ['CAPTURE_FOLDER', 'SPOOLER', 'QUEUE', 'REDMON', 'TimeSpan.FromSeconds(5)', 'ArgumentsEmpty=']:
+            self.assertIn(required, diagnostic)
+        ui = (ROOT / 'src/FoisonC24.Diagnostic/Program.cs').read_text(encoding='utf-8')
+        self.assertIn('zip.CreateEntry("capture-diagnostics.txt")', ui)

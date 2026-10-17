@@ -1,3 +1,14 @@
+# Retorno adicional — captura vazia (prioridade atual)
+Cliente confirmou lista de trabalhos vazia após imprimir. Instalação/fila visível
+não comprovam captura. Solicitado Exportar relatório da instalação existente;
+Foison.rar contém arquivos de instalação, não estado/logs ProgramData atuais.
+Não assumir causa. Revisão fonte RedMon confirma que ele já coloca aspas no
+Command; não inserir aspas extras nem alterar configuração sem evidência.
+Adicionado coletor somente leitura (pasta/pares, Spooler/fila WMI/registroRedMon),
+exportado no ZIP sem desenho bruto; não abre COM/imprime/reinicia serviços.
+CI39057524445/2643fad aprovou painel/67C#/35Python/build/NSIS/ZIP; coletor em
+validação subsequente. Sem afirmar que novo painel resolve captura vazia.
+
 # Em andamento — painel de corte / CorelDRAW (2026-10-17)
 Objetivo: tornar acessíveis as configurações reais de corte, sem substituir o driver
 PostScript compartilhado nem executar UI como spooler/SYSTEM.
