@@ -23,16 +23,24 @@ public static class InstallerVisual {
  public static string Text(IntPtr w){var b=new StringBuilder(8192);GetWindowText(w,b,b.Capacity);return b.ToString();}
  public static string Children(IntPtr w){var b=new StringBuilder();EnumChildWindows(w,(c,p)=>{b.AppendLine(Text(c));return true;},IntPtr.Zero);return b.ToString();}
  public static void Button(IntPtr w,int id){var b=GetDlgItem(w,id);if(b==IntPtr.Zero)throw new Exception("Button missing");PostMessage(b,0xF5,IntPtr.Zero,IntPtr.Zero);}
- public static void Save(IntPtr w,string path){Rect r;GetWindowRect(w,out r);using(var b=new Bitmap(r.R-r.L,r.B-r.T)) {using(var g=Graphics.FromImage(b)){var dc=g.GetHdc();try{if(!PrintWindow(w,dc,0))throw new Exception("PrintWindow failed");}finally{g.ReleaseHdc(dc);}}b.Save(path,ImageFormat.Png);}}
+ public static void Save(IntPtr w,string path){Rect r;if(!GetWindowRect(w,out r) || r.R<=r.L || r.B<=r.T)throw new Exception("Window is not ready or no longer exists");using(var b=new Bitmap(r.R-r.L,r.B-r.T)) {using(var g=Graphics.FromImage(b)){var dc=g.GetHdc();try{if(!PrintWindow(w,dc,0))throw new Exception("PrintWindow failed");}finally{g.ReleaseHdc(dc);}}b.Save(path,ImageFormat.Png);}}
 }
 '@
 $p=Start-Process $exe -PassThru
 try {
-  $window=[IntPtr]::Zero
-  for($i=0;$i -lt 60;$i++) {$windows=@([InstallerVisual]::Windows($p.Id));if($windows.Count){$window=$windows[0];break};Start-Sleep -Milliseconds 250}
-  if($window -eq [IntPtr]::Zero) {throw 'Installer UI did not appear'}
+  $expected=@{'welcome'='Configuração da impressora Foison C24.';'license'='licença';'directory'='Pasta Destino'}
   foreach($page in @('welcome','license','directory')) {
-    Start-Sleep -Milliseconds 500
+    # NSIS can briefly expose a bootstrap window before the real MUI dialog.
+    # Wait for the expected page text, never capture/reuse the first transient HWND.
+    $deadline=[DateTime]::UtcNow.AddSeconds(20);$window=[IntPtr]::Zero
+    do {
+      foreach($candidate in @([InstallerVisual]::Windows($p.Id))) {
+        if([InstallerVisual]::Children($candidate).Contains($expected[$page])) {$window=$candidate;break}
+      }
+      if($window -ne [IntPtr]::Zero) {break};Start-Sleep -Milliseconds 100
+    } while([DateTime]::UtcNow -lt $deadline)
+    if($window -eq [IntPtr]::Zero) {throw ('Expected installer page did not appear: '+$page)}
+    Start-Sleep -Milliseconds 200
     $text=[InstallerVisual]::Children($window)
     [IO.File]::WriteAllText((Join-Path $out ($page+'.txt')),$text,[Text.Encoding]::UTF8)
     [InstallerVisual]::Save($window,(Join-Path $out ($page+'.png')))

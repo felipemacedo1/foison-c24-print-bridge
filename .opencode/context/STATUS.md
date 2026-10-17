@@ -118,3 +118,10 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
   fontes correspondentes ou no diretório lib/ de scripts PostScript necessário.
 - Novo teste preserva DLL e lib/runtime.ps, removendo só intermediários (25 Python).
   Relatório validation.json lista omissões. Release aguarda este CI final.
+
+## CI 38992582330
+- Build/ZIP e erro Win32 negativo passaram. Gate visual falhou ao capturar um
+  HWND transitório de bootstrap (GetWindowRect sem dimensão; Bitmap inválido),
+  não por corrupção de texto. Teste agora espera os textos da página MUI correta
+  com deadline de 20 s e valida o retângulo; não ignora falhas nem o gate Unicode.
+- Aguardar CI do commit do teste corrigido; nenhum artefato falho será publicado.
