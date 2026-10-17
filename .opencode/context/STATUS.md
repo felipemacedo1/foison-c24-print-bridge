@@ -19,7 +19,7 @@ Branch fix/win7-ps2-process-runner; base main 7351014. Sem merge/release estáve
 4. Documentar evidências/limites e commits na branch, sem alterar main.
 
 ## Validações / bloqueios
-Executor e append NSIS implementados; 29 Python, 24 modelos PS, 9 processos reais
+Executor e append NSIS implementados; 30 Python, 24 modelos PS, 9 processos reais
 em pwsh7, C#2/net20 API compile sem warnings/erros. CI/build/pacote pendentes.
 Ubuntu 24.04 x64, i5 VT-x, 15 GiB RAM/~10 disponíveis, 92 GiB livres.
 KVM API12 e QMP present/enabled confirmados fora do sandbox. QEMU8.2.2 extraído
@@ -56,3 +56,7 @@ validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou fina
 - CI39049680230: falha em Get-Acl autoload no PS5 filho do PS7, após icacls0;
   não mascarada. Teste passa a usar APIs .NET legadas/Core com mesmas asserções.
   Recompilar API/testar e enviar próxima revisão; não distribuir esse run falho.
+
+- e55fa34: CI39050190394 aprovado Ubuntu+Windows; ACLs reais agora verificadas.
+  Última revisão do pacote encontrou LEIA-ME com rc.1; corrigido para rc.2 com
+  gate automático VERSION. Congelar próximo SHA e usar só seu pacote aprovado.

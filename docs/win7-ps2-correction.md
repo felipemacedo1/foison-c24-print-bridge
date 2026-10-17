@@ -59,7 +59,7 @@ CLR2; a API moderna documentada não é alegação de execução Win7.
 
 | Camada | Execução disponível | Estado alvo Win7/PS2 |
 |---|---|---|
-| Contratos, ZIP, encoding Python | 29 testes Ubuntu | não substitui runtime |
+| Contratos, ZIP, encoding Python | 30 testes Ubuntu | não substitui runtime |
 | Executor + fixture C# | C#2, referências net20, zero warnings/erros | API compile, não execução |
 | Zero/não zero, streams, argumentos, binário/OEM, flood, timeout, ausente | 9 testes reais Ubuntu pwsh7 | pendente PS2 |
 | Orquestração, admin/lock, rollback/idempotência/uninstall | 24 modelos, PS7 | pendente APIs reais |
@@ -123,3 +123,8 @@ agora lê os mesmos descritores/ACEs diretamente por Directory.GetAccessControl
 no CLR2/4 e FileSystemAclExtensions no Core, sem depender de módulos herdados.
 Não altera PSModulePath/global, não pula asserções e mantém o gate de permissões.
 A disponibilidade de Directory.GetAccessControl também é compilada contra net20.
+
+A revisão final do pacote encontrou cabeçalho LEIA-ME ainda rc.1 apesar de
+VERSION/EXE/ZIP rc.2. Corrigido antes de distribuir, com contrato que compara o
+cabeçalho à VERSION para impedir reincidência. Os pacotes intermediários não são
+o candidato final. Não se modificou runtime nem proteções nesta última fatia.

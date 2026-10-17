@@ -55,3 +55,8 @@ class WindowsProvisioningContractTests(unittest.TestCase):
         self.assertIn('Call ${PREFIX}Fail',macro)
         self.assertEqual(NSIS.count('  ExecWait '),1)
         self.assertEqual(NSIS.count('!insertmacro CheckedExec'),5)
+
+    def test_client_readme_matches_effective_version(self):
+        version=(ROOT/'VERSION').read_text().strip()
+        header=(ROOT/'packaging/windows/LEIA-ME.txt').read_text(encoding='utf-8-sig').splitlines()[0]
+        self.assertIn('Foison C24 Print Bridge '+version+' ',header)

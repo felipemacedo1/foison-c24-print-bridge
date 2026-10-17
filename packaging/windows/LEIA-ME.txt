@@ -1,4 +1,4 @@
-﻿Foison C24 Print Bridge 1.0.1-rc.1 — TESTE ACOMPANHADO
+﻿Foison C24 Print Bridge 1.0.1-rc.2 — TESTE ACOMPANHADO
 Não validado em Windows 7/CorelDRAW/hardware. Não instalar sem o desenvolvedor.
 
 1. Extraia tudo com "Extrair tudo" do Windows e execute
