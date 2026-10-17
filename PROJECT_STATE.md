@@ -1,19 +1,24 @@
-## Correção Win7/PS2 — 1.0.1-rc.2 em branch dedicada
+## Candidato 1.0.1-rc.2 — correção PS2/CLR2 e distribuição conferida
 
-- Base main 7351014, branch fix/win7-ps2-process-runner; sem merge ou release final.
-- Logs do cliente rc.1: RunId n16722667-4980, OS6.1.7601/PS2, ADMIN aprovado,
-  binding de Start-Process falha antes do icacls, ExitCode desconhecido.
-- Executor substituído por ProcessStartInfo/C#2/CLR2, streams binários concorrentes,
-  timeout/kill do próprio filho e logs com início/PID/UNKNOWN/bytes preservados.
-- NSIS corrigido: seek END antes de append preserva BOM/histórico e código real.
-- Local: 28 Python, 22 modelos PS, 9 subprocessos reais em pwsh7, API compile
-  C#2/net20 sem warnings. CI/build/pacote novo ainda em andamento.
-- KVM API12/QMP enabled/present confirmados; QEMU8.2.2 extraído sem serviços.
-  Disco vazio32GiB, snapshot blank-before-os; VM pausada testada e encerrada.
-- Sem mídia/licença fornecida para instalar Win7. Win7/PS2 corrigido, instalação,
-  fila/Corel/hardware NÃO EXECUTADOS aqui. Nenhum movimento/COM foi acionado.
-- Evidências locais recebidas ignoradas e preservadas; sem logs de cliente no Git.
-- Detalhes: docs/win7-ps2-correction.md; reprodução: docs/win7-vm.md.
+- Branch fix/win7-ps2-process-runner; main preservada em7351014. Código cliente
+  **a173d5e**, [CI39051351567 aprovado](https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/39051351567). Sem tag/release final/merge.
+- Falha rc.1 comprovada em logs: binding Start-Process em LOCK, antes de icacls;
+  substituído por executor C#2/CLR2 com captura raw concorrente e timeout.
+- Execução real CLR2 encontrou também SHA.Dispose (corrigido para Clear) e erro
+  -File com exit0: bootstrap exige comprovante nonce/run/op, sem prova=>74.
+- NSIS append/BOM/histórico/códigos reais e launch failure9009 corrigidos.
+- 32 Python;25 modelos (também no PS2 real);13 casos reais de processos/ACLs em
+  PS2.0/CLR2.0.50727.9179 no **Server2022**, além de PS5/7. Não é Win7 validado.
+- 12 casos CMD;52 checks C# por runtime;net48/NSIS sem warnings/erros;UI/RedMon
+  isolado/Shell ZIP aprovados. Gate positivo e raw conferidos, não apenas exit0.
+- Candidato exato CI em dist/1.0.1-rc.2, ZIP8 arquivos Deflate8,361187683 bytes,
+  SHA256454c997985ecd1347b4bbfcc2380690893c4128974549d2f0bf72cdade32d9d7.
+- EXE361368940 bytes, SHA256408c835bdc0ce64f2404a8ade5cee07cfb6aefd50b8585fe5276ebc3af2ae9f3.
+- CRC/7z/extração completa/hashes/NSIS e103 fontes conferidos; logs do cliente
+  preservados/ignorados, nunca empacotados. Relatório docs/win7-ps2-correction.md.
+- KVM/VM vazia offline verificados e desligados, sem mídia Windows licenciada.
+  Win7/CLR2.8803 do cliente, instalação/fila/Corel/serial/hardware ainda pendentes.
+  Físico desabilitado por padrão; não enviar movimentos nem alterar Flexi/FTDI.
 
 ## Histórico anterior (não representa o estado atual da correção)
 

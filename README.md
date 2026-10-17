@@ -5,6 +5,10 @@ executar icacls. Não encaminhar a rc.1 como versão corrigida. Consulte
 [diagnóstico e regressões](docs/win7-ps2-correction.md) e
 [laboratório offline](docs/win7-vm.md). Novo candidato não é homologação.
 
+Candidato **1.0.1-rc.2 / a173d5e** gerado e conferido em `dist/1.0.1-rc.2/`.
+[CI aprovado](https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/39051351567): inclui execução PS2/CLR2 **no Server2022**.
+Sem merge/release final; instalação real Win7/CLR2.8803/Corel/hardware pendentes.
+
 **[Baixar 1.0.1-rc.1 (prerelease)](https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.1)** — ZIP do cliente e instalador
 publicados com checksums e evidências. Win7/CorelDRAW/hardware ainda não validados.
 

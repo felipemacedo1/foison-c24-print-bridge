@@ -3,7 +3,7 @@
 - [x] Substituir executor e corrigir append/BOM NSIS/código real.
 - [x] Testes reais Ubuntu + compile C#2/net20 + matriz de regressão.
 - [x] Preparar laboratório isolado; KVM/VM vazia comprovados e desligados.
-- [ ] Concluir CI Windows moderno, build e ZIP candidato validado.
+- [x] Concluir CI Windows moderno, PS2/CLR2 real no Server2022, build e ZIP candidato validado.
 - [ ] Executar Win7 SP1/PS2/CLR2 com mídia legítima (ainda não fornecida).
 - [ ] Homologar instalação/reinstalação/desinstalação/fila no alvo; sem merge/final antes disso.
 

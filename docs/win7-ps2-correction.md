@@ -63,9 +63,9 @@ CLR2; a API moderna documentada não é alegação de execução Win7.
 | Executor + fixture C# | C#2, referências net20, zero warnings/erros | API compile, não execução |
 | Zero/não zero, streams, argumentos, binário/OEM, flood, timeout, ausente | 9 testes reais Ubuntu pwsh7 | pendente PS2 |
 | Orquestração, admin/lock, rollback/idempotência/uninstall | 25 modelos, PS7 | pendente APIs reais |
-| icacls real/ACL/session/lock, erros e token herdado | CI Windows moderno a executar | pendente Win7 |
-| NSIS silencioso, código 50, BOM/append/cronologia | CI Windows moderno a executar | pendente Win7 |
-| net48, vetores/serial simulada, NSIS, ZIP/extração/hashes/UI | pipeline a executar | instalação alvo pendente |
+| icacls real/ACL/session/lock, erros e token herdado | 13 testes reais PS2/5/7 em Server2022 | pendente Win7 |
+| NSIS silencioso, código 50, BOM/append/cronologia | 13 testes reais PS2/5/7 em Server2022 | pendente Win7 |
+| net48, vetores/serial simulada, NSIS, ZIP/extração/hashes/UI | pipeline aprovado, Ubuntu + Server2022 | instalação alvo pendente |
 | VM QEMU/KVM | API 12, QMP kvm present/enabled, prelaunch pausado, sem rede | disco vazio; Windows ausente |
 | Instalação/fila/CorelDRAW/FTDI/serial/corte | não executado aqui | **PENDENTE** |
 
@@ -151,3 +151,55 @@ com `-File`. Nenhum RESULTS/marker de conclusão existia. Esse resultado anterio
 
 Isso demonstra por que fontes/CI moderno não bastam. Ainda é necessário testar
 Windows7 SP1 real; PS2/CLR2 em Server2022 não valida spooler/driver/Win7.
+
+## Aceite do candidato final — a173d5e (2026-10-17)
+
+[CI39051351567](https://github.com/felipemacedo1/foison-c24-print-bridge/actions/runs/39051351567) aprovado Ubuntu/Windows2022.
+O aceite foi refeito após inspecionar os arquivos raw, sem confiar no verde antigo:
+
+- 32 Python;25 modelos PS;9 subprocessos reais Ubuntu PS7.6.7/CLR10.0.13.
+- 13 casos reais por host Windows: PS7.6.6/CLR10.0.12, PS5.1/CLR4.0.30319.42000
+  e **PS2.0/CLR2.0.50727.9179**. O campo OS é10.0.20348.0, LegacyHost=False.
+- No CLR2, stdout contém marker13 real e marker25 modelos; ambos stderr0 bytes.
+  Arquivos RESULTS registram ambiente e cada caso, não apenas retorno numérico.
+- 12 bootstrapCMD; erro nativo PS2 com exit0 foi bloqueado74, recibo PS2 válido0,
+  recibo inválido74; stdout/stderr e logFATAL permanecem disponíveis.
+- C#2/net20 compile,52 checks C# em net8/net48 com engines reais e serial simulada;
+  builds Release e NSIS3.09 Ubuntu/3.10 Windows /WX sem warnings/erros.
+- NSIS completo retorna50 em SO não suportado e preserva BOM/cronologia/acentos;
+  macro real em fixture retorna9009 no filho ausente e não alcança sucesso.
+- RedMon API isolada, UI WinForms bloqueada, textos/screenshots pt-BR e Shell ZIP
+  Windows2022 aprovados. Não é instalação/fila/Corel/corte validado no Win7.
+- Bytes exatos CI baixados, CRC/7z/extração completa/hash de todas as entradas,
+  BOM/CRLF, metadata PE e payload NSIS conferidos. 103 fontes correspondem ao
+  Git a173d5e, admitindo só transformação EOL do Git Windows, sem mudar conteúdo.
+- Logs retornados pelo cliente não foram modificados nem embarcados; seus hashes
+  ficam somente em artifacts/returned-logs-sha256.txt (local/ignorado).
+
+### Distribuição candidata
+
+`dist/1.0.1-rc.2/` contém EXE, ZIP único, SHA256SUMS.txt e validation.json.
+PKZIP/Deflate8,8 arquivos,361187683 bytes, sem ZIP64/criptografia/multipartes.
+
+| Arquivo | SHA256 |
+|---|---|
+| FoisonC24-Setup-Win7-x64.exe (361368940 bytes) | 408c835bdc0ce64f2404a8ade5cee07cfb6aefd50b8585fe5276ebc3af2ae9f3 |
+| FoisonC24-v1.0.1-rc.2-Win7-x64.zip | 454c997985ecd1347b4bbfcc2380690893c4128974549d2f0bf72cdade32d9d7 |
+
+Evidências CI e conferência adicional em artifacts/rc2-final. Builds locais e
+intermediários são diferentes dos bytes CI e não devem ser enviados ao cliente.
+A classificação BUILD-INFO Win7/PS2/Corel/hardware não executado refere-se ao
+cenário integrado no alvo; runtime PS2 isolado no Server2022 está comprovado
+pelas evidências separadas, não é validação do Windows7.
+
+Branch fix/win7-ps2-process-runner enviada; main7351014 preservada, sem merge,
+tag ou nova release. Somente candidato, não liberação final. O CI usa seus
+artefatos próprios: download de Actions pode exigir conta, diferente de release
+pública. Para sessão acompanhada, o mantenedor pode compartilhar o ZIP local.
+
+**Bloqueio restante:** mídia/licença Windows7 não fornecida. KVM/VM vazia
+funcionam, mas Win7 ProfessionalSP1/CLR2.8803 do cliente não foi reproduzido.
+Instalação/fila/reinstalação/desinstalação/captura/Corel e hardware no alvo
+continuam pendentes. Não alterar configuração FlexiSIGN/FTDI/COM2 nem autorizar
+movimentos antes das verificações específicas. Exigir prova PASS no teste legado,
+nunca interpretar exit0 como homologação.

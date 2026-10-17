@@ -53,3 +53,12 @@ logs extensos.
   `./scripts/build-distribution.sh`; nenhum ZIP incompleto deve ser entregue.
 - Nunca declarar tests simulados como validação Win7/Corel/hardware. Não apagar
   journal ou latch para repetir trabalho cujo estado físico é incerto.
+
+## Regressão legado / candidato rc.2
+- API C#2/CLR2: `python3 scripts/check-legacy-api.py` (compile, não runtime).
+- Executor real: `pwsh -NoProfile -File tests/process-runner.ps1`.
+- Windows/PS2 disponível: `powershell -NoProfile -File tests/windows-ps2-probe.ps1`;
+  exige markers positivos e stderr vazio, não apenas ExitCode (PS2 -File pode0 no erro).
+- Win7 licenciado offline: `tests/legacy-validation.ps1`, exigir PASS.txt e ambiente
+  6.1.7601/PS2/CLR2; não aceitar exit0 isolado. Guia: docs/win7-vm.md.
+- Não declarar PS2/CLR2 no Server2022 como Win7. Não usar candidato intermediário.

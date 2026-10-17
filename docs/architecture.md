@@ -105,3 +105,21 @@ com omissão de intermediários de link/debug do runtime. ZIP PKZIP Deflate vali
 por CRC/headers/extração/hash/7z e Shell Windows 2022. Promoção manual não reconstrói:
 confere run/SHA/tag e hashes e só cria prerelease com bytes aprovados. Isso não
 substitui a aceitação Win7/PS2/CorelDRAW/hardware.
+
+## Executor legado e prova de conclusão (rc.2)
+
+PowerShell2 permanece no CLR2; não carregar DLL net48 nesse host. O PS1 compila
+helper C#2 com APIs net20, ProcessStartInfo.UseShellExecute=false e token herdado.
+Dois leitores binários concorrentes preservam stdout/stderr; PeekNamedPipe evita
+read bloqueante Windows, com timeout/kill só do próprio filho e drain limitado.
+Não há Start-Process no caminho de produção. HashAlgorithm usa Clear público
+CLR2, não Dispose dinâmico (que não era público nesse runtime).
+
+ExitCode desconhecido não é zero. PS2 -File pode retornar0 após erro terminante;
+CMD exige recibo ASCII fresco por nonce/run/op emitido só após Invoke-BridgeSetup
+positivo. NSIS aguarda CMD e verify independente e verifica launch failure além
+do retorno. Recibo é prova do fluxo verificado, não autorização física nem prova
+Corel/corte. Proteções de ownership/rollback/journal e protocolo não mudam.
+
+CLR2 foi exercitado de verdade no Server2022 (patch9179); isso não substitui
+Win7/CLR2.8803, impressão alvo nem validação física. Cada estado é independente.

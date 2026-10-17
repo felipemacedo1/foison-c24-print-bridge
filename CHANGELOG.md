@@ -4,7 +4,10 @@
   ProcessStartInfo com token herdado, captura binária concorrente e timeout.
 - Distingue ExitCode UNKNOWN de zero; registra início/PID/saídas/erros reais.
 - Corrige append NSIS que sobrescrevia BOM UTF-16LE e histórico; devolve erro real.
-- Regressões reais de streams/argumentos/ACL/timeout e compilação C#2/net20.
+- Corrige SHA256Managed.Dispose não público no CLR2 usando Clear no fingerprint.
+- CMD exige recibo positivo fresco: PS2 -File com erro/code0 nunca basta; falha74.
+- Probe legado exige markers/err vazio; 13 processos reais e25 modelos em PS2/CLR2
+  no Server2022, sem confundir com Win7; compilação C#2/net20 e32 contratos Python.
 - Estados independentes de build, API CLR2, runtime Win7/PS2, instalação e físico.
 - Laboratório QEMU/KVM offline documentado; mídia/licença Windows não fornecida.
 - Não instalar rc.1 como correção; rc.2 exige validação no alvo antes de liberação final.

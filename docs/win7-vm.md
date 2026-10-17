@@ -84,7 +84,8 @@ No PowerShell elevado do convidado, fontes copiadas para diretório temporário:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\legacy-validation.ps1
 ```
 
-O teste se recusa a atribuir prova legado ao PS5/7. Captura casos reais de
+O teste se recusa a atribuir prova legado ao PS5/7. Exigir o arquivo PASS.txt
+e os logs/ambiente completos; exit0 sozinho nunca é comprovação no PS2. Captura casos reais de
 processos/ACLs e modelo de orquestração. Depois, instalar o EXE candidato,
 verificar fila/driver/porta, executar `Install-Queue-Win7.cmd capture-test`,
 reinstalar, desinstalar e reinstalar nos snapshots próprios. Inspecionar acentos
