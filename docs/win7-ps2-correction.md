@@ -105,3 +105,13 @@ incluindo pré-requisitos e desinstalador. Um NSIS mínimo de regressão extrai 
 macro **real** e tenta filho ausente após $0=0: precisa retornar9009, preservar
 mensagem UTF16 e nunca alcançar marcador de sucesso. A rejeição OS do instalador
 completo verifica código50 e histórico/BOM separadamente.
+
+### ACL e disponibilidade PS2
+
+O harness também lê o descritor real após icacls: proprietário Administrators,
+raiz protegida de herança, SYSTEM/Administrators FullControl, Users RX na raiz e
+logs e escrita apenas em session/. Isso não depende só do ExitCode=0.
+O CI sonda powershell.exe -Version2 sem instalar/habilitar componentes antigos.
+Só se PSmajor2 e CLRmajor2 forem confirmados executa a mesma regressão real;
+caso contrário preserva código/saídas e registra NOT_CONFIRMED. Mesmo um teste
+PS2 em Server2022 não homologa Win7; não há fallback falso para PS5/7.

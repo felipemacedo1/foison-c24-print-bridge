@@ -44,3 +44,11 @@ validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou fina
   sucesso se o filho sequer iniciar; teste NSIS nativo extrai macro real.
 - bf69449 enviado/CI39049019892 em andamento; local full build bf aprovado.
   Preparar nova revisão com esse guard adicional antes de congelar candidato.
+
+## Marco aprovado / reforço final
+- 8e7ada6: CI39049227011 Ubuntu+Windows aprovado, inclui NSIS exit50/BOM/append
+  e filho ausente9009. Bytes/evidências em download, build local também aprovado.
+- Reforço final somente testes: leitura real de ACLs/proprietário e probe não
+  invasivo PS2/CLR2 no CI, sem habilitar features; nunca chamar Server2022 Win7.
+- Nenhuma mídia Windows identificada; VDI preexistente tem OSType Ubuntu_64,
+  configuração apenas lida, disco preservado. QEMU próprio desligado/QCOW íntegro.

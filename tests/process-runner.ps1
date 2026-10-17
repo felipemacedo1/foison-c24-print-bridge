@@ -106,6 +106,31 @@ if($windows) {
  # Calls only affect this fixture directory, never ProgramData project/driver/COM.
  SecureStateDirectory;SessionPermissions
  Pass 'real-icacls-owner-grants-session-zero'
+ $sidType=[Security.Principal.SecurityIdentifier]
+ $acl=Get-Acl $StateDir
+ Assert ($acl.GetOwner($sidType).Value -eq 'S-1-5-32-544') 'icacls owner readback differs'
+ Assert $acl.AreAccessRulesProtected 'Root still inherits uncontrolled permissions'
+ foreach($entry in @(@{path=$StateDir;modify=$false},@{path=$LogDirectory;modify=$false},@{path=(Join-Path $StateDir 'session');modify=$true})) {
+  $acl=Get-Acl $entry.path
+  $rules=@($acl.GetAccessRules($true,$true,$sidType))
+  foreach($sid in @('S-1-5-18','S-1-5-32-544','S-1-5-32-545')) {
+   $rights=0
+   foreach($rule in $rules) {
+    if($rule.IdentityReference.Value -eq $sid) {
+     Assert ($rule.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow) 'Unexpected deny ACE'
+     $rights=$rights -bor [int]$rule.FileSystemRights
+    }
+   }
+   if($sid -eq 'S-1-5-32-545') {
+    Assert (($rights -band [int][Security.AccessControl.FileSystemRights]::ReadAndExecute) -eq [int][Security.AccessControl.FileSystemRights]::ReadAndExecute) 'Users cannot read project diagnostics'
+    $write=($rights -band [int][Security.AccessControl.FileSystemRights]::Write) -ne 0
+    Assert ($write -eq $entry.modify) 'Users write scope differs from root/log RX and session Modify'
+   } else {
+    Assert (($rights -band [int][Security.AccessControl.FileSystemRights]::FullControl) -eq [int][Security.AccessControl.FileSystemRights]::FullControl) 'SYSTEM/Administrators lost FullControl'
+   }
+  }
+ }
+ Pass 'actual-ACL-owner-root-log-RX-session-modify-readback'
  $lockPath=Join-Path $StateDir 'installation.lock'
  $lock=[IO.File]::Open($lockPath,'OpenOrCreate','ReadWrite','None')
  try {$failed=$false;try{$other=[IO.File]::Open($lockPath,'OpenOrCreate','ReadWrite','None');$other.Dispose()}catch{$failed=$true};Assert $failed 'Lock not exclusive'}finally{$lock.Dispose()}

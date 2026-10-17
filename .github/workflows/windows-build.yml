@@ -46,6 +46,9 @@ jobs:
         run: choco install nsis --version=3.10.0 --allow-downgrade --no-progress -y
       - name: Unified build, all tests, NSIS, PKZIP and byte verification
         run: python scripts/build-release.py
+      - name: Probe actual PS2 CLR2 if already present (NOT Win7 validation)
+        shell: powershell
+        run: ./tests/windows-ps2-probe.ps1
       - name: NSIS real silent error, append/BOM/chronology and exit code
         shell: powershell
         run: |
