@@ -59,7 +59,7 @@ CLR2; a API moderna documentada não é alegação de execução Win7.
 
 | Camada | Execução disponível | Estado alvo Win7/PS2 |
 |---|---|---|
-| Contratos, ZIP, encoding Python | 28 testes Ubuntu | não substitui runtime |
+| Contratos, ZIP, encoding Python | 29 testes Ubuntu | não substitui runtime |
 | Executor + fixture C# | C#2, referências net20, zero warnings/erros | API compile, não execução |
 | Zero/não zero, streams, argumentos, binário/OEM, flood, timeout, ausente | 9 testes reais Ubuntu pwsh7 | pendente PS2 |
 | Orquestração, admin/lock, rollback/idempotência/uninstall | 24 modelos, PS7 | pendente APIs reais |
@@ -95,3 +95,13 @@ Core, através do próprio executor, e conserva Add-Type em Windows PowerShell
 Também se testa captura incompleta com exit0 (deve falhar) e erro de log que não
 pode substituir o erro original de início. O estado do lock agora distingue
 not-acquired de released; não relata liberação de um lock nunca obtido.
+
+### Cadeia de inicialização NSIS
+
+A auditoria também encontrou ExecWait sem verificar Errors: se o processo não
+iniciasse, $0 poderia continuar com valor anterior. Todas as cinco chamadas
+agora passam pelo mesmo CheckedExec (primeiro UNKNOWN/9009, Errors explícito),
+incluindo pré-requisitos e desinstalador. Um NSIS mínimo de regressão extrai o
+macro **real** e tenta filho ausente após $0=0: precisa retornar9009, preservar
+mensagem UTF16 e nunca alcançar marcador de sucesso. A rejeição OS do instalador
+completo verifica código50 e histórico/BOM separadamente.

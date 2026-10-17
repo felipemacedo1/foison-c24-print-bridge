@@ -48,7 +48,9 @@ jobs:
         run: python scripts/build-release.py
       - name: NSIS real silent error, append/BOM/chronology and exit code
         shell: powershell
-        run: ./tests/windows-nsis-log.ps1
+        run: |
+          ./tests/windows-nsis-log.ps1
+          ./tests/windows-nsis-start.ps1
       - name: Real isolated RedMon APIs (Windows 2022, NOT Win7)
         shell: powershell
         run: ./tests/windows-redmon-smoke.ps1

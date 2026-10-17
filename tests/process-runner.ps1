@@ -22,7 +22,7 @@ if($windows) {
   # Core Add-Type cannot emit an EXE. Compile the same CLR fixture with the
   # installed Framework compiler, through the actual production executor.
   $compiler=Join-Path $env:windir 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
-  $compileArgs='/nologo /target:exe /out:"'+$child+'" "'+(Join-Path $repo 'tests/fixtures/process-child.cs')+'"'
+  $compileArgs='/nologo /codepage:65001 /target:exe /out:"'+$child+'" "'+(Join-Path $repo 'tests/fixtures/process-child.cs')+'"'
   Assert ((ProcessRun $compiler $compileArgs) -eq 0) 'Fixture compiler failed'
  } else {
   Add-Type -OutputAssembly $child -OutputType ConsoleApplication -TypeDefinition ([IO.File]::ReadAllText((Join-Path $repo 'tests/fixtures/process-child.cs')))

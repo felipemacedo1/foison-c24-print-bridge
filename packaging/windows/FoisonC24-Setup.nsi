@@ -137,6 +137,16 @@ Function un.onUninstFailed
   Call un.Log
   SetErrorLevel $FailureCode
 FunctionEnd
+; ExecWait can fail before setting $0; never reuse an earlier zero exit code.
+!macro CheckedExec PREFIX COMMAND
+  ClearErrors
+  StrCpy $0 9009
+  ExecWait ${COMMAND} $0
+  ${If} ${Errors}
+    StrCpy $0 9009
+    Call ${PREFIX}Fail
+  ${EndIf}
+!macroend
 Function CheckPrerequisiteExit
   StrCpy $3 "Microsoft prerequisite ExitCode=$0"
   Call Log
@@ -196,7 +206,7 @@ Section "Instalação completa — corte bloqueado"
   ReadRegDWORD $1 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
   ${If} $1 < 528040
     File "prerequisites\ndp48.exe"
-    ExecWait '"$PLUGINSDIR\ndp48.exe" /q /norestart /log "$LogDir\install-$RunId-dotnet.html"' $0
+  !insertmacro CheckedExec "" '"$PLUGINSDIR\ndp48.exe" /q /norestart /log "$LogDir\install-$RunId-dotnet.html"'
     Call CheckPrerequisiteExit
   ${EndIf}
   ReadRegDWORD $1 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
@@ -208,7 +218,7 @@ Section "Instalação completa — corte bloqueado"
   Call CheckVC
   ${If} $2 != 1
     File "prerequisites\vc_redist.x64.exe"
-    ExecWait '"$PLUGINSDIR\vc_redist.x64.exe" /install /quiet /norestart /log "$LogDir\install-$RunId-vc.log"' $0
+  !insertmacro CheckedExec "" '"$PLUGINSDIR\vc_redist.x64.exe" /install /quiet /norestart /log "$LogDir\install-$RunId-vc.log"'
     Call CheckPrerequisiteExit
   ${EndIf}
   Call CheckVC
@@ -247,12 +257,12 @@ Section "Instalação completa — corte bloqueado"
   ; Recovery remains available after partial provisioning; no false-success shortcut.
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   StrCpy $Step "PROVISION"
-  ExecWait '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" install --noninteractive $RunId"' $0
+  !insertmacro CheckedExec "" '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" install --noninteractive $RunId"'
   ${If} $0 != 0
     Call Fail
   ${EndIf}
   StrCpy $Step "INDEPENDENT_VERIFY"
-  ExecWait '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" verify --noninteractive $RunId"' $0
+  !insertmacro CheckedExec "" '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" verify --noninteractive $RunId"'
   ${If} $0 != 0
     Call Fail
   ${EndIf}
@@ -269,7 +279,7 @@ SectionEnd
 Section "Uninstall"
   ${DisableX64FSRedirection}
   StrCpy $Step "SAFE_UNINSTALL"
-  ExecWait '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" uninstall --noninteractive $RunId"' $0
+  !insertmacro CheckedExec "un." '"$SYSDIR\cmd.exe" /d /c ""$INSTDIR\Install-Queue-Win7.cmd" uninstall --noninteractive $RunId"'
   ${If} $0 != 0
     Call un.Fail
   ${EndIf}

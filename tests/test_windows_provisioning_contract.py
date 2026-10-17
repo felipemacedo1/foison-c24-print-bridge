@@ -47,3 +47,11 @@ class WindowsProvisioningContractTests(unittest.TestCase):
         self.assertLess(log.index('FileOpen'),log.index('FileSeek $LogHandle 0 END'))
         self.assertLess(log.index('FileSeek $LogHandle 0 END'),log.index('FileWriteUTF16LE'))
         self.assertIn('Function ${PREFIX}Fail\n  StrCpy $FailureCode $0',NSIS)
+
+    def test_nsis_launch_failure_cannot_reuse_previous_zero(self):
+        macro=NSIS.split('!macro CheckedExec PREFIX COMMAND\n',1)[1].split('!macroend',1)[0]
+        self.assertLess(macro.index('StrCpy $0 9009'),macro.index('ExecWait'))
+        self.assertIn('${If} ${Errors}',macro)
+        self.assertIn('Call ${PREFIX}Fail',macro)
+        self.assertEqual(NSIS.count('  ExecWait '),1)
+        self.assertEqual(NSIS.count('!insertmacro CheckedExec'),5)
