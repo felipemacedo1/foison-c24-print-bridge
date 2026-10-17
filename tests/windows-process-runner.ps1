@@ -18,9 +18,11 @@ if(-not $log.Contains('Instalação concluída com sucesso.') -or -not $log.Cont
 $failed=$false
 try { ProcessRun $exe 'timeout' 100 | Out-Null } catch {$failed=$true;LogException $_}
 if(-not $failed) {throw 'Real timeout did not fail'}
+if($null -ne $LastProcessCode) {throw 'Timeout inherited a previous process exit code'}
 $log=[IO.File]::ReadAllText((Join-Path $LogDirectory ('install-'+$RunId+'-fixture.log')))
 if(-not $log.Contains('Timeout=True')) {throw 'Real timeout evidence missing'}
 $failed=$false
 try {ProcessRun (Join-Path $StateDir 'Missing.exe') 'test'|Out-Null} catch {$failed=$true;LogException $_}
 if(-not $failed) {throw 'Missing executable did not fail'}
+if($null -ne $LastProcessCode) {throw 'Launch failure inherited a previous process exit code'}
 Write-Host "PASS real Windows PowerShell subprocess exit27/stdout/stderr/Unicode/timeout/start failure; evidence=$StateDir"

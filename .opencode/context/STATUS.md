@@ -125,3 +125,9 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
   não por corrupção de texto. Teste agora espera os textos da página MUI correta
   com deadline de 20 s e valida o retângulo; não ignora falhas nem o gate Unicode.
 - Aguardar CI do commit do teste corrigido; nenhum artefato falho será publicado.
+
+## Último ajuste do runner
+- LastProcessCode agora é limpo antes de cada lançamento: timeout/launch failure
+  não podem herdar exit=27 de um filho anterior. Teste nativo exige null nesses
+  dois cenários; resumo do próprio processo já registrava código ausente/timeout.
+- Último código será congelado após este gate; publicar somente o ZIP desse SHA.

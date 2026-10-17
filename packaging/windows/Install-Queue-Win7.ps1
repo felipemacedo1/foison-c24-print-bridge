@@ -70,6 +70,7 @@ function OperatingSystem { return (Get-WmiObject Win32_OperatingSystem) }
 function Printer { return (Get-WmiObject Win32_Printer -Filter "Name='$PrinterName'") }
 function PortUsers($port) { return @(Get-WmiObject Win32_Printer | Where-Object { $_.PortName -eq $port }) }
 function ProcessRun($file, $arguments, $timeoutMs = 120000) {
+  $script:LastProcessCode = $null # never attribute a previous child's exit to launch failure/timeout
   $watch = [Diagnostics.Stopwatch]::StartNew()
   $p = $null; $code = $null; $timedOut = $false
   $component = [IO.Path]::GetFileNameWithoutExtension($file).ToLowerInvariant()
