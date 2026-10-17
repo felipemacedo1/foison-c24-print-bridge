@@ -1,4 +1,4 @@
-Distribuição de sessão acompanhada — fontes e licenças
+﻿Distribuição de sessão acompanhada — fontes e licenças
 
 Código próprio: licença MIT (LICENSE dentro de sources/foison-bridge-source.zip).
 Ghostscript 10.08.0 e MuPDF 1.28.5: distribuições oficiais não modificadas da

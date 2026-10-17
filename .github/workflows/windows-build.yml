@@ -1,15 +1,15 @@
 name: Build and deterministic acceptance
-
 on:
   workflow_dispatch:
   push:
     paths:
-      - "src/**"
-      - "tests/**"
-      - "scripts/**"
-      - "packaging/**"
-      - ".github/workflows/**"
-
+      - 'VERSION'
+      - 'Directory.Build.props'
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'packaging/**'
+      - '.github/workflows/**'
 jobs:
   ubuntu:
     runs-on: ubuntu-24.04
@@ -20,13 +20,15 @@ jobs:
           dotnet-version: 8.0.x
       - name: Install actual vector interpreters
         run: sudo apt-get update && sudo apt-get install -y ghostscript mupdf-tools
-      - name: Portable tests and contracts
-        run: ./scripts/test.sh
-      - name: Build portable receiver
-        run: dotnet build src/FoisonC24.WindowsReceiver -f net8.0 -c Release
-      - name: End-to-end PostScript, geometry, simulated spool input and serial
-        run: dotnet run --project tests/FoisonC24.CoreTests -f net8.0 -c Release -- /usr/bin/gs /usr/bin/mutool "$PWD/tests/fixtures" "$PWD/src/FoisonC24.WindowsReceiver/bin/Release/net8.0/FoisonC24Receiver.dll"
-
+      - name: Portable tests, text integrity and provisioning model (NOT Win7)
+        run: |
+          ./scripts/test.sh
+          python3 scripts/check-encoding.py > encoding-audit.json
+          pwsh -NoProfile -File tests/provisioning-matrix.ps1
+      - name: End-to-end vectors, simulated spool and serial
+        run: |
+          dotnet build src/FoisonC24.WindowsReceiver -f net8.0 -c Release
+          dotnet run --project tests/FoisonC24.CoreTests -f net8.0 -c Release -- /usr/bin/gs /usr/bin/mutool "$PWD/tests/fixtures" "$PWD/src/FoisonC24.WindowsReceiver/bin/Release/net8.0/FoisonC24Receiver.dll"
   windows:
     needs: ubuntu
     runs-on: windows-2022
@@ -38,62 +40,35 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install packaging tools
-        run: choco install nsis --no-progress -y
-      - name: Download and verify official interpreters, prerequisites and corresponding source
-        run: python scripts/prepare-tools.py
-      - name: Validate PowerShell syntax (Windows PowerShell)
-        shell: powershell
-        run: |
-          $tokens = $null; $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/packaging/windows/Install-Queue-Win7.ps1", [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count) { $errors | Format-List; exit 1 }
-      - name: Build applications and test harness for actual .NET Framework
-        run: |
-          dotnet build src/FoisonC24.WindowsReceiver -f net48 -c Release
-          dotnet build src/FoisonC24.Diagnostic -c Release
-          dotnet build src/FoisonC24.Provisioner -c Release
-          dotnet build tests/FoisonC24.CoreTests -f net48 -c Release
-      - name: Run net48 acceptance with bundled Windows interpreters and simulated spool input
-        shell: pwsh
-        run: |
-          & tests/FoisonC24.CoreTests/bin/Release/net48/FoisonC24.CoreTests.exe `
-            "$PWD/packaging/windows/tools/gs/bin/gswin64c.exe" `
-            "$PWD/packaging/windows/tools/mupdf/mutool.exe" `
-            "$PWD/tests/fixtures" `
-            "$PWD/src/FoisonC24.WindowsReceiver/bin/Release/net48/FoisonC24Receiver.exe"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Prepare complete installation tree
-        shell: pwsh
-        run: |
-          Copy-Item src/FoisonC24.WindowsReceiver/bin/Release/net48/FoisonC24Receiver.exe packaging/windows/
-          Copy-Item src/FoisonC24.Diagnostic/bin/Release/net48/FoisonC24Diagnostic.exe packaging/windows/
-          Copy-Item src/FoisonC24.Diagnostic/bin/Release/net48/FoisonC24.Core.dll packaging/windows/
-          Copy-Item src/FoisonC24.Provisioner/bin/Release/net48/FoisonC24Provisioner.exe packaging/windows/
-          # Binary files are ignored in Git, so extract the exact tracked RedMon source distribution's companion binaries.
-          python scripts/fetch-redmon.py
-      - name: Real RedMon API smoke on disposable Windows 2022 spooler (not Win7)
+      - name: Pinned Unicode NSIS
+        run: choco install nsis --version=3.10.0 --allow-downgrade --no-progress -y
+      - name: Unified build, all tests, NSIS, PKZIP and byte verification
+        run: python scripts/build-release.py
+      - name: Real isolated RedMon APIs (Windows 2022, NOT Win7)
         shell: powershell
         run: ./tests/windows-redmon-smoke.ps1
-      - name: WinForms preview smoke and default physical gate
+      - name: Actual installer pt-BR UI and truthful OS rejection
+        shell: powershell
+        run: ./tests/windows-installer-visual.ps1
+      - name: Native Shell ZIP extraction and SHA256
+        shell: powershell
+        run: ./tests/windows-native-zip.ps1
+      - name: WinForms preview and physical gate
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force dist | Out-Null
           $p = Start-Process packaging/windows/FoisonC24Diagnostic.exe -ArgumentList @('--ui-smoke', "`"$PWD/dist/UI-preview.png`"", "`"$PWD/tests/fixtures/square-20mm.ps`"") -Wait -PassThru
           if ($p.ExitCode -ne 0) { exit $p.ExitCode }
-      - name: Build full installer (not capture-only)
+      - name: Preserve failure evidence, not customer jobs
+        if: always()
         shell: pwsh
         run: |
-          Set-Location packaging/windows
-          & "${env:ProgramFiles(x86)}/NSIS/makensis.exe" /WX /DOUTFILE=FoisonC24-Setup-x64.exe FoisonC24-Setup.nsi
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Inspect and package one client ZIP
-        run: python scripts/package-client.py
+          New-Item -ItemType Directory -Force dist/evidence | Out-Null
+          Get-ChildItem $env:TEMP -Directory -Filter 'foison-matrix-*' | Copy-Item -Destination dist/evidence -Recurse
+          Get-ChildItem $env:TEMP -Directory -Filter 'foison-bootstrap-*' | Copy-Item -Destination dist/evidence -Recurse
+          if (Test-Path "$env:ProgramData/FoisonC24/Logs") { Copy-Item "$env:ProgramData/FoisonC24/Logs" dist/evidence -Recurse }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: foison-c24-client-session
-          path: |
-            dist/FoisonC24-Cliente-Win7-x64.zip
-            dist/FoisonC24-Setup-x64.exe
-            dist/checksums.sha256
-            dist/UI-preview.png
+          name: foison-c24-release-candidate
+          if-no-files-found: error
+          path: dist/

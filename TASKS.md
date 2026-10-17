@@ -1,3 +1,11 @@
+## Missão 1.0.1-rc.1
+- [x] Auditar repositório e ZIP anterior sem presumir corrupção.
+- [x] Corrigir orquestração, estado, ownership, logs e contrato Unicode.
+- [x] Implementar pipeline único e testes negativos/modelos.
+- [ ] Concluir build/NSIS/extração/hash/ZIP e CI Windows nativo.
+- [ ] Inspecionar evidências visuais disponíveis e registrar pendências Win7.
+- [ ] Publicar prerelease versionada com EXE/ZIP/checksums após aceite aplicável.
+
 # Tarefas — prioridade primeiro quadrado físico
 
 ## Implementado, aceitação automatizada em andamento

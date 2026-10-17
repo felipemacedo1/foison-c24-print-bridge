@@ -1,0 +1,6 @@
+﻿Instalação concluída com sucesso.
+Configuração da impressora Foison C24.
+Não foi possível instalar o monitor de impressão.
+Verificação de dependências concluída.
+Falha na comunicação com a porta serial.
+Atenção: reinicialização necessária.

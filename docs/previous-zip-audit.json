@@ -1,0 +1,84 @@
+{
+  "file": "FoisonC24-Cliente-Win7-x64.zip",
+  "bytes": 351266680,
+  "sha256": "aadb3356b760c2c1b20642b21215b3ae844ce09496c11671bc89c2417909df07",
+  "signature": "504b0304",
+  "central_directory": 351266152,
+  "python_crc": "PASS",
+  "seven_zip": "PASS (7z t)",
+  "entries": [
+    {
+      "name": "FoisonC24-Setup-x64.exe",
+      "method": 8,
+      "flags": 0,
+      "size": 351167140,
+      "compressed": 351259220,
+      "crc32": "1b69c597",
+      "extract_version": 20
+    },
+    {
+      "name": "checksums.sha256",
+      "method": 8,
+      "flags": 0,
+      "size": 90,
+      "compressed": 85,
+      "crc32": "e998c26c",
+      "extract_version": 20
+    },
+    {
+      "name": "BUILD-INFO.txt",
+      "method": 8,
+      "flags": 0,
+      "size": 200,
+      "compressed": 169,
+      "crc32": "c896907a",
+      "extract_version": 20
+    },
+    {
+      "name": "LEIA-ME.txt",
+      "method": 8,
+      "flags": 0,
+      "size": 1562,
+      "compressed": 935,
+      "crc32": "0c0c57db",
+      "extract_version": 20
+    },
+    {
+      "name": "INSTRUCOES-DE-TESTE.html",
+      "method": 8,
+      "flags": 0,
+      "size": 1285,
+      "compressed": 796,
+      "crc32": "e33760cc",
+      "extract_version": 20
+    },
+    {
+      "name": "PRIMEIRA-SESSAO.md",
+      "method": 8,
+      "flags": 0,
+      "size": 7291,
+      "compressed": 3554,
+      "crc32": "b541029f",
+      "extract_version": 20
+    },
+    {
+      "name": "THIRD-PARTY.txt",
+      "method": 8,
+      "flags": 0,
+      "size": 1361,
+      "compressed": 800,
+      "crc32": "9bddbccf",
+      "extract_version": 20
+    },
+    {
+      "name": "quadrado-20mm.svg",
+      "method": 8,
+      "flags": 0,
+      "size": 267,
+      "compressed": 215,
+      "crc32": "985a7307",
+      "extract_version": 20
+    }
+  ],
+  "cause": "No corruption reproduced; exact client symptom/file not provided. Outer Actions ZIP confusion remains a hypothesis only."
+}

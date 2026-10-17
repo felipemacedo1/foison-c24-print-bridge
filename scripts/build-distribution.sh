@@ -2,4 +2,4 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$root"
-python3 scripts/package-client.py
+exec python3 scripts/build-release.py "$@"

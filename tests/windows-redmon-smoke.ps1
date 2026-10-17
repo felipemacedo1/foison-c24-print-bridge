@@ -16,13 +16,16 @@ $ports = @(& $provisioner list-ports)
 if ($LASTEXITCODE -ne 0 -or $ports -contains $port) { throw 'Cannot reserve isolated test port' }
 $created = $false
 try {
+  InvokeChecked $provisioner @('monitor-status')
   InvokeChecked $provisioner @('add-port', $port)
   $created = $true
-  InvokeChecked $provisioner @('configure-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'))
+  InvokeChecked $provisioner @('configure-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'), '0123456789abcdef0123456789abcdef')
+  InvokeChecked $provisioner @('verify-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'), '0123456789abcdef0123456789abcdef')
   $ports = @(& $provisioner list-ports)
   if ($LASTEXITCODE -ne 0 -or $ports -notcontains $port) { throw 'Port did not enumerate' }
   # Reconfiguration is a tested idempotent read-back, no printer/physical port.
-  InvokeChecked $provisioner @('configure-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'))
+  InvokeChecked $provisioner @('configure-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'), '0123456789abcdef0123456789abcdef')
+  InvokeChecked $provisioner @('verify-port', $port, (Join-Path $pack 'FoisonC24Receiver.exe'), '0123456789abcdef0123456789abcdef')
   Write-Host 'PASS real Windows 2022 spooler RedMon AddPort/GetConfig/SetConfig/read-back/EnumPorts'
 }
 finally {

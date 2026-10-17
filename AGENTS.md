@@ -48,7 +48,8 @@ logs extensos.
 - Desenvolvimento Windows: `dotnet run --project src/FoisonC24.Diagnostic`
   (tools/ deve estar ao lado do EXE; nenhuma aprovação física persistida).
 - Dependências: `python3 scripts/prepare-tools.py`, `python3 scripts/fetch-redmon.py`.
-- NSIS e pacote: `./packaging/windows/build-installer.sh` e
+- Pipeline único (testes/build/NSIS/ZIP/hashes): `python3 scripts/build-release.py`.
+- NSIS e pacote (aliases do pipeline único): `./packaging/windows/build-installer.sh` e
   `./scripts/build-distribution.sh`; nenhum ZIP incompleto deve ser entregue.
 - Nunca declarar tests simulados como validação Win7/Corel/hardware. Não apagar
   journal ou latch para repetir trabalho cujo estado físico é incerto.

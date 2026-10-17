@@ -1,0 +1,41 @@
+﻿Foison C24 — recuperação acompanhada (não executar movimentos)
+
+Se o instalador falhar, não repita cortes. Mantenha o FlexiSIGN funcional.
+Logs: C:\ProgramData\FoisonC24\Logs; fallback: %TEMP%\FoisonC24\Logs.
+Compartilhe o conjunto install-ID-* com o desenvolvedor. O ID é comum ao
+NSIS, CMD, PowerShell e processos. installation-latest*.log aponta a execução.
+CMD usa OEM/ASCII; NSIS usa UTF-16LE com BOM; PowerShell/componentes usam
+UTF-8 com BOM. .raw são bytes originais de stdout/stderr, separados, nunca
+misturados nos logs Unicode. Falhas de sintaxe anteriores ao PS ficam no CMD
+mais stderr.raw. Não há conteúdo integral de trabalhos nestes logs.
+
+Abra o CMD como administrador, vá à pasta do programa e execute:
+  Install-Queue-Win7.cmd verify
+Para diagnóstico de fila -> PScript -> RedMon -> Receiver -> conversão, sem serial:
+  Install-Queue-Win7.cmd capture-test
+A sonda GDI gera um quadrado vetorial de 20 mm. Não substitui testar CorelDRAW.
+Em automação: acrescente --noninteractive. Sem isso, erros aguardam uma tecla.
+
+install-state.properties contém chaves literais UTF-8, não JSON. O legado
+install-state.json chave=valor é adotado somente após provar fila e configuração
+RedMon. O original permanece em .legacy.properties.bak. Nunca edite/apague o
+manifesto, journal, INTERRUPTED ou porta para forçar reinstalação/envio.
+Estado incompleto comprovadamente próprio pode ser recuperado. Se faltar prova
+(p.ex. queda entre AddPort e seu registro de propriedade), o Bridge interrompe e
+preserva a porta, sem adivinhar que ela lhe pertence. O desenvolvedor deve
+comparar logs, manifesto e propriedades reais. Configuração externa divergente
+é preservada e exige investigação, não exclusão automática.
+
+Sem privilégios: execute o instalador com UAC; nenhuma política global é alterada.
+Sem driver MS Publisher Imagesetter/PScript5 x64 único: não escolher outro driver.
+RedMon exit=0 não basta: o monitor deve aparecer nas APIs reais do spooler.
+Pré-requisito solicita reboot (3010/1641): reinicie e rode o mesmo instalador.
+VC++ é 2019 v142 14.29.30157 x64, fixado por SHA-256; não baixar o latest moderno.
+Windows Update/UCRT/SHA-2/.NET podem exigir atualizações legítimas do Windows.
+
+Desinstale pelo Uninstall.exe ou Painel de Controle. O Bridge remove somente
+fila/porta cuja propriedade e configuração ainda correspondem ao manifesto.
+RedMon compartilhado, drivers, FTDI, COM2, FlexiSIGN, logs e journal permanecem.
+Falha na remoção preserva arquivos para recuperação. Não execute unredmon64.exe.
+Logs antigos: retenção PS de pelo menos 30 dias e 200 arquivos antigos; arquivos
+recentes e execução atual preservados. Desenvolvedor pode arquivá-los após análise.

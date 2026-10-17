@@ -1,0 +1,2 @@
+*.cmd text eol=crlf whitespace=cr-at-eol
+*.bat text eol=crlf whitespace=cr-at-eol

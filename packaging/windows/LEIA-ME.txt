@@ -1,23 +1,22 @@
-FOISON C24 — PRIMEIRA SESSÃO ACOMPANHADA
-Candidato com conversão vetorial e serial reais. NÃO validado no Windows 7/Corel/hardware.
+﻿Foison C24 Print Bridge 1.0.1-rc.1 — TESTE ACOMPANHADO
+Não validado em Windows 7/CorelDRAW/hardware. Não instalar sem o desenvolvedor.
 
-1. Com o desenvolvedor presente, execute FoisonC24-Setup-x64.exe.
-   Confirme a instalação. Se o Windows exigir reinicialização, reinicie e execute
-   o mesmo instalador novamente. Não altere o driver FTDI nem o FlexiSIGN.
-2. Abra no CorelDRAW X6 o arquivo quadrado-20mm.svg (atalho na Área de Trabalho).
-   Imprima em Foison C24 (Teste), escala 100%, sem ajustar à página, uma cópia.
-3. No Foison C24, selecione o trabalho e clique Pré-visualizar.
-   Confira 20,000 × 20,000 mm. Siga as confirmações do desenvolvedor e operador.
+1. Extraia tudo com "Extrair tudo" do Windows e execute
+   FoisonC24-Setup-Win7-x64.exe. Autorize o UAC. Se solicitar, reinicie e repita.
+2. No CorelDRAW X6, abra quadrado-20mm.svg. Imprima em Foison C24 (Teste),
+   uma cópia, escala 100%, sem ajustar à página.
+3. Abra o atalho Foison C24. Selecione o trabalho, confira a prévia 20 × 20 mm
+   e siga as confirmações com o desenvolvedor.
 
-Não há envio automático ao imprimir. Não aprove nada que não tenha sido verificado.
-O desenvolvedor precisa comprovar o protocolo da revisão, resolução, origem,
-limites e serial antes de autorizar. Se faltar evidência, NÃO haverá movimento.
-Movimento inicial: lâmina fisicamente removida. Corte: somente após observar
-fim e medir o ensaio. Cada envio exige confirmação explícita.
-INTERROMPER ENVIO não garante parar o buffer da plotter. Use PAUSE/OFFLINE
-no painel, aguarde e chame o desenvolvedor. Nunca clique para repetir o trabalho.
+Movimento/corte começam bloqueados. Não basta transmitir para comprovar corte.
+Se protocolo, escala, direção, limites ou comunicação não forem comprovados,
+não movimente a plotter. FlexiSIGN/FTDI/COM2 existentes não serão reconfigurados.
+Não feche a janela de erro sem anotar o ID. Logs ficam em
+C:\ProgramData\FoisonC24\Logs (alternativa: %TEMP%\FoisonC24\Logs).
+Envie a pasta de diagnóstico ao desenvolvedor; veja RECUPERACAO.txt.
 
-Se algo falhar, use Diagnóstico / Exportar relatório. O programa não força a
-liberação da COM2, não mata processos, nem reconfigura FTDI/FlexiSIGN.
-A área da primeira sessão é limitada a no máximo 50 × 50 mm medidos.
-Não opere sem acompanhamento. Detalhes técnicos em PRIMEIRA-SESSAO.md.
+Requisitos: Windows 7 SP1 x64, .NET 4.8, driver inbox MS Publisher Imagesetter
+PScript5 x64 único. Engines, RedMon e pré-requisitos reais estão no instalador.
+Pré-requisitos/UCRT/SHA-2 podem exigir atualizações legítimas e reinicialização.
+SHA256SUMS.txt confere os arquivos desta pasta; o manifesto externo também
+confere o ZIP. Não renomeie arquivos de outro formato para .zip.

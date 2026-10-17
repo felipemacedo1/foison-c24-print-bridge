@@ -12,7 +12,7 @@ comprovar essas condições, nenhum movimento é permitido. Consulte
 ## Produto
 
 - Windows 7 SP1 x64 / .NET Framework 4.8; UI WinForms em português.
-- Instalador offline `FoisonC24-Setup-x64.exe` com engines vetoriais reais,
+- Instalador offline `FoisonC24-Setup-Win7-x64.exe` com engines vetoriais reais,
   pré-requisitos, RedMon x64, fonte e licenças. Pode precisar reiniciar Windows
   pelos pré-requisitos; não é possível prometer sessão sem reboot.
 - Driver PostScript inbox MS Publisher Imagesetter instalado pelo INF do próprio
@@ -60,12 +60,21 @@ abre COM para sondar. Uma nova sessão exige nova aprovação do desenvolvedor.
 ## Build completo
 
 ```sh
-python3 scripts/prepare-tools.py           # Python + 7z; downloads oficiais fixados
-python3 scripts/fetch-redmon.py
-# Copiar os três EXEs net48 e FoisonC24.Core.dll para packaging/windows/
-./packaging/windows/build-installer.sh     # NSIS 3; MAKENSIS pode indicar executável
-./scripts/build-distribution.sh            # falha se qualquer componente faltar
+# SDK .NET 8, Python 3.12, NSIS Unicode 3.09/3.10, PowerShell (testes), 7z.
+# Ubuntu também requer gs/mutool reais; Windows usa os engines fixados no pacote.
+python3 scripts/build-release.py
+# Alternativas de entrada delegam ao mesmo pipeline; não empacotam EXE antigo.
+# DOTNET/PWSH/MAKENSIS/GS/MUTOOL podem indicar executáveis locais.
 ```
+
+Saída atômica em `dist/<VERSION>/`: instalador, ZIP versionado, SHA256SUMS.txt e
+validation.json. Recusa substituir distribuição existente. Release exige Git
+limpo; `--development --output dist/experimento` é **não publicável**.
+Testa Python, matriz PS, C# E2E real/simulação, arquitetura/versões PE, payload
+extraído do NSIS, headers ZIP/CRC, extração/hash de cada entrada e `7z t`.
+ZIP: Deflate 8, nomes ASCII, diretório único, sem ZIP64/AES/multipartes.
+[Recuperação e logs](packaging/windows/RECUPERACAO.txt),
+[matriz de validação](docs/release-validation.md) e [auditoria ZIP anterior](docs/previous-zip-audit.json).
 
 O Git deve conter as fontes atuais commitadas antes de preparar o arquivo fonte
 com `git archive HEAD`. O CI automatiza todos esses passos, executa net48 com

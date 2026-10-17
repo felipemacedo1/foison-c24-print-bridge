@@ -1,3 +1,19 @@
+## Correção versionada em andamento — 1.0.1-rc.1
+
+- Auditoria inicial: main d36eeb5, sem tags/releases; SDK implícito 1.0.0.0.
+- ZIP anterior é PKZIP válido (8 arquivos, Deflate, CRC Python/7z); causa do
+  sintoma do cliente não reproduzida. Relatório docs/previous-zip-audit.json.
+- Implementados monitor antes de portas, admin/PS64, estado .properties atômico,
+  migração com intenção persistida, markers/fingerprint, rollback conservador,
+  logs correlacionados desde CMD e NSIS com verify independente.
+- UTF-8 BOM NSIS/PS/TXT, idioma PortugueseBR, charset explícito, bootstrap ASCII;
+  testes de texto e pipeline unificado de build/extração/hashes/ZIP convencional.
+- Evidência local parcial: 23 Python, 20 modelos PS e 52 checks C# reais/simulados;
+  builds net48 sem warnings. Build NSIS/pacote final e CI em andamento.
+- Win7/PS2/CorelDRAW/serial/Foison não executados. Corte físico bloqueado.
+- Matriz e limites: docs/release-validation.md. Publicação somente prerelease
+  após concluir verificações aplicáveis; não há compatibilidade real comprovada.
+
 # Estado do projeto — candidato para primeira sessão acompanhada
 
 Atualizado: 2026-10-16. Código do candidato: **48bdc05**.

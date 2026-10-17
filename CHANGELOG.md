@@ -1,6 +1,24 @@
 # Changelog
 
-## Unreleased
+## 1.0.1-rc.1 — correção de instalação e distribuição
+
+Versão anterior implícita SDK 1.0.0.0, sem tag/release. Candidato, não estável.
+- RedMon instalado/verificado antes de enumerar portas; admin/OS/64 bits explícitos.
+- Dependências completas e engines reais; driver exato, leitura final independente.
+- Manifesto literal .properties atômico; migração recuperável do falso .json legado.
+- Propriedade da fila/porta com UUID e fingerprint; lock, rollback restrito e
+  preservação quando há alteração externa ou estado incompleto não comprovável.
+- Logs desde CMD, correlação NSIS/PS/processos, fallback TEMP, stdout/stderr,
+  timeouts, exceções/etapas e códigos reais; erros manuais não desaparecem.
+- Unicode pt-BR: NSIS/PS e TXT com BOM, charset de compilação explícito, CMD ASCII,
+  logs segregados por encoding e gate automatizado contra corrupção textual.
+- Pipeline único testa/compila/stage limpo/NSIS/extrai e compara bytes/ZIP Deflate
+  convencional/CRC/hash/7z, com nomes versionados e checksums.
+- Sonda vetorial de 20 mm para a fila própria, captura e conversão sem serial.
+- Win7/PowerShell 2/CorelDRAW/Foison e telas de conclusão/desinstalação em Win7
+  continuam NÃO EXECUTADOS. Corte físico bloqueado por padrão.
+
+## Histórico pré-versionamento (Unreleased)
 
 ### Added
 
@@ -29,7 +47,7 @@
 ### Known limitations
 
 - A fila/driver Windows ainda não foi instalada ou testada.
-- O parser PostScript e o protocolo/escala C24 ainda não estão validados.
+- Nota histórica: parser real foi implementado posteriormente; protocolo/escala da revisão física continuam sem validação.
 
 ## Candidato de primeira sessão acompanhada — 2026-10-16
 

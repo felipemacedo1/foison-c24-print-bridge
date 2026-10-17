@@ -1,37 +1,45 @@
-# Objetivo / aceite
-Candidato único para primeira sessão acompanhada: PS vetorial → prévia mm →
-HPGL condicionado à prova de revisão → serial exclusiva → ensaio/corte autorizado.
-Não entregar captura-only nem prometer hardware validado.
+# Missão
+Corrigir instalação Win7/PowerShell 2, reconstruir instalador autocontido, validar
+ZIP PKZIP e publicar prerelease com EXE/ZIP/checksums. Físico permanece bloqueado.
 
-## Decisões e áreas alteradas
-- Checkout real nesta subpasta, recuperado do GitHub a partir de 610e5ec; pai preservado.
-- C# net48/net8 compartilhado: conversão GS/MuPDF reais, geometria, perfil/plano,
-  IWire/Sender/journal; UI portuguesa e serial net48; Receiver binário atômico.
-- Envelopes EOT/PJL estritos; clips só aceitos quando retangulares e inofensivos.
-- IN/PA/PU/PD e resolução sem presunção; aprovação por sessão/plano/operador.
-- Latch persistido antes do primeiro byte; sem retry e sem reset wire desconhecido.
-- Provisionador RedMon corrigido pelo fonte 1.9: Redirected Port, RECONFIG e
-  XcvDataW GetConfig/SetConfig/read-back. Driver inbox exato PScript5 x64.
-- NSIS/ZIP completo com dependências oficiais fixadas, pré-requisitos e fontes.
-  Setup RedMon exige chm/helper original; Bridge nunca executa seu desinstalador.
-- Arquivos/comandos e roteiro técnico em README, docs e PRIMEIRA-SESSAO.md.
+## Auditoria inicial (antes das alterações)
+- main limpa em d36eeb5, remoto igual; sem tags/releases/rulesets e main não protegida.
+- Assemblies SDK têm versão implícita 1.0.0.0; próxima correção 1.0.1-rc.1.
+- Scripts atuais: prepare-tools.py, fetch-redmon.py, NSIS, package-client.py e CI.
+- ZIP anterior 351266680 bytes, SHA256 aadb3356b760c2c1b20642b21215b3ae844ce09496c11671bc89c2417909df07.
+  Cabeçalho PK0304, diretório central, 8 entradas ASCII únicas, método 8, sem
+  ZIP64/criptografia, CRC Python e 7z passaram. Sintoma exato do cliente ausente:
+  causa não comprovada; confusão com ZIP externo de artefatos é só hipótese.
+- Falhas confirmadas: ordem RedMon, ausência de admin explícito, dependências
+  incompletas, manifesto .json em key=value, escrita não atômica, locks sem finally,
+  PrintUI sem timeout, NSIS sem verificação independente e runtime 1638 genérico.
+- VC++ embarcado é 14.29.30157.0 (VS2019), hash fixado; não é runtime moderno
+  indiscriminado. Engines PE x64 e dependência UCRT/VC14 serão verificadas no build.
 
-## Validações / entrega
-- Código do candidato 48bdc05; workflow 38972159423 SUCCESS.
-- 14 testes Python/contratos, 52 checks C# Ubuntu e net48/engines Windows reais.
-- Spooler Windows 2022 real: Add/Get/Set/read-back/Enum/DeletePort passaram;
-  nenhum teste de fila Corel/Win7 ou porta física.
-- Build net48 sem warnings/erros no CI; NSIS /WX e PowerShell passaram.
-- UI smoke revisada: quadrado 20 mm e envio bloqueado por padrão.
-- Artefatos baixados e inspecionados: ZIP/CRC/SHA256, payload e fontes completas.
-  Diferenças textuais do source archive são somente CRLF do checkout Windows.
-- dist contém bytes exatos do CI: FoisonC24-Setup-x64.exe e ZIP Cliente-Win7-x64.
-  Hash instalador: 48dd511435cad211d2a8f17eb2daebc9e0974ab0aeea5fd452bc7c5e4abd2d8a.
-- Primeiro CI falhou pelo BOM no stdin simulado Framework; harness corrigido e
-  igualdade SHA256 exigida, sem relaxar o receptor. Auditoria NuGet local indisponível.
+## Plano / aceite
+1. Orquestração PS2 testável, monitor verificado antes de portas, estado .properties
+   migrável/atômico, propriedade e rollback conservadores, logging e verify separado.
+2. Helpers nativos e NSIS sem falso sucesso; validação runtimes/arquitetura.
+3. Pipeline único Release/testes/NSIS/ZIP Deflate não ZIP64, extração/hash independente.
+4. Matriz simulada + APIs reais disponíveis/CI; release rc após artefatos aprovados.
 
-## Bloqueios / próximos passos
-Sem Win7/CorelDRAW X6/FlexiSIGN 12/Foison físicos. Protocolo, resolução, origem,
-limites e serial reais ainda não comprovados. Seguir PRIMEIRA-SESSAO; sem prova
-não mover. Pré-requisitos podem exigir reboot/atualização. Não apagar journal
-para repetir trabalho incerto. Entrega é candidato completo, não corte validado.
+## Bloqueios
+Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECUTADOS.
+
+## Marco implementação
+- PS orquestração + logs/ProcessRun + manifestos/migração/rollback implementados;
+  20 casos de modelo/processo passaram em pwsh 7.6.7. PS2 não executado.
+- 23 Python passaram. 52 C# E2E com engines reais Ubuntu passaram; net48 0 warnings.
+- Unicode NSIS/PS/TXT BOM e inputcharset fixo; CMD ASCII/OEM segregado; gate textual.
+- Pipeline atômico novo em scripts/build-release.py; estágio limpo e comparação
+  byte-a-byte após NSIS/ZIP. Build de desenvolvimento em validação, não publicável.
+- Próximo: concluir NSIS/ZIP local, commit/push, CI Windows (bootstrap/RedMon/UI/
+  Shell ZIP), inspecionar artefatos e só então tag/prerelease.
+
+## Marco build local de desenvolvimento
+- Pipeline completo aprovado: builds Release net48/net8 sem warnings, 23 Python,
+  20 modelos PS, 52 C#; NSIS 3.09 /WX sem warnings; payload NSIS extraído e
+  comparado byte-a-byte; ZIP Deflate validado/extraído/hash e 7z t.
+- Saída dist/development-rc1 explicitamente dirty/development, NÃO publicar.
+- Últimas correções posteriores (resumo ASCII, ACL, mais propriedades da fila,
+  decode UTF-8 primeiro e scripts CI) serão incluídas no build limpo do commit.

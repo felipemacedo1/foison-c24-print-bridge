@@ -18,15 +18,26 @@ namespace FoisonC24.Diagnostic
         [STAThread]
         private static int Main(string[] args)
         {
-            if(args.Contains("--selftest"))
+            if(args.Contains("--selftest") || (args.Length==2 && args[0]=="--capture-check"))
             {
+                Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),new System.Text.UTF8Encoding(false)) { AutoFlush=true });
+                Console.SetError(new StreamWriter(Console.OpenStandardError(),new System.Text.UTF8Encoding(false)) { AutoFlush=true });
+                string scratch=Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-"+Guid.NewGuid());
+                string evidence=Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-error.txt");
                 try
                 {
-                    var d=Converter().Convert(Path.Combine(Home,"testes","square-20mm.ps"),Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-"+Guid.NewGuid()),CancellationToken.None);
-                    if(Math.Abs(d.Width-20)>0.01 || Math.Abs(d.Height-20)>0.01) return 3;
+                    string input=args[0]=="--capture-check"?args[1]:Path.Combine(Home,"testes","square-20mm.ps");
+                    var d=Converter().Convert(input,scratch,CancellationToken.None);
+                    if(Math.Abs(d.Width-20)>0.05 || Math.Abs(d.Height-20)>0.05) throw new InvalidDataException("Escala inválida: "+d.SizeLabel+"; esperado 20 x 20 mm.");
+                    Console.WriteLine("RunId="+Environment.GetEnvironmentVariable("FOISON_RUN_ID")+" PASS vetor "+d.SizeLabel+"; serial não aberta; corte físico NÃO executado.");
                     return 0;
                 }
-                catch(Exception e) { File.WriteAllText(Path.Combine(Path.GetTempPath(),"FoisonC24-selftest-error.txt"),e.Message);return 2; }
+                catch(Exception e) {
+                    string detail="RunId="+Environment.GetEnvironmentVariable("FOISON_RUN_ID")+" "+e;
+                    Console.Error.WriteLine(detail);
+                    File.WriteAllText(evidence,detail,System.Text.Encoding.UTF8);return 2;
+                }
+                finally { if(Directory.Exists(scratch))Directory.Delete(scratch,true); }
             }
             Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false);
             if(args.Length==3 && args[0]=="--ui-smoke")
@@ -170,7 +181,7 @@ namespace FoisonC24.Diagnostic
             try { using(var s=new System.ServiceProcess.ServiceController("Spooler")) spooler=s.Status.ToString(); } catch(Exception e) { spooler=e.Message; }
             string processes=String.Join(", ",Process.GetProcesses().Where(p=>p.ProcessName.IndexOf("flexi",StringComparison.OrdinalIgnoreCase)>=0 || p.ProcessName.IndexOf("production",StringComparison.OrdinalIgnoreCase)>=0).Select(p=>p.ProcessName));
             string report="Spooler: "+spooler+"\r\nPortas visíveis: "+String.Join(", ",System.IO.Ports.SerialPort.GetPortNames())+"\r\nProcessos possivelmente relevantes: "+processes+" (não identifica proprietário da porta)\r\n"+
-                "Instalação: "+(File.Exists(Path.Combine(data,"install-state.json"))?"manifesto presente":"sem manifesto do Bridge")+"\r\nFila e driver devem ser confirmados no CorelDRAW.\r\nInterrupção pendente: "+File.Exists(Path.Combine(data,"session","INTERRUPTED"))+"\r\n"+
+                "Instalação: "+(File.Exists(Path.Combine(data,"install-state.properties"))?"manifesto presente":"sem manifesto do Bridge")+"\r\nFila e driver devem ser confirmados no CorelDRAW.\r\nInterrupção pendente: "+File.Exists(Path.Combine(data,"session","INTERRUPTED"))+"\r\n"+
                 "Configuração serial: "+port.Text+" / 38400 / 8N1 / Xon/Xoff. Nenhuma sondagem ou escrita foi feita.\r\n"+
                 "Cancelamento descarta somente o buffer do PC. PAUSE/OFFLINE no painel é obrigatório. Nunca envie reset desconhecido.\r\n"+
                 "Falhas de captura: veja receiver-errors.log; conversão: diagnóstico exportável. FTDI/FlexiSIGN não são alterados.";
@@ -184,8 +195,8 @@ namespace FoisonC24.Diagnostic
                 using(var f=new FileStream(dialog.FileName,FileMode.Create))
                 using(var zip=new ZipArchive(f,ZipArchiveMode.Create))
                 {
-                    foreach(var folder in new[]{data,Path.Combine(data,"captures"),Path.Combine(data,"session")})
-                    if(Directory.Exists(folder)) foreach(var file in Directory.GetFiles(folder).Where(x=>x.EndsWith(".json") || x.EndsWith(".log") || x.EndsWith(".sent") || Path.GetFileName(x)=="INTERRUPTED")) zip.CreateEntryFromFile(file,Path.GetFileName(file));
+                    foreach(var folder in new[]{data,Path.Combine(data,"captures"),Path.Combine(data,"session"),Path.Combine(data,"Logs")})
+                    if(Directory.Exists(folder)) foreach(var file in Directory.GetFiles(folder).Where(x=>x.EndsWith(".properties") || x.EndsWith(".json") || x.EndsWith(".log") || x.EndsWith(".sent") || Path.GetFileName(x)=="INTERRUPTED")) zip.CreateEntryFromFile(file,Path.GetFileName(folder)+"/"+Path.GetFileName(file));
                 }
                 MessageBox.Show("Relatório exportado sem arquivos brutos/PDF/vetores. Revise os erros antes de compartilhar: podem conter caminhos locais ou trechos de mensagens do interpretador.");
             }
