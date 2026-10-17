@@ -98,7 +98,7 @@ namespace FoisonC24.Provisioner
                 if(args.Length==5 && (args[0]=="add-queue" || args[0]=="remove-queue" || args[0]=="adopt-queue" || args[0]=="probe-queue")) { QueueOperation(args[0],args[1],args[2],args[3],args[4]);if(args[0]=="probe-queue")PrintSquare();return 0; }
                 Console.Error.WriteLine("Uso: monitor-status | list-ports[-file path] | add-port/remove-port FOISONC24n: | configure-port/verify-port port receiver [owner] | add-queue/remove-queue/adopt-queue name port driver owner");return 64;
             }
-            catch(Exception e) { Console.Error.WriteLine("RunId="+Environment.GetEnvironmentVariable("FOISON_RUN_ID")+" "+e);return 1; }
+            catch(Exception e) { var native=e as Win32Exception;Console.Error.WriteLine("RunId="+Environment.GetEnvironmentVariable("FOISON_RUN_ID")+" NativeErrorCode="+(native==null?"not-applicable":native.NativeErrorCode.ToString(System.Globalization.CultureInfo.InvariantCulture))+" "+e);return 1; }
         }
         private static bool MonitorPresent()
         {

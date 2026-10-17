@@ -102,3 +102,12 @@ Sem Win7/PS2/Corel/Foison físicos; testes específicos devem constar NÃO EXECU
 - Ajustado bootstrap: pushd nativo Unicode e nome ASCII relativo para findstr;
   não altera codepage global nem depende de nomes 8.3. Mesmo teste permanece
   obrigatório, sem ignorar falha. Aguardar CI do commit corrigido.
+
+## Última revisão de rastreabilidade
+- 9d0f864 passou CI 38991078711 completo e build Ubuntu local completo (24/22/52).
+- Preservado também NativeErrorCode do Win32 no helper (ToString com mensagem
+  customizada podia mostrar só HRESULT genérico); smoke nativo provoca falha de
+  GetConfig na porta própria já removida e exige código numérico no log.
+- Upload CI separado em ZIP cliente e evidências pequenas: EXE exato está dentro
+  do ZIP e é conferido pelo SHA externo, evitando transferir duas cópias de 360 MB.
+- O download do candidato anterior continua como evidência, não será publicado.

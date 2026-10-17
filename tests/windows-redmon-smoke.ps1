@@ -34,3 +34,16 @@ finally {
 $ports = @(& $provisioner list-ports)
 if ($LASTEXITCODE -ne 0 -or $ports -contains $port) { throw 'Port cleanup not verified' }
 Write-Host 'PASS isolated port cleanup; Windows 7/CorelDRAW/physical cutting NOT tested'
+
+# Keep the native Win32 cause, not only the wrapper's exit=1/HRESULT.
+$env:FOISON_RUN_ID='ci-redmon-negative'
+$nativeLog=Join-Path $root 'dist/native-redmon-error.log'
+$p=Start-Process $provisioner -ArgumentList @('verify-port',$port,('"'+(Join-Path $pack 'FoisonC24Receiver.exe')+'"')) -PassThru -RedirectStandardError $nativeLog
+$handle=$p.Handle
+if(-not $p.WaitForExit(30000)) {$p.Kill();throw 'Negative diagnostic timeout'}
+$p.Refresh()
+if($p.ExitCode -ne 1) {throw 'Missing-port negative diagnostic did not fail'}
+$p.Dispose()
+$text=[IO.File]::ReadAllText($nativeLog)
+if($text -notmatch 'NativeErrorCode=[0-9]+') {throw 'Native Win32 error cause was lost'}
+Write-Host ('PASS expected missing-port failure with '+$matches[0]+'; evidence='+$nativeLog)

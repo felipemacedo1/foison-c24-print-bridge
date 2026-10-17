@@ -66,9 +66,24 @@ jobs:
           Get-ChildItem $env:TEMP -Directory -Filter 'foison-matrix-*' | Copy-Item -Destination dist/evidence -Recurse
           Get-ChildItem $env:TEMP -Directory -Filter 'foison-bootstrap-*' | Copy-Item -Destination dist/evidence -Recurse
           if (Test-Path "$env:ProgramData/FoisonC24/Logs") { Copy-Item "$env:ProgramData/FoisonC24/Logs" dist/evidence -Recurse }
+      # Avoid downloading a second copy of the EXE already inside the client ZIP.
+      # The exact EXE is recoverable from ZIP and verified by the external CI hashes.
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: foison-c24-client-zip
+          if-no-files-found: error
+          compression-level: 0
+          path: dist/*/FoisonC24-v*-Win7-x64.zip
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: foison-c24-release-candidate
+          name: foison-c24-validation-evidence
           if-no-files-found: error
-          path: dist/
+          path: |
+            dist/*/validation.json
+            dist/*/SHA256SUMS.txt
+            dist/*.log
+            dist/UI-preview.png
+            dist/visual/
+            dist/evidence/
