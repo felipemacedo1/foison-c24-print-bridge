@@ -1,37 +1,33 @@
-# Objetivo / resultado
-Correção de instalação Win7, logging/Unicode, build e release computacional entregue
-como 1.0.1-rc.1. Corte físico segue bloqueado por padrão. Não declarar Win7 validado.
+# Objetivo
+Corrigir falha real Win7 SP1/PowerShell 2 no executor e preservar diagnóstico.
+Branch fix/win7-ps2-process-runner; base main 7351014. Sem merge/release estável.
 
-## Aceite e decisões
-- Cliente/tag b2df7cd / v1.0.1-rc.1; CI 38993143001 aprovado Ubuntu+Windows 2022.
-- Promoção 38995440164 aprovada; release pública prerelease=true/draft=false, 5 assets.
-- Versão anterior SDK implícita 1.0.0.0, sem tags/releases; main sem PR obrigatório
-  na auditoria. Sem force/reset/deleções de releases ou histórico.
-- Publicação promove bytes imutáveis, sem rebuild/overwrite/stable; digests GitHub
-  conferidos. Código de promoção em main é separado do SHA cliente tagueado.
+## Evidências / decisões
+- Logs locais recebidos (não versionar): RunId n16722667-4980, OS 6.1.7601 SP1 x64,
+  PowerShell 2.0, ADMIN aprovado; LOCK falha ParameterBindingException em
+  Start-Process antes de executar icacls. ExitCode desconhecido, não zero.
+- NSIS FileOpen a abre no início; Log sem FileSeek END sobrescreve BOM/histórico.
+  Corrigir separadamente da falha de parâmetros. UTF-8 PS recebido está íntegro.
+- Substituir Start-Process no executor por ProcessStartInfo/Process com captura
+  binária concorrente e limites de tempo, usando APIs CLR2; sem elevação extra.
+- Preservar ownership, rollback, FTDI/Flexi/COM2 e bloqueios físicos.
 
-## Áreas alteradas
-PS2/CMD, helper Win32, diagnóstico/sonda sem serial, NSIS Unicode, VERSION/props,
-pipeline build/PKZIP/PE/encoding, testes/modelos/nativos, workflows e documentação.
-Estado .properties atômico com migração, ownership/fingerprint, rollback restrito;
-monitor comprovado antes de portas; logs desde bootstrap e códigos nativos reais;
-BOM/CRLF e pt-BR. Lib de link/debug omitida do runtime, não dos fontes licenciados.
+## Plano / áreas
+1. Auditoria e viabilidade VM; preparar execução isolada sem mídia ilegal.
+2. Executor legado + append NSIS/códigos/logs, regressões reais e contratos.
+3. Testar Ubuntu/Windows CI, versionar candidato rc.2 e gerar pacote íntegro.
+4. Documentar evidências/limites e commits na branch, sem alterar main.
 
-## Validações
-- Candidato: 25 Python, 22 modelos PS, 52 C# por runtime; main atual 26 Python.
-- Release net48/net8 e NSIS 3.09 local / 3.10 CI sem warnings/erros.
-- Nativos Windows 2022: 7 falhas/bootstrap, processos/UTF-8/timeout/start failure,
-  RedMon isolado/erro Win32 87, UI e Shell.Application ZIP/hash.
-- Imagens finais abertas/revisadas: acentos legíveis e título sem corte.
-- ZIP cliente 8 arquivos, PKZIP método 8, 361149977 bytes; CRC, 7z, extração completa,
-  comparação de hashes, payload NSIS e fontes conferidos localmente e na promoção.
-- EXE SHA256 bf46847b38d1974f6862211c8756c2d7a414aca9a4d8a6445a76f0ed82c12747.
-- ZIP SHA256 a3aa2cc69a1c432a0b1390a61abff6830a94cb9b4ce8fc25b18e49d76c5a6ee9.
-- ZIP anterior disponível íntegro; causa do sintoma do cliente não determinada.
-- Matriz/limites: docs/release-validation.md; logs e imagens anexados à release.
+## Validações / bloqueios
+Executor e append NSIS implementados; 28 Python, 22 modelos PS, 9 processos reais
+em pwsh7, C#2/net20 API compile sem warnings/erros. CI/build/pacote pendentes.
+Ubuntu 24.04 x64, i5 VT-x, 15 GiB RAM/~10 disponíveis, 92 GiB livres.
+KVM API12 e QMP present/enabled confirmados fora do sandbox. QEMU8.2.2 extraído
+localmente, sem serviços/libvirt. QCOW2 vazio32GiB, snapshot blank-before-os;
+prelaunch pausado testado e encerrado. Host evidence artifacts/win7-vm-host.json.
+Nenhuma mídia Windows localizada na pesquisa inicial; não há autorização de licença.
+Win7/PS2 local, instalação/fila/Corel/serial/hardware ainda NÃO EXECUTADOS aqui.
 
-## Bloqueios / próximo passo
-Sem Win7/PS2/CorelDRAW/Foison reais: instalação/fila/extração alvo, telas finais/
-desinstalação, protocolo/revisão/limites/calibração/serial/corte NÃO EXECUTADOS.
-Realizar sessão acompanhada; sem comprovação de condições não enviar movimentos.
-Preservar FTDI/COM2/FlexiSIGN/filas externas e journal/latch de estado físico incerto.
+## Próximos passos
+Commit/push branch, executar CI Windows + build único local, investigar falhas,
+validar candidato ZIP/NSIS e registrar hashes/limites. Não mesclar main ou final.

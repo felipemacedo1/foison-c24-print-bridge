@@ -1,5 +1,10 @@
 # Foison C24 Print Bridge
 
+**Correção em branch: 1.0.1-rc.2.** A rc.1 falhou em Windows 7/PS2 antes de
+executar icacls. Não encaminhar a rc.1 como versão corrigida. Consulte
+[diagnóstico e regressões](docs/win7-ps2-correction.md) e
+[laboratório offline](docs/win7-vm.md). Novo candidato não é homologação.
+
 **[Baixar 1.0.1-rc.1 (prerelease)](https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.1)** — ZIP do cliente e instalador
 publicados com checksums e evidências. Win7/CorelDRAW/hardware ainda não validados.
 
@@ -45,6 +50,8 @@ No host atual o SDK está em `~/.dotnet/dotnet`; use `dotnet` no PATH.
 
 ```sh
 ./scripts/test.sh                         # Python e contratos de provisionamento
+python3 scripts/check-legacy-api.py        # C#2/net20 API; não prova runtime PS2
+pwsh -NoProfile -File tests/process-runner.ps1 # subprocessos reais, sem serial
 # Compilações equivalem ao lint/tipo-check C#; não há formatter adicional.
 dotnet build src/FoisonC24.WindowsReceiver -f net8.0 -c Release
 dotnet run --project tests/FoisonC24.CoreTests -f net8.0 -c Release -- \

@@ -1,6 +1,6 @@
 # Instalação
 
-Use exclusivamente o candidato completo `FoisonC24-Setup-x64.exe` na sessão
+Use exclusivamente o candidato completo `FoisonC24-Setup-Win7-x64.exe` na sessão
 acompanhada. O instalador verifica Win7 SP1 x64, instala pré-requisitos offline,
 executa autoteste vetorial 20 mm e só então provisiona a fila. Não abre COM2.
 Pré-requisitos Microsoft podem exigir reboot e atualizações do Windows; nesse

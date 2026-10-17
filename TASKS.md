@@ -1,3 +1,12 @@
+## Correção Win7/PS2 1.0.1-rc.2
+- [x] Auditar main atual e logs reais correlacionados, sem atribuir falha a ACL.
+- [x] Substituir executor e corrigir append/BOM NSIS/código real.
+- [x] Testes reais Ubuntu + compile C#2/net20 + matriz de regressão.
+- [x] Preparar laboratório isolado; KVM/VM vazia comprovados e desligados.
+- [ ] Concluir CI Windows moderno, build e ZIP candidato validado.
+- [ ] Executar Win7 SP1/PS2/CLR2 com mídia legítima (ainda não fornecida).
+- [ ] Homologar instalação/reinstalação/desinstalação/fila no alvo; sem merge/final antes disso.
+
 ## Missão 1.0.1-rc.1
 - [x] Auditar repositório e ZIP anterior sem presumir corrupção.
 - [x] Corrigir orquestração, estado, ownership, logs e contrato Unicode.

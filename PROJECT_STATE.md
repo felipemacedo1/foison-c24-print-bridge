@@ -1,3 +1,22 @@
+## Correção Win7/PS2 — 1.0.1-rc.2 em branch dedicada
+
+- Base main 7351014, branch fix/win7-ps2-process-runner; sem merge ou release final.
+- Logs do cliente rc.1: RunId n16722667-4980, OS6.1.7601/PS2, ADMIN aprovado,
+  binding de Start-Process falha antes do icacls, ExitCode desconhecido.
+- Executor substituído por ProcessStartInfo/C#2/CLR2, streams binários concorrentes,
+  timeout/kill do próprio filho e logs com início/PID/UNKNOWN/bytes preservados.
+- NSIS corrigido: seek END antes de append preserva BOM/histórico e código real.
+- Local: 28 Python, 22 modelos PS, 9 subprocessos reais em pwsh7, API compile
+  C#2/net20 sem warnings. CI/build/pacote novo ainda em andamento.
+- KVM API12/QMP enabled/present confirmados; QEMU8.2.2 extraído sem serviços.
+  Disco vazio32GiB, snapshot blank-before-os; VM pausada testada e encerrada.
+- Sem mídia/licença fornecida para instalar Win7. Win7/PS2 corrigido, instalação,
+  fila/Corel/hardware NÃO EXECUTADOS aqui. Nenhum movimento/COM foi acionado.
+- Evidências locais recebidas ignoradas e preservadas; sem logs de cliente no Git.
+- Detalhes: docs/win7-ps2-correction.md; reprodução: docs/win7-vm.md.
+
+## Histórico anterior (não representa o estado atual da correção)
+
 ## Release 1.0.1-rc.1 publicada — candidato, não estável
 
 - [Release](https://github.com/felipemacedo1/foison-c24-print-bridge/releases/tag/v1.0.1-rc.1),
